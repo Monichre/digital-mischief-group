@@ -1,9 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-// AnalyserNode is a global type and should not be imported from webaudioapi
 
-// Define the ParticleImageConfig type
 interface ParticleImageConfig {
   particles: {
     array: any[]
@@ -91,10 +89,16 @@ interface ParticleImageConfig {
   analyser?: AnalyserNode | null
 }
 
-export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
+interface ParticleFaceProps {
+  analyser?: AnalyserNode | null
+  imageSrc?: string
+}
+
+export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: ParticleFaceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const pImageRef = useRef<ParticleImageConfig | null>(null)
+  const currentImageSrcRef = useRef<string>(imageSrc)
 
   useEffect(() => {
     if (pImageRef.current) {
@@ -105,7 +109,14 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return
 
-    // Initialize the particle image displayer
+    if (pImageRef.current && currentImageSrcRef.current !== imageSrc) {
+      pImageRef.current.particles.array = []
+      pImageRef.current.image.src.path = imageSrc
+      currentImageSrcRef.current = imageSrc
+      pImageRef.current.functions.image.init()
+      return
+    }
+
     const initParticleImage = () => {
       const canvas = canvasRef.current
       if (!canvas) return
@@ -113,7 +124,7 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
       const pImageConfig: ParticleImageConfig = {
         particles: {
           array: [],
-          density: 3, // Adjusted density
+          density: 3,
           color: "#ffffff",
           size: {
             value: 0.5,
@@ -145,7 +156,7 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         },
         image: {
           src: {
-            path: "/images/liam-face.png",
+            path: imageSrc,
             is_external: true,
           },
           size: {
@@ -189,7 +200,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         analyser: analyser,
       }
 
-      // Canvas functions
       pImageConfig.functions.canvas.init = () => {
         pImageConfig.canvas.context = pImageConfig.canvas.el.getContext("2d")
         pImageConfig.canvas.el.width = pImageConfig.canvas.w
@@ -209,7 +219,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         pImageConfig.canvas.el.height = pImageConfig.canvas.h
         pImageConfig.canvas.aspect_ratio = pImageConfig.canvas.w / pImageConfig.canvas.h
 
-        // Clear existing particles
         pImageConfig.particles.array = []
 
         pImageConfig.functions.image.resize()
@@ -252,18 +261,15 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         return null
       }
 
-      // Image functions
       pImageConfig.functions.image.resize = () => {
         if (
           pImageConfig.image.obj &&
           pImageConfig.image.aspect_ratio !== undefined &&
           pImageConfig.canvas.aspect_ratio !== undefined
         ) {
-          // Calculate the appropriate size based on canvas dimensions
           let targetWidth, targetHeight
 
           if (pImageConfig.image.aspect_ratio < pImageConfig.canvas.aspect_ratio) {
-            // Height is the limiting factor
             targetHeight = pImageConfig.functions.utils.clamp(
               Math.round((pImageConfig.canvas.h * pImageConfig.image.size.canvas_pct) / 100),
               pImageConfig.image.size.min_px,
@@ -271,7 +277,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
             )
             targetWidth = Math.round(targetHeight * pImageConfig.image.aspect_ratio)
           } else {
-            // Width is the limiting factor
             targetWidth = pImageConfig.functions.utils.clamp(
               Math.round((pImageConfig.canvas.w * pImageConfig.image.size.canvas_pct) / 100),
               pImageConfig.image.size.min_px,
@@ -280,11 +285,9 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
             targetHeight = Math.round(targetWidth / pImageConfig.image.aspect_ratio)
           }
 
-          // Set the dimensions
           pImageConfig.image.obj.width = targetWidth
           pImageConfig.image.obj.height = targetHeight
 
-          // Center the image on the canvas
           pImageConfig.image.x = Math.round((pImageConfig.canvas.w - targetWidth) / 2)
           pImageConfig.image.y = Math.round((pImageConfig.canvas.h - targetHeight) / 2)
         }
@@ -293,10 +296,8 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
       pImageConfig.functions.image.init = () => {
         pImageConfig.image.obj = new Image()
         pImageConfig.image.obj.addEventListener("load", () => {
-          // Clear any existing particles
           pImageConfig.particles.array = []
 
-          // get aspect ratio (only have to compute once on initial load)
           pImageConfig.image.aspect_ratio = pImageConfig.image.obj!.width / pImageConfig.image.obj!.height
           pImageConfig.functions.image.resize()
           const img_pixels = pImageConfig.functions.canvas.getImagePixels()
@@ -311,7 +312,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         }
       }
 
-      // Particle functions
       pImageConfig.functions.particles.SingleImageParticle = function (init_xy: any, dest_xy: any) {
         this.x = init_xy.x
         this.y = init_xy.y
@@ -349,7 +349,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
             const alpha = pixel_data.data[index + 3]
 
             if (alpha > 30) {
-              // Only create particles for non-transparent pixels
               const r = pixel_data.data[index]
               const g = pixel_data.data[index + 1]
               const b = pixel_data.data[index + 2]
@@ -367,7 +366,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
                   }
 
               const particle = new pImageConfig.functions.particles.SingleImageParticle(init_xy, dest_xy)
-              // Use the actual color from the image
               particle.color = `rgba(${r},${g},${b},${alpha / 255})`
               pImageConfig.particles.array.push(particle)
             }
@@ -384,25 +382,20 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
           const dataArray = new Uint8Array(bufferLength)
           pImageConfig.analyser.getByteFrequencyData(dataArray)
 
-          // Calculate average volume (simple energy detection)
           let sum = 0
           for (let i = 0; i < bufferLength; i++) {
             sum += dataArray[i]
           }
           const average = sum / bufferLength
-          const normalized = average / 255 // 0.0 to 1.0
+          const normalized = average / 255
 
-          // Scale effects based on volume
-          // Pulse size: 1.0 to 2.5x
           pulseFactor = 1 + normalized * 1.5
-          // Restless movement: 1.0 to 5.0x
           restlessFactor = 1 + normalized * 4
         }
 
         for (const p of pImageConfig.particles.array) {
           p.radius = p.base_radius * pulseFactor
 
-          // Add some restlessness
           if (pImageConfig.particles.movement.restless.enabled) {
             p.dest_x += (Math.random() - 0.5) * pImageConfig.particles.movement.restless.value * restlessFactor
             p.dest_y += (Math.random() - 0.5) * pImageConfig.particles.movement.restless.value * restlessFactor
@@ -435,9 +428,7 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         }
       }
 
-      // Interactivity functions
       pImageConfig.functions.interactivity.repulseParticle = (p: any, args: any) => {
-        // compute distance to mouse
         const dx_mouse = p.x - pImageConfig.mouse.x,
           dy_mouse = p.y - pImageConfig.mouse.y,
           mouse_dist = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse),
@@ -489,18 +480,18 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
             pImageConfig.mouse.x = pos_x
             pImageConfig.mouse.y = pos_y
           })
-          pImageConfig.canvas.el.addEventListener("mouseleave", (e) => {
+          pImageConfig.canvas.el.addEventListener("mouseleave", () => {
             pImageConfig.mouse.x = null
             pImageConfig.mouse.y = null
           })
           pImageConfig.functions.utils.addEventActions("on_hover")
         }
         if (pImageConfig.particles.interactivity.on_click.enabled) {
-          pImageConfig.canvas.el.addEventListener("mousedown", (e) => {
+          pImageConfig.canvas.el.addEventListener("mousedown", () => {
             pImageConfig.mouse.click_x = pImageConfig.mouse.x
             pImageConfig.mouse.click_y = pImageConfig.mouse.y
           })
-          pImageConfig.canvas.el.addEventListener("mouseup", (e) => {
+          pImageConfig.canvas.el.addEventListener("mouseup", () => {
             pImageConfig.mouse.click_x = null
             pImageConfig.mouse.click_y = null
           })
@@ -514,7 +505,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         }
       }
 
-      // Utils functions
       pImageConfig.functions.utils.randIntInRange = (min: number, max: number) =>
         Math.floor(Math.random() * (max - min + 1)) + min
 
@@ -546,7 +536,6 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
         }
       }
 
-      // Launch functions
       pImageConfig.functions.launch = () => {
         pImageConfig.functions.interactivity.addEventListeners()
         pImageConfig.functions.canvas.init()
@@ -560,16 +549,15 @@ export function ParticleFace({ analyser }: { analyser?: AnalyserNode | null }) {
       return pImageConfig
     }
 
-    // Initialize the particle image
     pImageRef.current = initParticleImage()
+    currentImageSrcRef.current = imageSrc
 
-    // Cleanup function
     return () => {
       if (pImageRef.current) {
         window.removeEventListener("resize", pImageRef.current.functions.canvas.onResize)
       }
     }
-  }, [])
+  }, [imageSrc])
 
   return (
     <div className="w-full h-full relative" ref={containerRef}>

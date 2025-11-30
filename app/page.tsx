@@ -11,6 +11,7 @@ import {
   Search,
   FileText,
 } from "lucide-react"
+import { MeetTheTeam } from "@/components/MeetTheTeam"
 
 export default function DigitalMischief() {
   return (
@@ -382,6 +383,8 @@ export default function DigitalMischief() {
             infrastructure.
           </p>
         </div>
+
+        <MeetTheTeam />
       </section>
 
       <section id="audit" className="py-32 border-t border-zinc-800/50">
