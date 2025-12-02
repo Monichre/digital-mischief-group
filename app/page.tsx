@@ -28,26 +28,23 @@ export default function DigitalMischief() {
               Revenue Cortex
             </Link>
             <Link href="#process" className="hover:text-orange-500 transition-colors">
-              How We Work
+              Protocol
             </Link>
             <Link href="#cases" className="hover:text-orange-500 transition-colors">
-              Lab Reports
+              Burn Logs
             </Link>
             <Link href="#about" className="hover:text-orange-500 transition-colors">
-              About DMG
+              Mission
             </Link>
             <Link href="/lab" className="hover:text-orange-500 transition-colors">
-              Lab
-            </Link>
-            <Link href="/landing" className="hover:text-orange-500 transition-colors">
-              Landing
+              R&D
             </Link>
           </div>
           <Link
             href="#audit"
             className="px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300"
           >
-            Start an Audit →
+            Deploy →
           </Link>
         </div>
       </nav>
@@ -74,20 +71,48 @@ export default function DigitalMischief() {
 
         {/* Main Hero Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500">
-            <Flame className="w-3 h-3 text-orange-500" />
-            <span>AN IDEAS LAB WITH MATCHES</span>
+          {/* Logo Text */}
+          <div className="mb-12">
+            {/* Decorative corners */}
+            <div className="absolute -top-3 -left-4 w-6 h-6 border-l-2 border-t-2 border-orange-500/60" />
+            <div className="absolute -top-3 -right-4 w-6 h-6 border-r-2 border-t-2 border-orange-500/60" />
+            <div className="absolute -bottom-3 -left-4 w-6 h-6 border-l-2 border-b-2 border-orange-500/60" />
+            <div className="absolute -bottom-3 -right-4 w-6 h-6 border-r-2 border-b-2 border-orange-500/60" />
+
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-[-0.05em] px-6 py-2">
+              <span className="bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-100 bg-clip-text text-transparent">
+                DIGITAL
+              </span>
+              <span className="block text-orange-500 match-glow">MISCHIEF</span>
+              <span className="block text-2xl md:text-3xl lg:text-4xl tracking-[0.3em] text-zinc-400 font-light mt-1">
+                GROUP
+              </span>
+            </h1>
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none mb-6">
+          {/* Slogan underline */}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent via-orange-500/50 to-orange-500" />
+            <span className="text-xs md:text-sm tracking-[0.25em] text-zinc-500 uppercase font-medium">
+              an ideas lab with matches
+            </span>
+            <div className="h-px w-16 bg-gradient-to-l from-transparent via-orange-500/50 to-orange-500" />
+          </div>
+
+          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500">
+            <Flame className="w-3 h-3 text-orange-500" />
+            <span>// PROTOCOL: CONTROLLED BURNS</span>
+          </div>
+
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none mb-6">
             <span className="block text-zinc-100">Your Data Is Cold.</span>
             <span className="block text-orange-500 match-glow mt-2">We Bring the Matches.</span>
-          </h1>
+          </h2>
 
-          <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed">
-            Digital Mischief Group is an AI systems lab that builds{" "}
-            <span className="text-zinc-200">Revenue Cortexes</span> — governed AI infrastructure that turns dormant data
-            into autonomous workflows and real revenue.
+          <p className="max-w-3xl mx-auto text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed">
+            Digital Mischief is a <span className="text-zinc-200">Systems Engineering Skunkworks</span>. We test
+            volatile AI agents in the lab—breaking them so you don't have to—then deploy the governed, bulletproof
+            version into your business.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -96,14 +121,14 @@ export default function DigitalMischief() {
               className="group flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
             >
               <Flame className="w-4 h-4" />
-              <span>IGNITE A SYSTEM ARCHITECTURE AUDIT</span>
+              <span>INITIALIZE SYSTEM AUDIT</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="/lab"
+              href="#cases"
               className="flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300"
             >
-              <span>ENTER THE LAB</span>
+              <span>ACCESS BURN LOGS</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -121,20 +146,22 @@ export default function DigitalMischief() {
             AI Everywhere. <span className="text-orange-500">Nowhere It Counts.</span>
           </h2>
           <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-            Most teams have AI "experiments": POCs, scripts, prototypes.
+            Your teams are trapped in <span className="text-zinc-200">POC Purgatory</span>. You have scripts that don't
+            scale, agents you don't trust, and zero governance. You are burning budget on toys while competitors build
+            infrastructure.
           </p>
           <div className="grid md:grid-cols-3 gap-6 text-left">
             <div className="p-6 border border-zinc-800 bg-zinc-900/30">
               <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">No unified intelligence layer</p>
+              <p className="text-zinc-500 text-sm">Data Silos are locking you out.</p>
             </div>
             <div className="p-6 border border-zinc-800 bg-zinc-900/30">
               <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">No agents they trust in production</p>
+              <p className="text-zinc-500 text-sm">Zero trust in autonomous output.</p>
             </div>
             <div className="p-6 border border-zinc-800 bg-zinc-900/30">
               <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">No observability and governance</p>
+              <p className="text-zinc-500 text-sm">Compliance risk is paralyzing you.</p>
             </div>
           </div>
           <p className="text-zinc-300 text-xl mt-10 font-medium">DMG exists to close that gap.</p>
@@ -215,62 +242,6 @@ export default function DigitalMischief() {
         </div>
       </section>
 
-      <section className="py-32 border-t border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="text-xs text-zinc-600 font-mono mb-2">// OUTCOMES</div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
-              What Changes When the Cortex Is <span className="text-orange-500">Live</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">8–12× faster access</p>
-                <p className="text-zinc-500 text-sm">to institutional knowledge</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">Agents handle ops 24/7</p>
-                <p className="text-zinc-500 text-sm">repetitive work eliminated</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">Clear metrics & audit trails</p>
-                <p className="text-zinc-500 text-sm">for everything AI does</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">3× faster onboarding</p>
-                <p className="text-zinc-500 text-sm">for new hires</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">Leadership trusts</p>
-                <p className="text-zinc-500 text-sm">the system actually works</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 mt-2 shrink-0" />
-              <div>
-                <p className="text-zinc-200 font-medium">20–40% reduction</p>
-                <p className="text-zinc-500 text-sm">in repetitive operational work</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="process" className="py-32 border-t border-zinc-800/50 bg-zinc-900/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -282,11 +253,11 @@ export default function DigitalMischief() {
 
           <div className="grid md:grid-cols-5 gap-4">
             {[
-              { num: "01", title: "AUDIT", desc: "System Architecture Audit to map your current state" },
-              { num: "02", title: "DESIGN", desc: "Cortex architecture, workflows, guardrails" },
-              { num: "03", title: "BUILD", desc: "Implement Cortex, Interface(s), and Autopilot v1" },
-              { num: "04", title: "IGNITE", desc: "Deploy to real users, monitor everything" },
-              { num: "05", title: "SUSTAIN", desc: "Cortex Ops retainer for improvements" },
+              { num: "01", title: "DIAGNOSTIC", desc: "System Architecture Audit to map your current state" },
+              { num: "02", title: "ARCHITECTURE", desc: "Cortex architecture, workflows, guardrails" },
+              { num: "03", title: "FABRICATION", desc: "Implement Cortex, Interface(s), and Autopilot v1" },
+              { num: "04", title: "DEPLOYMENT", desc: "Deploy to real users, monitor everything" },
+              { num: "05", title: "OVERWATCH", desc: "Cortex Ops retainer for continuous improvements" },
             ].map((step) => (
               <div
                 key={step.num}
@@ -304,7 +275,7 @@ export default function DigitalMischief() {
               href="#audit"
               className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
             >
-              <span>START WITH AN AUDIT</span>
+              <span>START WITH A DIAGNOSTIC</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -316,7 +287,7 @@ export default function DigitalMischief() {
           <div className="mb-16">
             <div className="text-xs text-zinc-600 font-mono mb-2">// RESOURCES</div>
             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
-              Lab Reports & <span className="text-orange-500">Cases</span>
+              Burn Logs & <span className="text-orange-500">Cases</span>
             </h2>
           </div>
 
@@ -338,7 +309,7 @@ export default function DigitalMischief() {
             <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
               <div className="flex items-center gap-2 text-xs text-orange-500 mb-4">
                 <Search className="w-4 h-4" />
-                <span>LAB REPORT</span>
+                <span>BURN LOG</span>
               </div>
               <h3 className="text-xl font-bold mb-3 tracking-tight">AI Chasm Diagnostic</h3>
               <p className="text-zinc-500 text-sm leading-relaxed mb-4">
@@ -353,15 +324,14 @@ export default function DigitalMischief() {
         </div>
       </section>
 
-      {/* ABOUT SECTION */}
       <section id="about" className="py-32 border-t border-zinc-800/50 bg-zinc-900/30">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="text-xs text-zinc-600 font-mono mb-2">// ABOUT DMG</div>
+          <div className="text-xs text-zinc-600 font-mono mb-2">// MISSION</div>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8">
-            Digital Mischief <span className="text-orange-500">Group</span>
+            The Skunkworks <span className="text-orange-500">Unit</span>
           </h2>
           <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-            Digital Mischief Group is an AI systems engineering collective led by{" "}
+            A multidisciplinary team of engineers and architects obsessed with velocity. Led by{" "}
             <span className="text-zinc-200">Liam Ellis</span>.
           </p>
           <div className="grid md:grid-cols-3 gap-6 text-left my-10">
@@ -390,7 +360,7 @@ export default function DigitalMischief() {
       <section id="audit" className="py-32 border-t border-zinc-800/50">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6">
-            Ready to turn AI experiments into a system that actually <span className="text-orange-500">ships</span>?
+            Stop playing in the sandbox. <span className="text-orange-500">Move to production.</span>
           </h2>
           <p className="text-zinc-400 text-lg mb-10">
             Start with a System Architecture Audit and we'll map your Cortex.
@@ -400,7 +370,7 @@ export default function DigitalMischief() {
             className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
           >
             <Flame className="w-4 h-4" />
-            <span>BOOK A SYSTEM ARCHITECTURE AUDIT</span>
+            <span>INITIALIZE SYSTEM AUDIT</span>
             <ArrowRight className="w-4 h-4" />
           </a>
           <div className="mt-8 text-xs text-zinc-600 font-mono">

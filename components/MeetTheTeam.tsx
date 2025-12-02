@@ -16,30 +16,30 @@ const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "liam",
     name: "Liam Ellis",
-    role: "Creative Director",
+    role: "Head of R&D / Lead Architect",
     image: "/images/liam-face.png",
-    bio: "Visionary leader crafting immersive digital experiences that blur the line between art and technology.",
+    bio: "Systems architect designing governed AI infrastructure that transforms how enterprises deploy autonomous agents.",
   },
   {
     id: "brendan",
     name: "Brendan Ellis",
-    role: "Technical Director",
+    role: "Lead Systems Engineer",
     image: "/portrait-silhouette-cyberpunk-style-person.jpg",
-    bio: "Full-stack architect building the infrastructure that powers next-gen interactive systems.",
+    bio: "Full-stack engineer building the infrastructure that powers production-grade AI systems and multi-agent workflows.",
   },
   {
     id: "jp",
     name: "JP McMonagle",
-    role: "Audio Engineer",
+    role: "Ops Director",
     image: "/portrait-silhouette-neon-style-person.jpg",
-    bio: "Sound designer creating audio-reactive experiences that respond to every beat and frequency.",
+    bio: "Operations lead ensuring seamless deployment pipelines and continuous system reliability across all client environments.",
   },
   {
     id: "darius",
     name: "Darius Gladwell",
-    role: "Visual Designer",
+    role: "Interface Architect",
     image: "/portrait-silhouette-futuristic-style-person.jpg",
-    bio: "UI/UX specialist transforming complex interfaces into intuitive visual narratives.",
+    bio: "UI/UX specialist transforming complex AI interfaces into intuitive command centers for enterprise users.",
   },
 ]
 
