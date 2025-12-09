@@ -34,13 +34,6 @@ const TEAM_MEMBERS: TeamMember[] = [
     image: "/portrait-silhouette-neon-style-person.jpg",
     bio: "Operations lead ensuring seamless deployment pipelines and continuous system reliability across all client environments.",
   },
-  {
-    id: "darius",
-    name: "Darius Gladwell",
-    role: "Interface Architect",
-    image: "/portrait-silhouette-futuristic-style-person.jpg",
-    bio: "UI/UX specialist transforming complex AI interfaces into intuitive command centers for enterprise users.",
-  },
 ]
 
 export function MeetTheTeam() {
@@ -124,14 +117,15 @@ export function MeetTheTeam() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="h-px w-12 bg-copper/50" />
-            <span className="text-copper text-xs tracking-[0.3em] uppercase">The Collective</span>
+            <span className="text-copper text-xs tracking-[0.3em] uppercase">The Skunkworks Unit</span>
             <div className="h-px w-12 bg-copper/50" />
           </div>
           <h2 className="text-4xl md:text-5xl font-mono text-white mb-4 glitch-header" data-text="MEET THE TEAM">
             MEET THE TEAM
           </h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
-            The minds behind the digital mischief. Click on a portrait to experience their particle visualization.
+            A multidisciplinary team of engineers and architects obsessed with velocity. Click on a portrait to
+            experience their particle visualization.
           </p>
         </div>
 

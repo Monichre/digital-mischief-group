@@ -93,15 +93,11 @@ export default function DigitalMischief() {
           {/* Slogan underline */}
           <div className="mt-6 flex items-center justify-center gap-4">
             <div className="h-px w-16 bg-gradient-to-r from-transparent via-orange-500/50 to-orange-500" />
-            <span className="text-xs md:text-sm tracking-[0.25em] text-zinc-500 uppercase font-medium">
+            <span className="text-xs md:text-sm tracking-[0.25em] text-zinc-500 uppercase font-medium inline-flex items-center gap-2">
               an ideas lab with matches
+              <Flame className="w-3 h-3 text-orange-500 animate-pulse" />
             </span>
             <div className="h-px w-16 bg-gradient-to-l from-transparent via-orange-500/50 to-orange-500" />
-          </div>
-
-          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500">
-            <Flame className="w-3 h-3 text-orange-500" />
-            <span>// PROTOCOL: CONTROLLED BURNS</span>
           </div>
 
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none mb-6">
@@ -146,9 +142,10 @@ export default function DigitalMischief() {
             AI Everywhere. <span className="text-orange-500">Nowhere It Counts.</span>
           </h2>
           <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-            Your teams are trapped in <span className="text-zinc-200">POC Purgatory</span>. You have scripts that don't
-            scale, agents you don't trust, and zero governance. You are burning budget on toys while competitors build
-            infrastructure.
+            <span className="text-zinc-200">Tribal knowledge</span> and{" "}
+            <span className="text-zinc-200">data silos</span> are static. Context switching is a tax on focus, momentum,
+            and execution. <span className="text-orange-500">It's fatal.</span> We build the infrastructure that
+            eliminates the friction and forces your dormant data to go <span className="text-zinc-200">kinetic</span>.
           </p>
           <div className="grid md:grid-cols-3 gap-6 text-left">
             <div className="p-6 border border-zinc-800 bg-zinc-900/30">
