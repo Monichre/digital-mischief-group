@@ -39,6 +39,9 @@ export default function DigitalMischief() {
             <Link href="/lab" className="hover:text-orange-500 transition-colors">
               R&D
             </Link>
+            <Link href="/brand-recon" className="hover:text-orange-500 transition-colors">
+              Brand Recon
+            </Link>
           </div>
           <Link
             href="#audit"
