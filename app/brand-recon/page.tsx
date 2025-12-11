@@ -11,6 +11,7 @@ import { TypographyCard } from "@/components/brand-recon/TypographyCard"
 import { ComponentPreview } from "@/components/brand-recon/ComponentPreview"
 import { BrandHeader } from "@/components/brand-recon/BrandHeader"
 import { SpacingCard } from "@/components/brand-recon/SpacingCard"
+import { ScreenshotPreview } from "@/components/brand-recon/ScreenshotPreview"
 
 export default function BrandReconPage() {
   const [input, setInput] = useState("")
@@ -18,6 +19,7 @@ export default function BrandReconPage() {
   const [error, setError] = useState<string | null>(null)
   const [branding, setBranding] = useState<BrandingProfile | null>(null)
   const [metadata, setMetadata] = useState<{ title?: string; description?: string; sourceURL?: string } | null>(null)
+  const [screenshot, setScreenshot] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +29,7 @@ export default function BrandReconPage() {
     setError(null)
     setBranding(null)
     setMetadata(null)
+    setScreenshot(null)
 
     try {
       const response = await fetch("/api/brand-recon", {
@@ -43,6 +46,7 @@ export default function BrandReconPage() {
 
       setBranding(data.data.branding)
       setMetadata(data.data.metadata)
+      setScreenshot(data.data.screenshot || null)
       setStatus("success")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred")
@@ -162,6 +166,17 @@ export default function BrandReconPage() {
             <div className="space-y-8 animate-in fade-in duration-500">
               {/* Brand Header */}
               <BrandHeader branding={branding} metadata={metadata || undefined} />
+
+              {/* Screenshot Preview */}
+              {screenshot && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-4 bg-orange-500" />
+                    <span className="text-xs uppercase tracking-widest text-zinc-500">Visual Capture</span>
+                  </div>
+                  <ScreenshotPreview screenshot={screenshot} sourceUrl={metadata?.sourceURL} />
+                </div>
+              )}
 
               {/* Color Palette */}
               {colorEntries.length > 0 && (

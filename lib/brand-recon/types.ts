@@ -124,6 +124,7 @@ export interface BrandReconResponse {
       sourceURL?: string
       statusCode?: number
     }
+    screenshot?: string
   }
   error?: string
 }

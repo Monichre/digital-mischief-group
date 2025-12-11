@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { ParticleFace } from "./particle-face"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, Flame } from "lucide-react"
 
 interface TeamMember {
   id: string
@@ -33,6 +33,21 @@ const TEAM_MEMBERS: TeamMember[] = [
     role: "Ops Director",
     image: "/portrait-silhouette-neon-style-person.jpg",
     bio: "Operations lead ensuring seamless deployment pipelines and continuous system reliability across all client environments.",
+  },
+]
+
+const EXPERTISE_AREAS = [
+  {
+    title: "RAG Architectures",
+    subtitle: "& data intelligence",
+  },
+  {
+    title: "Multi-Agent Systems",
+    subtitle: "& workflow automation",
+  },
+  {
+    title: "Observability & UX",
+    subtitle: "for AI systems",
   },
 ]
 
@@ -112,21 +127,29 @@ export function MeetTheTeam() {
         ))}
       </div>
 
-      <div className="relative max-w-6xl mx-auto">
+      <div className="relative max-w-4xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="h-px w-12 bg-copper/50" />
-            <span className="text-copper text-xs tracking-[0.3em] uppercase">The Skunkworks Unit</span>
-            <div className="h-px w-12 bg-copper/50" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-mono text-white mb-4 glitch-header" data-text="MEET THE TEAM">
-            MEET THE TEAM
+        <div className="text-center mb-12">
+          <span className="text-zinc-500 text-xs tracking-[0.3em] uppercase mb-4 block">// MISSION</span>
+          <h2 className="text-4xl md:text-5xl font-mono text-white mb-6">
+            The Skunkworks <span className="text-orange-500">Unit</span>
           </h2>
-          <p className="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
-            A multidisciplinary team of engineers and architects obsessed with velocity. Click on a portrait to
-            experience their particle visualization.
+          <p className="text-zinc-400 max-w-xl mx-auto text-base leading-relaxed">
+            A multidisciplinary team of engineers and architects obsessed with velocity. Led by{" "}
+            <span className="text-white font-medium">Liam Ellis</span>.
           </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+          {EXPERTISE_AREAS.map((area, index) => (
+            <div
+              key={index}
+              className="border border-zinc-800 bg-zinc-900/50 p-6 hover:border-zinc-700 transition-colors"
+            >
+              <h3 className="text-white font-mono text-sm mb-1">{area.title}</h3>
+              <p className="text-zinc-500 text-xs">{area.subtitle}</p>
+            </div>
+          ))}
         </div>
 
         {/* Team Grid */}
@@ -191,6 +214,12 @@ export function MeetTheTeam() {
             </button>
           ))}
         </div>
+
+        {/* Bottom Tagline */}
+        <p className="text-center text-zinc-500 italic text-sm max-w-2xl mx-auto">
+          We're an ideas lab with matches <Flame className="inline w-3 h-3 text-orange-500" /> — curious enough to find
+          new patterns, disciplined enough to ship reliable infrastructure.
+        </p>
       </div>
 
       {/* Particle Face Modal */}

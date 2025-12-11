@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Share_Tech_Mono, Inter } from "next/font/google"
 import "./globals.css"
+import { TargetCursor } from "@/components/TargetCursor"
 
 const shareTechMono = Share_Tech_Mono({
   weight: "400",
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body
         className={`${shareTechMono.variable} ${inter.variable} font-mono antialiased bg-[#050507] text-gray-300 overflow-x-hidden`}
       >
+        <TargetCursor targetSelector=".cursor-target, button, a, [role='button']" />
         {children}
       </body>
     </html>

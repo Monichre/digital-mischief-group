@@ -1,19 +1,21 @@
-import Link from "next/link"
-import {
-  ArrowRight,
-  ChevronRight,
-  Activity,
-  Brain,
-  Monitor,
-  Bot,
-  SlidersHorizontal,
-  Flame,
-  Search,
-  FileText,
-} from "lucide-react"
-import { MeetTheTeam } from "@/components/MeetTheTeam"
+"use client"
 
-export default function DigitalMischief() {
+import Link from "next/link"
+import { Flame, ArrowRight, ChevronRight, Target, X, Brain, Monitor, Bot, SlidersHorizontal } from "lucide-react"
+import { SignupForm, useSignupForm } from "@/components/SignupForm"
+import { MeetTheTeam } from "@/components/MeetTheTeam"
+import {
+  ScrollReveal,
+  StaggerReveal,
+  Parallax,
+  GlitchText,
+  ScaleReveal,
+  Magnetic,
+} from "@/components/scroll-animations"
+
+export default function Home() {
+  const signupForm = useSignupForm()
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 selection:bg-orange-500 selection:text-white font-mono">
       {/* NAVIGATION */}
@@ -24,31 +26,34 @@ export default function DigitalMischief() {
             <span className="font-mono font-bold tracking-tighter text-lg">[ DMG ]</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-zinc-400">
-            <Link href="#cortex" className="hover:text-orange-500 transition-colors">
+            <Link href="#cortex" className="hover:text-white transition-colors">
               Revenue Cortex
             </Link>
-            <Link href="#process" className="hover:text-orange-500 transition-colors">
+            <Link href="#protocol" className="hover:text-white transition-colors">
               Protocol
             </Link>
-            <Link href="#cases" className="hover:text-orange-500 transition-colors">
+            <Link href="#cases" className="hover:text-white transition-colors">
               Burn Logs
             </Link>
-            <Link href="#about" className="hover:text-orange-500 transition-colors">
+            <Link href="#mission" className="hover:text-white transition-colors">
               Mission
             </Link>
-            <Link href="/lab" className="hover:text-orange-500 transition-colors">
-              R&D
+            <Link href="/arsenal" className="hover:text-white transition-colors">
+              Arsenal
             </Link>
-            <Link href="/brand-recon" className="hover:text-orange-500 transition-colors">
+            <Link href="/enrich" className="hover:text-white transition-colors">
+              Enrich
+            </Link>
+            <Link href="/brand-recon" className="hover:text-white transition-colors">
               Brand Recon
             </Link>
           </div>
-          <Link
-            href="#audit"
+          <button
+            onClick={signupForm.open}
             className="px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300"
           >
             Deploy →
-          </Link>
+          </button>
         </div>
       </nav>
 
@@ -57,72 +62,81 @@ export default function DigitalMischief() {
         {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
 
-        {/* Floating Technical Elements */}
-        <div className="absolute top-32 left-10 text-xs text-zinc-600 font-mono hidden lg:block">
-          <div className="flex items-center gap-2">
-            <Activity className="w-3 h-3 text-orange-500" />
-            <span>SYS.STATUS: OPERATIONAL</span>
-          </div>
-          <div className="mt-1 text-zinc-700">v2.4.1 // BUILD:2024.12</div>
-        </div>
+        {/* Radial Gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08)_0%,transparent_70%)]" />
 
-        <div className="absolute bottom-32 right-10 text-xs text-zinc-600 font-mono text-right hidden lg:block">
-          <div>LAT: 37.7749° N</div>
-          <div>LNG: 122.4194° W</div>
-          <div className="text-orange-500/50 mt-1">NODE: ACTIVE</div>
-        </div>
+        {/* Parallax Decorative Elements */}
+        <Parallax speed={0.3} direction="up" className="absolute top-20 left-10 text-orange-500/20 text-6xl font-bold">
+          //
+        </Parallax>
+        <Parallax
+          speed={0.5}
+          direction="down"
+          className="absolute bottom-32 right-20 text-orange-500/10 text-8xl font-bold"
+        >
+          {"{ }"}
+        </Parallax>
 
-        {/* Main Hero Content */}
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          {/* Logo Text */}
-          <div className="mb-12">
-            {/* Decorative corners */}
-            <div className="absolute -top-3 -left-4 w-6 h-6 border-l-2 border-t-2 border-orange-500/60" />
-            <div className="absolute -top-3 -right-4 w-6 h-6 border-r-2 border-t-2 border-orange-500/60" />
-            <div className="absolute -bottom-3 -left-4 w-6 h-6 border-l-2 border-b-2 border-orange-500/60" />
-            <div className="absolute -bottom-3 -right-4 w-6 h-6 border-r-2 border-b-2 border-orange-500/60" />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-20">
+          {/* Logo Section */}
+          <ScrollReveal y={30} duration={0.8}>
+            <div className="mb-8">
+              {/* Corner Accents */}
+              <div className="relative inline-block p-8">
+                <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-orange-500/50" />
+                <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-orange-500/50" />
+                <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-orange-500/50" />
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-orange-500/50" />
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-[-0.05em] px-6 py-2">
-              <span className="bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-100 bg-clip-text text-transparent">
-                DIGITAL
-              </span>
-              <span className="block text-orange-500 match-glow">MISCHIEF</span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl tracking-[0.3em] text-zinc-400 font-light mt-1">
-                GROUP
-              </span>
-            </h1>
-          </div>
+                {/* Main Logo Text */}
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter">
+                  <span className="bg-gradient-to-r from-zinc-400 to-zinc-200 bg-clip-text text-transparent">
+                    DIGITAL
+                  </span>{" "}
+                  <span className="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">MISCHIEF</span>{" "}
+                  <span className="text-zinc-400 tracking-[0.2em]">GROUP</span>
+                </h1>
+              </div>
 
-          {/* Slogan underline */}
-          <div className="mt-6 flex items-center justify-center gap-4">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent via-orange-500/50 to-orange-500" />
-            <span className="text-xs md:text-sm tracking-[0.25em] text-zinc-500 uppercase font-medium inline-flex items-center gap-2">
-              an ideas lab with matches
-              <Flame className="w-3 h-3 text-orange-500 animate-pulse" />
-            </span>
-            <div className="h-px w-16 bg-gradient-to-l from-transparent via-orange-500/50 to-orange-500" />
-          </div>
+              {/* Slogan */}
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <div className="h-px w-16 bg-gradient-to-r from-orange-500 to-transparent" />
+                <span className="inline-flex items-center gap-2 text-sm text-zinc-500 italic tracking-wide">
+                  an ideas lab with matches
+                  <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
+                </span>
+                <div className="h-px w-16 bg-gradient-to-l from-orange-500 to-transparent" />
+              </div>
+            </div>
+          </ScrollReveal>
 
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-none mb-6">
-            <span className="block text-zinc-100">Your Data Is Cold.</span>
-            <span className="block text-orange-500 match-glow mt-2">We Bring the Matches.</span>
-          </h2>
+          <GlitchText>
+            <h2 className="text-5xl md:text-7xl font-black mb-6 leading-[0.9]">
+              <span className="text-white">Your Data Is Cold.</span>
+              <br />
+              <span className="text-orange-500">We Bring the Matches.</span>
+            </h2>
+          </GlitchText>
 
-          <p className="max-w-3xl mx-auto text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed">
-            Digital Mischief is a <span className="text-zinc-200">Systems Engineering Skunkworks</span>. We test
-            volatile AI agents in the lab—breaking them so you don't have to—then deploy the governed, bulletproof
-            version into your business.
-          </p>
+          <ScrollReveal y={20} delay={0.3}>
+            <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+              Digital Mischief is a <span className="text-zinc-200">Systems Engineering Skunkworks</span>. We test
+              volatile AI agents in the lab—breaking them so you don't have to—then deploy the governed, bulletproof
+              version into your business.
+            </p>
+          </ScrollReveal>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="#audit"
-              className="group flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
-            >
-              <Flame className="w-4 h-4" />
-              <span>INITIALIZE SYSTEM AUDIT</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+          <StaggerReveal stagger={0.1} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Magnetic>
+              <button
+                onClick={signupForm.open}
+                className="group flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
+              >
+                <Flame className="w-4 h-4" />
+                <span>INITIALIZE SYSTEM AUDIT</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Magnetic>
             <Link
               href="#cases"
               className="flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300"
@@ -130,270 +144,298 @@ export default function DigitalMischief() {
               <span>ACCESS BURN LOGS</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
-          </div>
+          </StaggerReveal>
         </div>
 
-        {/* Decorative Corner Elements */}
-        <div className="absolute top-20 left-6 w-16 h-16 border-l border-t border-zinc-800" />
-        <div className="absolute bottom-20 right-6 w-16 h-16 border-r border-b border-zinc-800" />
-      </section>
-
-      <section className="py-32 border-t border-zinc-800/50">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="text-xs text-zinc-600 font-mono mb-2">// THE PROBLEM</div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8">
-            AI Everywhere. <span className="text-orange-500">Nowhere It Counts.</span>
-          </h2>
-          <p className="text-zinc-400 text-lg leading-relaxed mb-8">
-            <span className="text-zinc-200">Tribal knowledge</span> and{" "}
-            <span className="text-zinc-200">data silos</span> are static. Context switching is a tax on focus, momentum,
-            and execution. <span className="text-orange-500">It's fatal.</span> We build the infrastructure that
-            eliminates the friction and forces your dormant data to go <span className="text-zinc-200">kinetic</span>.
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 text-left">
-            <div className="p-6 border border-zinc-800 bg-zinc-900/30">
-              <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">Data Silos are locking you out.</p>
-            </div>
-            <div className="p-6 border border-zinc-800 bg-zinc-900/30">
-              <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">Zero trust in autonomous output.</p>
-            </div>
-            <div className="p-6 border border-zinc-800 bg-zinc-900/30">
-              <div className="text-orange-500 text-2xl mb-2">✗</div>
-              <p className="text-zinc-500 text-sm">Compliance risk is paralyzing you.</p>
-            </div>
-          </div>
-          <p className="text-zinc-300 text-xl mt-10 font-medium">DMG exists to close that gap.</p>
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-600">
+          <span className="text-xs tracking-widest">SCROLL</span>
+          <div className="w-px h-8 bg-gradient-to-b from-zinc-600 to-transparent animate-pulse" />
         </div>
       </section>
 
-      <section id="cortex" className="py-32 border-t border-zinc-800/50 bg-zinc-900/30">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="text-xs text-zinc-600 font-mono mb-2">// THE SOLUTION</div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
-              The Revenue Cortex: <span className="text-orange-500">Your AI Nervous System</span>
-            </h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              We don't sell isolated features. We install a system.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* The Cortex */}
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="w-12 h-12 flex items-center justify-center border border-zinc-700 mb-6 group-hover:border-orange-500 group-hover:text-orange-500 transition-colors">
-                <Brain className="w-6 h-6" />
+      {/* PROBLEM SECTION */}
+      <section id="problem" className="relative py-32 border-t border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <ScrollReveal>
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 text-xs text-zinc-500 mb-6">
+                <span>// THE PROBLEM</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">The Cortex</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">
-                Unified, permissions-aware data intelligence layer.
+
+              <GlitchText>
+                <h2 className="text-4xl md:text-6xl font-black mb-8">
+                  AI Everywhere. <span className="text-orange-500">Nowhere You Need It.</span>
+                </h2>
+              </GlitchText>
+
+              <p className="text-lg text-zinc-400 leading-relaxed mb-16">
+                <span className="text-zinc-200">Tribal knowledge</span> and{" "}
+                <span className="text-zinc-200">data silos</span> are static.{" "}
+                <span className="text-zinc-200">Context switching</span> is a tax on focus, momentum, and execution.{" "}
+                <span className="text-orange-500">It's fatal.</span> We build the infrastructure that eliminates the
+                friction and forces your dormant data to go kinetic.
               </p>
-              <div className="mt-6 text-xs text-zinc-600 font-mono">
-                <span className="text-orange-500">🧠</span> Data Intelligence
-              </div>
-            </div>
 
-            {/* The Interface */}
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="w-12 h-12 flex items-center justify-center border border-zinc-700 mb-6 group-hover:border-orange-500 group-hover:text-orange-500 transition-colors">
-                <Monitor className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">The Interface</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">Role-specific copilots and command centers.</p>
-              <div className="mt-6 text-xs text-zinc-600 font-mono">
-                <span className="text-orange-500">🖥</span> Adoption Layer
-              </div>
-            </div>
+              <StaggerReveal stagger={0.1} className="grid md:grid-cols-3 gap-6 mb-12">
+                {[
+                  { title: "Data Silos are locking you out." },
+                  { title: "Zero trust in autonomous output." },
+                  { title: "Compliance risk is paralyzing you." },
+                ].map((item, i) => (
+                  <div key={i} className="p-6 border border-zinc-800 bg-zinc-900/30">
+                    <X className="w-4 h-4 text-orange-500 mb-4" />
+                    <p className="text-sm text-zinc-500">{item.title}</p>
+                  </div>
+                ))}
+              </StaggerReveal>
 
-            {/* The Autopilot */}
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="w-12 h-12 flex items-center justify-center border border-zinc-700 mb-6 group-hover:border-orange-500 group-hover:text-orange-500 transition-colors">
-                <Bot className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">The Autopilot</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">
-                Agents that act on signals, not just display them.
-              </p>
-              <div className="mt-6 text-xs text-zinc-600 font-mono">
-                <span className="text-orange-500">🤖</span> Workflow Agents
-              </div>
+              <p className="text-lg text-zinc-300 font-medium">DMG exists to close that gap.</p>
             </div>
-
-            {/* The Relay */}
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="w-12 h-12 flex items-center justify-center border border-zinc-700 mb-6 group-hover:border-orange-500 group-hover:text-orange-500 transition-colors">
-                <SlidersHorizontal className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">The Relay</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">Enablement and governance so it all sticks.</p>
-              <div className="mt-6 text-xs text-zinc-600 font-mono">
-                <span className="text-orange-500">🎛</span> Governance
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-zinc-300 text-lg">
-              Together, this becomes your <span className="text-orange-500 font-bold">Revenue Cortex</span>.
-            </p>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      <section id="process" className="py-32 border-t border-zinc-800/50 bg-zinc-900/30">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="text-xs text-zinc-600 font-mono mb-2">// PROCESS</div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
-              The DMG <span className="text-orange-500">Ignition Protocol</span>
-            </h2>
-          </div>
+      {/* SOLUTION / CORTEX SECTION */}
+      <section id="cortex" className="relative py-32 border-t border-white/5 bg-zinc-900/30 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <ScrollReveal>
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 text-xs text-zinc-500 mb-6">
+                <span>// THE SOLUTION</span>
+              </div>
 
-          <div className="grid md:grid-cols-5 gap-4">
+              <GlitchText>
+                <h2 className="text-4xl md:text-6xl font-black mb-8">
+                  The Revenue Cortex: <span className="text-orange-500">Your AI Nervous System</span>
+                </h2>
+              </GlitchText>
+
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                We don't sell isolated features. We install a system.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <StaggerReveal stagger={0.1} className="grid md:grid-cols-4 gap-6">
+            {[
+              {
+                icon: <Brain className="w-6 h-6" />,
+                title: "The Cortex",
+                desc: "Unified, permissions-aware data intelligence layer.",
+                tag: "Data Intelligence",
+                tagIcon: <Brain className="w-3 h-3" />,
+              },
+              {
+                icon: <Monitor className="w-6 h-6" />,
+                title: "The Interface",
+                desc: "Role-specific copilots and command centers.",
+                tag: "Adoption Layer",
+                tagIcon: <Monitor className="w-3 h-3" />,
+              },
+              {
+                icon: <Bot className="w-6 h-6" />,
+                title: "The Autopilot",
+                desc: "Agents that act on signals, not just display them.",
+                tag: "Workflow Agents",
+                tagIcon: <Bot className="w-3 h-3" />,
+              },
+              {
+                icon: <SlidersHorizontal className="w-6 h-6" />,
+                title: "The Relay",
+                desc: "Enablement and governance so it all sticks.",
+                tag: "Governance",
+                tagIcon: <SlidersHorizontal className="w-3 h-3" />,
+              },
+            ].map((item, i) => (
+              <ScaleReveal key={i}>
+                <div className="group p-6 border border-zinc-800 bg-zinc-900/50 hover:border-orange-500/50 transition-all duration-300 h-full">
+                  <div className="w-12 h-12 border border-zinc-700 flex items-center justify-center mb-6 text-zinc-400 group-hover:border-orange-500/50 group-hover:text-orange-500 transition-colors">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-zinc-500 mb-4">{item.desc}</p>
+                  <div className="flex items-center gap-2 text-xs text-zinc-600">
+                    {item.tagIcon}
+                    <span>{item.tag}</span>
+                  </div>
+                </div>
+              </ScaleReveal>
+            ))}
+          </StaggerReveal>
+        </div>
+      </section>
+
+      {/* PROCESS SECTION */}
+      <section id="protocol" className="relative py-32 border-t border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 text-xs text-zinc-500 mb-6">
+                <span>// PROCESS</span>
+              </div>
+              <GlitchText>
+                <h2 className="text-4xl md:text-6xl font-black mb-4">
+                  The DMG <span className="text-orange-500">Ignition Protocol</span>
+                </h2>
+              </GlitchText>
+            </div>
+          </ScrollReveal>
+
+          <StaggerReveal stagger={0.08} className="grid md:grid-cols-5 gap-4 mb-12">
             {[
               { num: "01", title: "DIAGNOSTIC", desc: "System Architecture Audit to map your current state" },
               { num: "02", title: "ARCHITECTURE", desc: "Cortex architecture, workflows, guardrails" },
-              { num: "03", title: "FABRICATION", desc: "Implement Cortex, Interface(s), and Autopilot v1" },
+              { num: "03", title: "FABRICATION", desc: "Implement Cortex, Interface, and Autopilot v1" },
               { num: "04", title: "DEPLOYMENT", desc: "Deploy to real users, monitor everything" },
               { num: "05", title: "OVERWATCH", desc: "Cortex Ops retainer for continuous improvements" },
-            ].map((step) => (
-              <div
-                key={step.num}
-                className="relative p-6 border border-zinc-800 hover:border-orange-500/30 transition-colors"
-              >
-                <div className="text-orange-500 text-3xl font-bold mb-2">{step.num}</div>
-                <h3 className="text-zinc-200 font-bold mb-2">{step.title}</h3>
-                <p className="text-zinc-500 text-xs leading-relaxed">{step.desc}</p>
+            ].map((step, i) => (
+              <div key={i} className="relative group">
+                <div className="p-6 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 transition-all duration-300 h-full">
+                  <div className="text-3xl font-black text-orange-500 mb-4">{step.num}</div>
+                  <h3 className="text-sm font-bold mb-2 text-zinc-200">{step.title}</h3>
+                  <p className="text-xs text-zinc-500">{step.desc}</p>
+                </div>
               </div>
             ))}
-          </div>
+          </StaggerReveal>
 
-          <div className="text-center mt-12">
-            <Link
-              href="#audit"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
-            >
-              <span>START WITH A DIAGNOSTIC</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+          <div className="text-center">
+            <Magnetic>
+              <button
+                onClick={signupForm.open}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
+              >
+                START WITH A DIAGNOSTIC
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Magnetic>
           </div>
         </div>
       </section>
 
-      <section id="cases" className="py-32 border-t border-zinc-800/50">
+      {/* CASE STUDIES / BURN LOGS */}
+      <section id="cases" className="py-32 border-t border-white/5 bg-zinc-900/30">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-16">
-            <div className="text-xs text-zinc-600 font-mono mb-2">// RESOURCES</div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
-              Burn Logs & <span className="text-orange-500">Cases</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="flex items-center gap-2 text-xs text-orange-500 mb-4">
-                <FileText className="w-4 h-4" />
-                <span>CASE STUDY</span>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-orange-500/30 text-orange-500 text-xs mb-6">
+                <Flame className="w-3 h-3" />
+                <span>BURN_LOGS</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">B2B SaaS Revenue Cortex</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed mb-4">
-                From scattered POCs to a single Cortex powering sales & CS. 8× faster access to institutional knowledge.
+              <GlitchText>
+                <h2 className="text-4xl md:text-6xl font-black mb-4">
+                  Controlled <span className="text-orange-500">Burns</span>
+                </h2>
+              </GlitchText>
+              <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+                Real results from real deployments. No vanity metrics.
               </p>
-              <Link href="#" className="text-orange-500 text-sm hover:underline">
-                Read Case Study →
-              </Link>
             </div>
+          </ScrollReveal>
 
-            <div className="group p-8 border border-zinc-800 hover:border-orange-500/50 transition-all duration-500 technical-border">
-              <div className="flex items-center gap-2 text-xs text-orange-500 mb-4">
-                <Search className="w-4 h-4" />
-                <span>BURN LOG</span>
-              </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">AI Chasm Diagnostic</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed mb-4">
-                The patterns we see when AI "isn't working" inside enterprises. POC Hell, Script Sprawl, and how to
-                escape.
-              </p>
-              <Link href="#" className="text-orange-500 text-sm hover:underline">
-                Explore Report →
-              </Link>
-            </div>
-          </div>
+          <StaggerReveal stagger={0.15} className="grid md:grid-cols-2 gap-8">
+            {[
+              {
+                client: "Series B SaaS",
+                metric: "340%",
+                label: "Pipeline Increase",
+                desc: "Automated lead scoring and outreach sequencing across 12 data sources.",
+              },
+              {
+                client: "Enterprise FinTech",
+                metric: "67%",
+                label: "Faster Deal Cycles",
+                desc: "AI-powered buying committee mapping and engagement tracking.",
+              },
+            ].map((study, i) => (
+              <ScaleReveal key={i}>
+                <div className="p-8 border border-zinc-800 bg-zinc-950 hover:border-orange-500/30 transition-all duration-300">
+                  <div className="text-xs text-zinc-600 mb-4 font-mono">{study.client}</div>
+                  <div className="text-6xl font-black text-orange-500 mb-2">{study.metric}</div>
+                  <div className="text-lg font-bold mb-4">{study.label}</div>
+                  <p className="text-zinc-400">{study.desc}</p>
+                </div>
+              </ScaleReveal>
+            ))}
+          </StaggerReveal>
         </div>
       </section>
 
-      <section id="about" className="py-32 border-t border-zinc-800/50 bg-zinc-900/30">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="text-xs text-zinc-600 font-mono mb-2">// MISSION</div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-8">
-            The Skunkworks <span className="text-orange-500">Unit</span>
-          </h2>
-          <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-            A multidisciplinary team of engineers and architects obsessed with velocity. Led by{" "}
-            <span className="text-zinc-200">Liam Ellis</span>.
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 text-left my-10">
-            <div className="p-4 border border-zinc-800">
-              <p className="text-zinc-300 text-sm font-medium">RAG Architectures</p>
-              <p className="text-zinc-600 text-xs">& data intelligence</p>
+      {/* ABOUT / MISSION SECTION */}
+      <section id="mission" className="py-32 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-orange-500/30 text-orange-500 text-xs mb-6">
+                <Target className="w-3 h-3" />
+                <span>MISSION_BRIEF</span>
+              </div>
+              <GlitchText>
+                <h2 className="text-4xl md:text-5xl font-black mb-8">
+                  Built by operators, <span className="text-orange-500">for operators</span>
+                </h2>
+              </GlitchText>
+              <p className="text-xl text-zinc-400 leading-relaxed mb-12">
+                We're not consultants. We're engineers who've built and scaled revenue systems at high-growth companies.
+                We know what works because we've deployed it ourselves.
+              </p>
             </div>
-            <div className="p-4 border border-zinc-800">
-              <p className="text-zinc-300 text-sm font-medium">Multi-Agent Systems</p>
-              <p className="text-zinc-600 text-xs">& workflow automation</p>
-            </div>
-            <div className="p-4 border border-zinc-800">
-              <p className="text-zinc-300 text-sm font-medium">Observability & UX</p>
-              <p className="text-zinc-600 text-xs">for AI systems</p>
-            </div>
-          </div>
-          <p className="text-zinc-500 italic">
-            We're an ideas lab with matches — curious enough to find new patterns, disciplined enough to ship reliable
-            infrastructure.
-          </p>
-        </div>
+          </ScrollReveal>
 
-        <MeetTheTeam />
+          <MeetTheTeam />
+        </div>
       </section>
 
-      <section id="audit" className="py-32 border-t border-zinc-800/50">
+      {/* FOOTER CTA */}
+      <section className="py-32 border-t border-white/5 bg-zinc-900/50">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6">
-            Stop playing in the sandbox. <span className="text-orange-500">Move to production.</span>
-          </h2>
-          <p className="text-zinc-400 text-lg mb-10">
-            Start with a System Architecture Audit and we'll map your Cortex.
-          </p>
-          <a
-            href="mailto:liam@digitalmischief.group"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
-          >
-            <Flame className="w-4 h-4" />
-            <span>INITIALIZE SYSTEM AUDIT</span>
-            <ArrowRight className="w-4 h-4" />
-          </a>
-          <div className="mt-8 text-xs text-zinc-600 font-mono">
-            <p>Liam Ellis — Founding Partner, Digital Mischief Group</p>
-            <p className="text-orange-500/70">liam@digitalmischief.group</p>
-          </div>
+          <ScrollReveal>
+            <GlitchText>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                Stop playing in the sandbox.
+                <br />
+                <span className="text-orange-500">Move to production.</span>
+              </h2>
+            </GlitchText>
+            <p className="text-zinc-400 text-lg mb-10">
+              Start with a System Architecture Audit and we'll map your Cortex.
+            </p>
+            <Magnetic>
+              <button
+                onClick={signupForm.open}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
+              >
+                <Flame className="w-4 h-4" />
+                <span>INITIALIZE SYSTEM AUDIT</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Magnetic>
+            <div className="mt-8 text-xs text-zinc-600 font-mono">
+              <p>Liam Ellis — Founding Partner, Digital Mischief Group</p>
+              <p className="text-orange-500/70">liam@digitalmischief.group</p>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-8 border-t border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-600">
-            <div className="w-2 h-2 bg-orange-500/50 rounded-full" />
-            <span className="font-mono">[ DMG ] // Revenue Cortex Systems // 2024</span>
+      <footer className="py-8 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full" />
+            <span>© 2025 Digital Mischief Group</span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-zinc-600">
-            <span>digitalmischief.group</span>
-            <span className="text-orange-500/70">●</span>
-            <span>An ideas lab with matches.</span>
+          <div className="flex items-center gap-6">
+            <span>Systems Online</span>
+            <span className="text-orange-500">●</span>
+            <span>All Systems Nominal</span>
           </div>
         </div>
       </footer>
+
+      {/* SignupForm modal */}
+      <SignupForm isOpen={signupForm.isOpen} onClose={signupForm.close} />
     </div>
   )
 }
