@@ -1,9 +1,36 @@
 "use client"
 
 import Link from "next/link"
-import { Flame, ArrowRight, ChevronRight, Target, X, Brain, Monitor, Bot, SlidersHorizontal } from "lucide-react"
+import {
+  Flame,
+  ArrowRight,
+  ChevronRight,
+  Target,
+  X,
+  Brain,
+  Monitor,
+  Bot,
+  SlidersHorizontal,
+  Radar,
+  Crosshair,
+  Zap,
+  Eye,
+  Users,
+  Globe,
+  Activity,
+  Layers,
+  AlertTriangle,
+  TrendingUp,
+  Search,
+  FileSearch,
+  Shield,
+  Swords,
+  ScanEye,
+  Radio,
+} from "lucide-react"
 import { SignupForm, useSignupForm } from "@/components/SignupForm"
 import { MeetTheTeam } from "@/components/MeetTheTeam"
+import { CardSwap, Card } from "@/components/CardSwap"
 import {
   ScrollReveal,
   StaggerReveal,
@@ -12,9 +39,22 @@ import {
   ScaleReveal,
   Magnetic,
 } from "@/components/scroll-animations"
+import { useState, useRef, useEffect } from "react"
 
 export default function Home() {
   const signupForm = useSignupForm()
+  const [daedalusOpen, setDaedalusOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDaedalusOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 selection:bg-orange-500 selection:text-white font-mono">
@@ -41,18 +81,93 @@ export default function Home() {
             <Link href="/arsenal" className="hover:text-white transition-colors">
               Arsenal
             </Link>
-            <Link href="/enrich" className="hover:text-white transition-colors">
-              Enrich
-            </Link>
-            <Link href="/brand-recon" className="hover:text-white transition-colors">
-              Brand Recon
-            </Link>
-            <Link href="/scouts" className="hover:text-white transition-colors">
-              Sentinels
-            </Link>
-            <Link href="/observe" className="hover:text-white transition-colors">
-              Recon
-            </Link>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDaedalusOpen(!daedalusOpen)}
+                className="flex items-center gap-1 hover:text-white transition-colors"
+              >
+                <Radar className="w-3 h-3 text-orange-500" />
+                <span>Daedalus</span>
+                <ChevronRight className={`w-3 h-3 transition-transform ${daedalusOpen ? "rotate-180" : ""}`} />
+              </button>
+              {daedalusOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 rounded-lg border border-zinc-800 bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-zinc-800">
+                    <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">
+                      Reconnaissance Suite
+                    </span>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      href="/enrich"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <FileSearch className="w-4 h-4 text-orange-500" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">Research + Enrichment</div>
+                        <div className="text-[10px] text-zinc-500">Deep Company Intelligence</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/scouts"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <Shield className="w-4 h-4 text-orange-400" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">
+                          Intel & Competitive Threat Detection
+                        </div>
+                        <div className="text-[10px] text-zinc-500">Market Position Analysis</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/brand-recon"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <Swords className="w-4 h-4 text-orange-500" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">Counter Ops</div>
+                        <div className="text-[10px] text-zinc-500">Brand Fracture & Ambush Targeting</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/observe"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <ScanEye className="w-4 h-4 text-orange-400" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">Surveillance + Extraction</div>
+                        <div className="text-[10px] text-zinc-500">Change Detection & Data Harvesting</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="#daedalus"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <Radio className="w-4 h-4 text-orange-500" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">Recon & Sentinel Suite</div>
+                        <div className="text-[10px] text-zinc-500">Autonomous Watch Protocols</div>
+                      </div>
+                    </Link>
+                  </div>
+                  <div className="px-3 py-2 border-t border-zinc-800 bg-zinc-900/50">
+                    <Link
+                      href="#daedalus"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 hover:text-orange-500 transition-colors"
+                    >
+                      <span>View Full System →</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <button
             onClick={signupForm.open}
@@ -206,7 +321,7 @@ export default function Home() {
       <section id="cortex" className="relative py-32 border-t border-white/5 bg-zinc-900/30 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <ScrollReveal>
-            <div className="text-center max-w-4xl mx-auto">
+            <div className="text-center max-w-4xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 text-xs text-zinc-500 mb-6">
                 <span>// THE SOLUTION</span>
               </div>
@@ -223,52 +338,78 @@ export default function Home() {
             </div>
           </ScrollReveal>
 
-          <StaggerReveal stagger={0.1} className="grid md:grid-cols-4 gap-6">
-            {[
-              {
-                icon: <Brain className="w-6 h-6" />,
-                title: "The Cortex",
-                desc: "Unified, permissions-aware data intelligence layer.",
-                tag: "Data Intelligence",
-                tagIcon: <Brain className="w-3 h-3" />,
-              },
-              {
-                icon: <Monitor className="w-6 h-6" />,
-                title: "The Interface",
-                desc: "Role-specific copilots and command centers.",
-                tag: "Adoption Layer",
-                tagIcon: <Monitor className="w-3 h-3" />,
-              },
-              {
-                icon: <Bot className="w-6 h-6" />,
-                title: "The Autopilot",
-                desc: "Agents that act on signals, not just display them.",
-                tag: "Workflow Agents",
-                tagIcon: <Bot className="w-3 h-3" />,
-              },
-              {
-                icon: <SlidersHorizontal className="w-6 h-6" />,
-                title: "The Relay",
-                desc: "Enablement and governance so it all sticks.",
-                tag: "Governance",
-                tagIcon: <SlidersHorizontal className="w-3 h-3" />,
-              },
-            ].map((item, i) => (
-              <ScaleReveal key={i}>
-                <div className="group p-6 border border-zinc-800 bg-zinc-900/50 hover:border-orange-500/50 transition-all duration-300 h-full">
-                  <div className="w-12 h-12 border border-zinc-700 flex items-center justify-center mb-6 text-zinc-400 group-hover:border-orange-500/50 group-hover:text-orange-500 transition-colors">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-zinc-500 mb-4">{item.desc}</p>
-                  <div className="flex items-center gap-2 text-xs text-zinc-600">
-                    {item.tagIcon}
-                    <span>{item.tag}</span>
-                  </div>
+          <div className="flex justify-center items-center" style={{ height: "500px", position: "relative" }}>
+            <CardSwap
+              width={340}
+              height={380}
+              cardDistance={50}
+              verticalDistance={60}
+              delay={4000}
+              pauseOnHover={true}
+              skewAmount={4}
+              easing="elastic"
+            >
+              <Card className="border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer">
+                <div className="w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500">
+                  <Brain className="w-7 h-7" />
                 </div>
-              </ScaleReveal>
-            ))}
-          </StaggerReveal>
+                <h3 className="text-2xl font-bold text-zinc-100 mb-3">The Cortex</h3>
+                <p className="text-zinc-400 mb-6 leading-relaxed">
+                  Unified, permissions-aware data intelligence layer. RAG pipelines, vector stores, and semantic
+                  search—governed and ready.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4">
+                  <Brain className="w-3 h-3" />
+                  <span>Data Intelligence</span>
+                </div>
+              </Card>
+
+              <Card className="border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer">
+                <div className="w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500">
+                  <Monitor className="w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-zinc-100 mb-3">The Interface</h3>
+                <p className="text-zinc-400 mb-6 leading-relaxed">
+                  Role-specific copilots and command centers. Dashboards that adapt to your team's workflow, not the
+                  other way around.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4">
+                  <Monitor className="w-3 h-3" />
+                  <span>Adoption Layer</span>
+                </div>
+              </Card>
+
+              <Card className="border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer">
+                <div className="w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500">
+                  <Bot className="w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-zinc-100 mb-3">The Autopilot</h3>
+                <p className="text-zinc-400 mb-6 leading-relaxed">
+                  Agents that act on signals, not just display them. Multi-agent orchestration for autonomous, governed
+                  workflows.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4">
+                  <Bot className="w-3 h-3" />
+                  <span>Workflow Agents</span>
+                </div>
+              </Card>
+
+              <Card className="border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer">
+                <div className="w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500">
+                  <SlidersHorizontal className="w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold text-zinc-100 mb-3">The Relay</h3>
+                <p className="text-zinc-400 mb-6 leading-relaxed">
+                  Enablement and governance so it all sticks. Training, documentation, and guardrails that scale with
+                  your team.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4">
+                  <SlidersHorizontal className="w-3 h-3" />
+                  <span>Governance</span>
+                </div>
+              </Card>
+            </CardSwap>
+          </div>
         </div>
       </section>
 
@@ -390,6 +531,166 @@ export default function Home() {
           </ScrollReveal>
 
           <MeetTheTeam />
+        </div>
+      </section>
+
+      {/* DAEDALUS AUTONOMOUS RECONNAISSANCE SECTION */}
+      <section
+        id="daedalus"
+        className="py-32 px-6 border-t border-zinc-800 bg-gradient-to-b from-zinc-950 via-zinc-900/20 to-zinc-950"
+      >
+        <div className="max-w-6xl mx-auto">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 border border-orange-500/30 bg-orange-500/5">
+                <Radar className="w-3 h-3 text-orange-500 animate-pulse" />
+                <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">
+                  // INTELLIGENCE RECONNAISSANCE SYSTEM
+                </span>
+              </div>
+
+              <GlitchText>
+                <h2 className="text-4xl md:text-6xl font-black mb-4">
+                  Daedalus <span className="text-orange-500">Autonomous</span> Reconnaissance
+                </h2>
+              </GlitchText>
+
+              <p className="text-xl text-zinc-500 font-mono italic mb-8">"No sleep, no surprises."</p>
+
+              <p className="text-lg text-zinc-400 max-w-3xl mx-auto leading-relaxed">
+                A <span className="text-zinc-200">Skunkworks-grade intelligence engine</span> that scrapes, maps, and
+                enriches the world. It performs multi-dimensional reconnaissance across brand, market, persona,
+                geography, and narrative structures, then assembles the insights into{" "}
+                <span className="text-orange-500">actionable systems</span>.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          {/* Visual Teaser */}
+          <ScrollReveal delay={0.2}>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 px-6 py-3 border border-zinc-800 bg-zinc-900/50 rounded-full">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                <span className="text-sm font-mono text-zinc-400">
+                  "It reads the internet's <span className="text-orange-500">thermal signature</span>."
+                </span>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Capabilities Grid */}
+          <StaggerReveal className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
+            {[
+              { icon: Zap, title: "Brand DNA Extraction", desc: "Deep identity analysis and visual fingerprinting" },
+              { icon: Target, title: "Competitor Recon Packs", desc: "Full competitive intelligence dossiers" },
+              { icon: Users, title: "Persona Affinity Mapping", desc: "Audience behavior and preference modeling" },
+              { icon: Search, title: "Autonomous Research Missions", desc: "Self-directed deep-dive investigations" },
+              { icon: Globe, title: "Geo Intelligence & Scoring", desc: "Location-based market opportunity analysis" },
+              { icon: Activity, title: "Narrative Change Detection", desc: "Real-time market sentiment shifts" },
+              { icon: Layers, title: "Multi-Step Pipeline Orchestration", desc: "Chained intelligence workflows" },
+              { icon: Eye, title: "Autonomous Watch Protocols", desc: "24/7 monitoring without human intervention" },
+              { icon: AlertTriangle, title: "Diff/Shift Monitoring", desc: "Instant alerts on critical changes" },
+            ].map((item, i) => (
+              <ScaleReveal key={i}>
+                <div className="group relative p-5 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300">
+                  {/* Corner accents */}
+                  <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-orange-500/50" />
+                  <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-orange-500/50" />
+                  <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-orange-500/50" />
+                  <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-orange-500/50" />
+
+                  <item.icon className="w-5 h-5 text-orange-500 mb-3 group-hover:scale-110 transition-transform" />
+                  <h3 className="text-sm font-bold text-zinc-200 mb-1">{item.title}</h3>
+                  <p className="text-xs text-zinc-500">{item.desc}</p>
+                </div>
+              </ScaleReveal>
+            ))}
+          </StaggerReveal>
+
+          {/* Intelligence Models */}
+          <ScrollReveal delay={0.3}>
+            <div className="border border-zinc-800 bg-zinc-900/20 p-8 mb-16">
+              <div className="flex items-center gap-2 mb-6">
+                <Crosshair className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-mono text-orange-500 uppercase tracking-widest">
+                  Lock-On Targeting Systems
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Narrative Heat Model */}
+                <div className="p-5 border border-zinc-800 bg-zinc-950/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-5 h-5 text-orange-500" />
+                    <h4 className="font-bold text-zinc-200">Narrative Heat Model</h4>
+                  </div>
+                  <p className="text-xs text-zinc-500 mb-4">Maps rising/declining narratives in real-time</p>
+                  <div className="space-y-1">
+                    {["Industries", "Sectors", "Fanbases", "News Cycles"].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-zinc-400">
+                        <div className="w-1 h-1 bg-orange-500 rounded-full" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Brand Fracture Detection */}
+                <div className="p-5 border border-zinc-800 bg-zinc-950/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-orange-400" />
+                    <h4 className="font-bold text-zinc-200">Brand Fracture Detection</h4>
+                  </div>
+                  <p className="text-xs text-zinc-500 mb-4">Detects when competitor messaging becomes incoherent</p>
+                  <div className="text-xs text-orange-500 font-mono">→ Gives DMG clients the ambush opportunity</div>
+                </div>
+
+                {/* Opportunity Aperture Model */}
+                <div className="p-5 border border-zinc-800 bg-zinc-950/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Crosshair className="w-5 h-5 text-orange-500" />
+                    <h4 className="font-bold text-zinc-200">Opportunity Aperture Model</h4>
+                  </div>
+                  <p className="text-xs text-zinc-500 mb-4">DMG's targeting system finds:</p>
+                  <div className="space-y-1">
+                    {[
+                      "Weak spots",
+                      "Open lanes",
+                      "Unclaimed narrative territory",
+                      "Content gaps",
+                      "Product opportunities",
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-zinc-400">
+                        <div className="w-1 h-1 bg-orange-500 rounded-full" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* CTA */}
+          <ScrollReveal delay={0.4}>
+            <div className="text-center">
+              <p className="text-zinc-500 mb-6 font-mono text-sm">
+                Daedalus is the reconnaissance eye. <span className="text-orange-500">Sentinels</span> are the boots on
+                the ground.
+              </p>
+              <Magnetic>
+                <button
+                  onClick={signupForm.open}
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
+                >
+                  <Radar className="w-4 h-4" />
+                  ACTIVATE RECONNAISSANCE
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </Magnetic>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 

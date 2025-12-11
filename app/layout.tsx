@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Share_Tech_Mono, Inter } from "next/font/google"
 import "./globals.css"
 import { TargetCursor } from "@/components/TargetCursor"
+import DynamicIsland from "@/components/DynamicIsland"
 
 const shareTechMono = Share_Tech_Mono({
   weight: "400",
@@ -41,6 +42,9 @@ export default function RootLayout({
       >
         <TargetCursor targetSelector=".cursor-target, button, a, [role='button']" />
         {children}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <DynamicIsland showControls={true} />
+        </div>
       </body>
     </html>
   )

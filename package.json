@@ -52,6 +52,7 @@
     "input-otp": "1.4.1",
     "katex": "latest",
     "lucide-react": "^0.454.0",
+    "motion": "latest",
     "next": "16.0.8",
     "next-themes": "latest",
     "react": "19.2.0",
