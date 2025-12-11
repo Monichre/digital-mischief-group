@@ -47,6 +47,12 @@ export default function Home() {
             <Link href="/brand-recon" className="hover:text-white transition-colors">
               Brand Recon
             </Link>
+            <Link href="/scouts" className="hover:text-white transition-colors">
+              Scouts
+            </Link>
+            <Link href="/observe" className="hover:text-white transition-colors">
+              Observe
+            </Link>
           </div>
           <button
             onClick={signupForm.open}
