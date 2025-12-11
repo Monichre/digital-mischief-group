@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import Link from "next/link"
-import { ArrowLeft, Eye, RefreshCw, Clock, ArrowRight } from "lucide-react"
+import { ArrowLeft, Crosshair, RefreshCw, Clock, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Monitor, MonitorChange } from "@/lib/scouts/types"
 
@@ -38,7 +38,7 @@ export default function MonitorDetailPage({ params }: { params: Promise<{ id: st
 
   if (!monitor) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500">Monitor not found</div>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500">Target not found</div>
     )
   }
 
@@ -48,7 +48,7 @@ export default function MonitorDetailPage({ params }: { params: Promise<{ id: st
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/observe" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Observe</span>
+            <span>Back to Recon</span>
           </Link>
           <Button
             onClick={checkNow}
@@ -70,8 +70,8 @@ export default function MonitorDetailPage({ params }: { params: Promise<{ id: st
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-8">
           <div className="flex items-center gap-2 text-orange-500 text-sm mb-2">
-            <Eye className="w-4 h-4" />
-            <span>// MONITOR DETAIL</span>
+            <Crosshair className="w-4 h-4" />
+            <span>// RECON TARGET</span>
           </div>
           <h1 className="text-3xl font-black mb-2">{monitor.name}</h1>
           <a
@@ -95,7 +95,7 @@ export default function MonitorDetailPage({ params }: { params: Promise<{ id: st
         {changes.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-zinc-800">
             <p className="text-zinc-500">No changes detected yet.</p>
-            <p className="text-zinc-600 text-sm">Check the monitor to establish a baseline.</p>
+            <p className="text-zinc-600 text-sm">Check the target to establish a baseline.</p>
           </div>
         ) : (
           <div className="space-y-4">

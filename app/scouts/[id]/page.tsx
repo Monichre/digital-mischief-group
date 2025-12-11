@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import Link from "next/link"
-import { ArrowLeft, Search, Play, ExternalLink, Clock } from "lucide-react"
+import { ArrowLeft, Shield, Play, ExternalLink, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Scout, ScoutResult } from "@/lib/scouts/types"
 
@@ -37,7 +37,9 @@ export default function ScoutDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   if (!scout) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500">Scout not found</div>
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500">Sentinel not found</div>
+    )
   }
 
   return (
@@ -46,7 +48,7 @@ export default function ScoutDetailPage({ params }: { params: Promise<{ id: stri
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/scouts" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Scouts</span>
+            <span>Back to Sentinels</span>
           </Link>
           <Button
             onClick={runScout}
@@ -58,7 +60,7 @@ export default function ScoutDetailPage({ params }: { params: Promise<{ id: stri
             ) : (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                Run Scout
+                Run Sentinel
               </>
             )}
           </Button>
@@ -68,8 +70,8 @@ export default function ScoutDetailPage({ params }: { params: Promise<{ id: stri
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-8">
           <div className="flex items-center gap-2 text-orange-500 text-sm mb-2">
-            <Search className="w-4 h-4" />
-            <span>// SCOUT DETAIL</span>
+            <Shield className="w-4 h-4" />
+            <span>// SENTINEL DETAIL</span>
           </div>
           <h1 className="text-3xl font-black mb-2">{scout.name}</h1>
           <p className="text-zinc-500 font-mono">{scout.search_query}</p>
@@ -85,7 +87,7 @@ export default function ScoutDetailPage({ params }: { params: Promise<{ id: stri
 
         {results.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-zinc-800">
-            <p className="text-zinc-500">No results yet. Run the scout to discover content.</p>
+            <p className="text-zinc-500">No results yet. Run the sentinel to discover content.</p>
           </div>
         ) : (
           <div className="space-y-3">

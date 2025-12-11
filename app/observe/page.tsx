@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Plus, Eye, RefreshCw, Trash2, ExternalLink, Clock, AlertCircle } from "lucide-react"
+import { ArrowLeft, Plus, Crosshair, RefreshCw, Trash2, ExternalLink, Clock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Monitor } from "@/lib/scouts/types"
@@ -48,7 +48,7 @@ export default function ObservePage() {
   }
 
   const deleteMonitor = async (id: string) => {
-    if (!confirm("Delete this monitor?")) return
+    if (!confirm("Delete this recon target?")) return
     await fetch(`/api/monitors/${id}`, { method: "DELETE" })
     fetchMonitors()
   }
@@ -63,8 +63,8 @@ export default function ObservePage() {
           </Link>
           <div className="flex items-center gap-1 text-orange-500">
             <span className="text-zinc-600">{"<"}</span>
-            <Eye className="w-4 h-4" />
-            <span className="font-bold">[ OBSERVE ]</span>
+            <Crosshair className="w-4 h-4" />
+            <span className="font-bold">[ RECON ]</span>
             <span className="text-zinc-600">{">"}</span>
           </div>
         </div>
@@ -73,14 +73,14 @@ export default function ObservePage() {
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500 mb-6">
-            <Eye className="w-3 h-3 text-orange-500" />
+            <Crosshair className="w-3 h-3 text-orange-500" />
             <span>// CHANGE DETECTION</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4">
-            Fire-<span className="text-orange-500">Observe</span>
+            Fire-<span className="text-orange-500">Recon</span>
           </h1>
           <p className="text-zinc-500 max-w-xl mx-auto">
-            Monitor websites for changes. Get AI-powered summaries when content updates.
+            Deploy recon targets to monitor websites for changes. Get AI-powered summaries when content updates.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function ObservePage() {
             className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Monitor
+            New Target
           </Button>
         </div>
 
@@ -101,10 +101,10 @@ export default function ObservePage() {
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-orange-500" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-orange-500" />
 
-            <h3 className="text-lg font-bold mb-4 text-orange-500">// CREATE MONITOR</h3>
+            <h3 className="text-lg font-bold mb-4 text-orange-500">// DEPLOY RECON TARGET</h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Monitor Name</label>
+                <label className="text-xs text-zinc-500 mb-1 block">Target Name</label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -128,7 +128,7 @@ export default function ObservePage() {
                 disabled={creating || !form.name || !form.url}
                 className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
               >
-                {creating ? "Creating..." : "Create Monitor"}
+                {creating ? "Deploying..." : "Deploy Target"}
               </Button>
               <Button variant="outline" onClick={() => setShowCreate(false)}>
                 Cancel
@@ -138,12 +138,12 @@ export default function ObservePage() {
         )}
 
         {loading ? (
-          <div className="text-center py-12 text-zinc-500">Loading monitors...</div>
+          <div className="text-center py-12 text-zinc-500">Loading targets...</div>
         ) : monitors.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-zinc-800">
-            <Eye className="w-12 h-12 mx-auto mb-4 text-zinc-700" />
-            <p className="text-zinc-500">No monitors configured yet</p>
-            <p className="text-zinc-600 text-sm">Create your first monitor to start tracking changes</p>
+            <Crosshair className="w-12 h-12 mx-auto mb-4 text-zinc-700" />
+            <p className="text-zinc-500">No recon targets deployed yet</p>
+            <p className="text-zinc-600 text-sm">Deploy your first target to start tracking changes</p>
           </div>
         ) : (
           <div className="space-y-4">

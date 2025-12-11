@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Plus, Search, Play, Trash2, ExternalLink, Clock, CheckCircle } from "lucide-react"
+import { ArrowLeft, Plus, Play, Trash2, ExternalLink, Clock, CheckCircle, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Scout } from "@/lib/scouts/types"
@@ -48,7 +48,7 @@ export default function ScoutsPage() {
   }
 
   const deleteScout = async (id: string) => {
-    if (!confirm("Delete this scout?")) return
+    if (!confirm("Delete this sentinel?")) return
     await fetch(`/api/scouts/${id}`, { method: "DELETE" })
     fetchScouts()
   }
@@ -64,25 +64,25 @@ export default function ScoutsPage() {
           </Link>
           <div className="flex items-center gap-1 text-orange-500">
             <span className="text-zinc-600">{"<"}</span>
-            <Search className="w-4 h-4" />
-            <span className="font-bold">[ SCOUTS ]</span>
+            <Shield className="w-4 h-4" />
+            <span className="font-bold">[ SENTINELS ]</span>
             <span className="text-zinc-600">{">"}</span>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* Title */}
+        {/* Title - Updated all copy to Sentinels */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500 mb-6">
-            <Search className="w-3 h-3 text-orange-500" />
+            <Shield className="w-3 h-3 text-orange-500" />
             <span>// COMPETITIVE INTELLIGENCE</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4">
-            Fire-<span className="text-orange-500">Scouts</span>
+            Fire-<span className="text-orange-500">Sentinels</span>
           </h1>
           <p className="text-zinc-500 max-w-xl mx-auto">
-            Monitor competitors, track market trends, and discover new opportunities with automated search agents.
+            Deploy automated sentinels to monitor competitors, track market trends, and discover new opportunities.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function ScoutsPage() {
             className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Scout
+            New Sentinel
           </Button>
         </div>
 
@@ -105,10 +105,10 @@ export default function ScoutsPage() {
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-orange-500" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-orange-500" />
 
-            <h3 className="text-lg font-bold mb-4 text-orange-500">// CREATE SCOUT</h3>
+            <h3 className="text-lg font-bold mb-4 text-orange-500">// DEPLOY SENTINEL</h3>
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Scout Name</label>
+                <label className="text-xs text-zinc-500 mb-1 block">Sentinel Name</label>
                 <Input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -132,7 +132,7 @@ export default function ScoutsPage() {
                 disabled={creating || !form.name || !form.search_query}
                 className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
               >
-                {creating ? "Creating..." : "Create Scout"}
+                {creating ? "Deploying..." : "Deploy Sentinel"}
               </Button>
               <Button variant="outline" onClick={() => setShowCreate(false)}>
                 Cancel
@@ -141,14 +141,14 @@ export default function ScoutsPage() {
           </div>
         )}
 
-        {/* Scouts List */}
+        {/* Sentinels List */}
         {loading ? (
-          <div className="text-center py-12 text-zinc-500">Loading scouts...</div>
+          <div className="text-center py-12 text-zinc-500">Loading sentinels...</div>
         ) : scouts.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-zinc-800">
-            <Search className="w-12 h-12 mx-auto mb-4 text-zinc-700" />
-            <p className="text-zinc-500">No scouts configured yet</p>
-            <p className="text-zinc-600 text-sm">Create your first scout to start monitoring</p>
+            <Shield className="w-12 h-12 mx-auto mb-4 text-zinc-700" />
+            <p className="text-zinc-500">No sentinels deployed yet</p>
+            <p className="text-zinc-600 text-sm">Deploy your first sentinel to start monitoring</p>
           </div>
         ) : (
           <div className="space-y-4">

@@ -48,10 +48,10 @@ export default function Home() {
               Brand Recon
             </Link>
             <Link href="/scouts" className="hover:text-white transition-colors">
-              Scouts
+              Sentinels
             </Link>
             <Link href="/observe" className="hover:text-white transition-colors">
-              Observe
+              Recon
             </Link>
           </div>
           <button
