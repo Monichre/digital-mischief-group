@@ -27,6 +27,7 @@ import {
   Swords,
   ScanEye,
   Radio,
+  Telescope,
 } from "lucide-react"
 import { SignupForm, useSignupForm } from "@/components/SignupForm"
 import { MeetTheTeam } from "@/components/MeetTheTeam"
@@ -107,6 +108,17 @@ export default function Home() {
                       <div>
                         <div className="text-sm text-zinc-200 group-hover:text-white">Research + Enrichment</div>
                         <div className="text-[10px] text-zinc-500">Deep Company Intelligence</div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/research"
+                      onClick={() => setDaedalusOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group"
+                    >
+                      <Telescope className="w-4 h-4 text-orange-400" />
+                      <div>
+                        <div className="text-sm text-zinc-200 group-hover:text-white">Open-Researcher</div>
+                        <div className="text-[10px] text-zinc-500">Autonomous Research Missions</div>
                       </div>
                     </Link>
                     <Link
@@ -451,8 +463,9 @@ export default function Home() {
             <Magnetic>
               <button
                 onClick={signupForm.open}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
               >
+                <Flame className="w-4 h-4" />
                 START WITH A DIAGNOSTIC
                 <ArrowRight className="w-4 h-4" />
               </button>
