@@ -40,7 +40,7 @@ export default function RootLayout({
       <body
         className={`${shareTechMono.variable} ${inter.variable} font-mono antialiased bg-[#050507] text-gray-300 overflow-x-hidden`}
       >
-        <TargetCursor targetSelector=".cursor-target, button, a, [role='button']" />
+        <TargetCursor targetSelector="button, a, [role='button'], [role='link'], [role='tab'], [role='menuitem'], [role='option'], input, textarea, select, label[for], [tabindex]:not([tabindex='-1']), .cursor-target, [onclick], summary, [data-clickable], .card, [class*='Card'], [class*='btn'], [class*='Btn'], [class*='link'], [class*='Link']" />
         {children}
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <DynamicIsland showControls={true} />
