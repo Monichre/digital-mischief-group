@@ -384,8 +384,25 @@ function MissionCard({
             <div className="space-y-4">
               <div>
                 <h5 className="font-mono text-xs text-zinc-500 mb-2">// INTELLIGENCE BRIEF</h5>
-                <div className="bg-zinc-950 border border-zinc-800 rounded p-4 prose prose-invert prose-sm max-w-none prose-headings:font-mono prose-headings:text-orange-500 prose-strong:text-zinc-200 prose-ul:text-zinc-300 prose-li:text-zinc-300 prose-p:text-zinc-300">
-                  <ReactMarkdown>{mission.summary}</ReactMarkdown>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-4">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => <h1 className="text-xl font-mono text-orange-500 mb-4">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-lg font-mono text-orange-500 mt-6 mb-3">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-base font-mono text-orange-400 mt-4 mb-2">{children}</h3>,
+                      p: ({ children }) => <p className="text-sm text-zinc-300 mb-3 leading-relaxed">{children}</p>,
+                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-4 ml-2">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-4 ml-2">{children}</ol>,
+                      li: ({ children }) => <li className="text-sm text-zinc-300">{children}</li>,
+                      strong: ({ children }) => <strong className="text-zinc-100 font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="text-zinc-400 italic">{children}</em>,
+                      a: ({ href, children }) => <a href={href} className="text-orange-500 hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                      code: ({ children }) => <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-orange-400 text-xs font-mono">{children}</code>,
+                      blockquote: ({ children }) => <blockquote className="border-l-2 border-orange-500 pl-4 italic text-zinc-400 my-4">{children}</blockquote>,
+                    }}
+                  >
+                    {mission.summary}
+                  </ReactMarkdown>
                 </div>
               </div>
 
