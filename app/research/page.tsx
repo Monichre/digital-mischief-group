@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import ReactMarkdown from "react-markdown"
 import {
   ArrowLeft,
   Plus,
@@ -24,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ScrollReveal } from "@/components/scroll-animations"
 import type { ResearchMission, ResearchDepth } from "@/lib/research/types"
+import { ProGate } from "@/components/pro-gate"
 
 const DEPTH_OPTIONS: { value: ResearchDepth; label: string; description: string }[] = [
   { value: "quick", label: "Quick Scan", description: "~30 seconds, surface-level intel" },
@@ -167,6 +169,7 @@ export default function ResearchPage() {
           </ScrollReveal>
 
           {/* Create Mission */}
+          <ProGate>
           <ScrollReveal delay={0.1}>
             <div className="mb-8">
               {!showCreate ? (
@@ -304,6 +307,7 @@ export default function ResearchPage() {
               )}
             </div>
           </ScrollReveal>
+          </ProGate>
         </div>
       </div>
     </main>
@@ -380,10 +384,8 @@ function MissionCard({
             <div className="space-y-4">
               <div>
                 <h5 className="font-mono text-xs text-zinc-500 mb-2">// INTELLIGENCE BRIEF</h5>
-                <div className="bg-zinc-950 border border-zinc-800 rounded p-4">
-                  <pre className="whitespace-pre-wrap text-sm text-zinc-300 font-mono leading-relaxed">
-                    {mission.summary}
-                  </pre>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-4 prose prose-invert prose-sm max-w-none prose-headings:font-mono prose-headings:text-orange-500 prose-strong:text-zinc-200 prose-ul:text-zinc-300 prose-li:text-zinc-300 prose-p:text-zinc-300">
+                  <ReactMarkdown>{mission.summary}</ReactMarkdown>
                 </div>
               </div>
 

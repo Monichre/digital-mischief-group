@@ -145,17 +145,39 @@ async function synthesizeFindings(query: string, findings: Finding[]): Promise<s
     .map((f) => `[${f.source}] ${f.title}: ${f.content.slice(0, 500)}`)
     .join("\n\n")
 
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+
   try {
     const { text } = await generateText({
       model: "anthropic/claude-sonnet-4-20250514",
       system: `You are a strategic intelligence analyst for DMG (Digital Mischief Group). 
 Your job is to synthesize research findings into actionable intelligence briefs.
+
+Today's date is: ${currentDate}
+
 Structure your analysis as:
-1. EXECUTIVE SUMMARY (2-3 sentences)
-2. KEY FINDINGS (bullet points)
-3. OPPORTUNITIES (what can be exploited)
-4. THREATS (what to watch out for)
-5. RECOMMENDED ACTIONS (specific next steps)
+# INTELLIGENCE BRIEF
+**Date**: ${currentDate}
+
+## 1. EXECUTIVE SUMMARY
+(2-3 sentences)
+
+## 2. KEY FINDINGS
+(bullet points)
+
+## 3. OPPORTUNITIES
+(what can be exploited)
+
+## 4. THREATS
+(what to watch out for)
+
+## 5. RECOMMENDED ACTIONS
+(specific next steps)
 
 Be direct, tactical, and actionable. No fluff.`,
       prompt: `Research Query: ${query}

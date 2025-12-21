@@ -2,11 +2,20 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
 import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
 import { COMPANY_ENRICHMENT_SCHEMA, type CompanyEnrichmentData, type EnrichmentJob } from "@/lib/firecrawl/types"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
 
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { input } = await request.json()
 
     if (!input || typeof input !== "string") {
@@ -54,8 +63,8 @@ export async function POST(request: NextRequest) {
       // Try to save failed job
       try {
         await sql`
-          INSERT INTO enrichment_jobs (input_type, input_value, normalized_url, domain, status, error_message)
-          VALUES (${inputType}, ${inputTrimmed}, ${normalizedUrl}, ${domain}, 'failed', ${extractResult.error || "Extraction failed"})
+          INSERT INTO enrichment_jobs (input_type, input_value, normalized_url, domain, status, error_message, user_id)
+          VALUES (${inputType}, ${inputTrimmed}, ${normalizedUrl}, ${domain}, 'failed', ${extractResult.error || "Extraction failed"}, ${userId})
         `
       } catch (dbError) {
         console.error("[Enrich] DB error saving failed job:", dbError)
@@ -104,23 +113,26 @@ export async function POST(request: NextRequest) {
     // Save to database
     let savedJob: EnrichmentJob | null = null
     try {
+      // Convert empty strings to null for integer fields
+      const foundedYear = jobData.company_founded ? parseInt(String(jobData.company_founded), 10) : null
+      const validFoundedYear = foundedYear && !isNaN(foundedYear) ? foundedYear : null
+
       const result = await sql`
         INSERT INTO enrichment_jobs (
           input_type, input_value, normalized_url, domain,
-          company_name, company_description, company_logo, company_industry,
-          company_size, company_founded, company_headquarters, company_website,
-          linkedin_url, twitter_url, facebook_url, crunchbase_url,
-          contact_emails, contact_phones, tech_stack, funding_total, investors, key_people,
-          raw_response, status
+          company_name, company_description, industry,
+          employee_count, founded_year, headquarters, website,
+          linkedin_url, twitter_url, funding_total,
+          technologies, leadership, contacts,
+          raw_data, status, user_id
         ) VALUES (
           ${jobData.input_type}, ${jobData.input_value}, ${jobData.normalized_url}, ${jobData.domain},
-          ${jobData.company_name}, ${jobData.company_description}, ${jobData.company_logo}, ${jobData.company_industry},
-          ${jobData.company_size}, ${jobData.company_founded}, ${jobData.company_headquarters}, ${jobData.company_website},
-          ${jobData.linkedin_url}, ${jobData.twitter_url}, ${jobData.facebook_url}, ${jobData.crunchbase_url},
-          ${JSON.stringify(jobData.contact_emails)}, ${JSON.stringify(jobData.contact_phones)}, 
-          ${JSON.stringify(jobData.tech_stack)}, ${jobData.funding_total}, 
-          ${JSON.stringify(jobData.investors)}, ${JSON.stringify(jobData.key_people)},
-          ${JSON.stringify(enrichmentData)}, 'completed'
+          ${jobData.company_name || null}, ${jobData.company_description || null}, ${jobData.company_industry || null},
+          ${jobData.company_size || null}, ${validFoundedYear}, ${jobData.company_headquarters || null}, ${jobData.company_website || null},
+          ${jobData.linkedin_url || null}, ${jobData.twitter_url || null}, ${jobData.funding_total || null},
+          ${JSON.stringify(jobData.tech_stack) || null}, ${JSON.stringify(jobData.key_people) || null}, 
+          ${JSON.stringify(jobData.contact_emails) || null},
+          ${JSON.stringify(enrichmentData)}, 'completed', ${userId}
         )
         RETURNING *
       `
@@ -134,8 +146,8 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime
     try {
       await sql`
-        INSERT INTO usage_events (event_type, module, input_value, status, duration_ms, metadata)
-        VALUES ('enrichment', 'enrich', ${inputTrimmed}, 'success', ${duration}, ${JSON.stringify({ domain })})
+        INSERT INTO usage_events (event_type, module, input_value, status, metadata, user_id)
+        VALUES ('enrichment', 'enrich', ${inputTrimmed}, 'success', ${JSON.stringify({ domain, duration_ms: duration })}, ${userId})
       `
     } catch (usageError) {
       console.error("[Enrich] Usage logging error:", usageError)
@@ -162,6 +174,13 @@ export async function POST(request: NextRequest) {
 // GET - Fetch enrichment history
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { searchParams } = new URL(request.url)
     const limit = Number.parseInt(searchParams.get("limit") || "20")
     const offset = Number.parseInt(searchParams.get("offset") || "0")
@@ -171,13 +190,14 @@ export async function GET(request: NextRequest) {
     if (domain) {
       jobs = await sql`
         SELECT * FROM enrichment_jobs 
-        WHERE domain = ${domain}
+        WHERE domain = ${domain} AND user_id = ${userId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
       `
     } else {
       jobs = await sql`
         SELECT * FROM enrichment_jobs 
+        WHERE user_id = ${userId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
       `

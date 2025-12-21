@@ -12,6 +12,7 @@ import { ComponentPreview } from "@/components/brand-recon/ComponentPreview"
 import { BrandHeader } from "@/components/brand-recon/BrandHeader"
 import { SpacingCard } from "@/components/brand-recon/SpacingCard"
 import { ScreenshotPreview } from "@/components/brand-recon/ScreenshotPreview"
+import { ProGate } from "@/components/pro-gate"
 
 export default function BrandReconPage() {
   const [input, setInput] = useState("")
@@ -97,6 +98,7 @@ export default function BrandReconPage() {
           </div>
 
           {/* Input Form */}
+          <ProGate>
           <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-16">
             <div className="relative">
               {/* Corner Accents */}
@@ -214,6 +216,7 @@ export default function BrandReconPage() {
               </details>
             </div>
           )}
+          </ProGate>
         </div>
       </main>
     </div>

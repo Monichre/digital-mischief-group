@@ -2,11 +2,20 @@ import { type NextRequest, NextResponse } from "next/server"
 import type { BrandReconResponse } from "@/lib/brand-recon/types"
 import { sql } from "@/lib/db/neon"
 import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function POST(request: NextRequest): Promise<NextResponse<BrandReconResponse>> {
   const startTime = Date.now()
 
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { input } = await request.json()
 
     if (!input || typeof input !== "string") {

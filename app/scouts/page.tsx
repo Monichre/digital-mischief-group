@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Play, Trash2, ExternalLink, Clock, CheckCircle, Shield
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Scout } from "@/lib/scouts/types"
+import { ProGate } from "@/components/pro-gate"
 
 export default function ScoutsPage() {
   const [scouts, setScouts] = useState<(Scout & { result_count: number })[]>([])
@@ -87,6 +88,7 @@ export default function ScoutsPage() {
         </div>
 
         {/* Create Button */}
+        <ProGate>
         <div className="flex justify-end mb-8">
           <Button
             onClick={() => setShowCreate(!showCreate)}
@@ -222,6 +224,7 @@ export default function ScoutsPage() {
             ))}
           </div>
         )}
+        </ProGate>
       </main>
     </div>
   )
