@@ -93,3 +93,270 @@ cd /Users/liamellis/Desktop/digital-mischief-group && pwd
 
 ---
 
+Nice—found a concrete JSX structural bug: the “PROCESS / protocol” section opens a wrapper `<div className="max-w-7xl ...">` but never closes it before `</section>`, which will hard-fail TSX parsing. Next I’ll write the required pseudocode markdown, apply the minimal JSX close-tag fix in `app/page.tsx`, then run lints for that file and document the change.
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Fix unclosed wrapper div in app/page.tsx protocol section to restore valid JSX
+- [ ] Add AppPage_PSUEDOCODE.md describing intended change before editing code
+- [ ] Add AppPage.md documenting what changed and where
+- [ ] Run lints for app/page.tsx after edit and address any introduced issues
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="apply_patch">
+<details>
+<summary>Tool use: **apply_patch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "relativeWorkspacePath": "AppPage_PSUEDOCODE.md"
+}
+```
+Additional data:
+
+```json
+{
+  "codeblockId": "5f322958-2c9c-47ee-938f-834572de37c4"
+}
+```
+Result:
+
+```json
+{
+  "diff": {
+    "chunks": [
+      {
+        "diffString": "- \n+ # App Page Fix — Pseudocode\n+ \n+ ## Objective\n+ \n+ Ensure &#96;app/page.tsx&#96; is valid TSX/JSX and compiles cleanly by fixing structural tag mismatches.\n+ \n+ ## Findings\n+ \n+ The &#96;#protocol&#96; (Process) section opens an outer wrapper:\n+ \n+ - &#96;&lt;section id=\"protocol\"&gt;&#96;\n+   - &#96;&lt;div className=\"max-w-7xl ...\"&gt;&#96;\n+ \n+ But the wrapper &#96;&lt;div&gt;&#96; is not closed before the section ends. This breaks JSX parsing and will fail builds/linting.\n+ \n+ ## Minimal fix (pseudocode)\n+ \n+ - Locate the &#96;#protocol&#96; section in &#96;app/page.tsx&#96;\n+ - Identify the outer wrapper &#96;&lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;&#96;\n+ - Ensure closing tags are properly nested:\n+   - Close the inner CTA container (&#96;&lt;div className=\"text-center\"&gt;&#96;) as-is\n+   - Add &#96;&lt;/div&gt;&#96; to close the outer wrapper\n+   - Then close the section with &#96;&lt;/section&gt;&#96;\n+ \n+ ## Expected result\n+ \n+ - JSX tree is well-formed.\n+ - &#96;app/page.tsx&#96; parses and compiles.\n+ ",
+        "oldStart": 1,
+        "newStart": 1,
+        "oldLines": 1,
+        "newLines": 29,
+        "linesRemoved": 1,
+        "linesAdded": 29
+      }
+    ],
+    "editor": "EDITOR_AI"
+  },
+  "shouldAutoFixLints": true,
+  "resultForModel": "Success. Updated the following files:\nM AppPage_PSUEDOCODE.md",
+  "contentsAfterEdit": "# App Page Fix — Pseudocode\n\n## Objective\n\nEnsure &#96;app/page.tsx&#96; is valid TSX/JSX and compiles cleanly by fixing structural tag mismatches.\n\n## Findings\n\nThe &#96;#protocol&#96; (Process) section opens an outer wrapper:\n\n- &#96;&lt;section id=\"protocol\"&gt;&#96;\n  - &#96;&lt;div className=\"max-w-7xl ...\"&gt;&#96;\n\nBut the wrapper &#96;&lt;div&gt;&#96; is not closed before the section ends. This breaks JSX parsing and will fail builds/linting.\n\n## Minimal fix (pseudocode)\n\n- Locate the &#96;#protocol&#96; section in &#96;app/page.tsx&#96;\n- Identify the outer wrapper &#96;&lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;&#96;\n- Ensure closing tags are properly nested:\n  - Close the inner CTA container (&#96;&lt;div className=\"text-center\"&gt;&#96;) as-is\n  - Add &#96;&lt;/div&gt;&#96; to close the outer wrapper\n  - Then close the section with &#96;&lt;/section&gt;&#96;\n\n## Expected result\n\n- JSX tree is well-formed.\n- &#96;app/page.tsx&#96; parses and compiles.\n\n"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [-] Fix unclosed wrapper div in app/page.tsx protocol section to restore valid JSX
+- [x] Add AppPage_PSUEDOCODE.md describing intended change before editing code
+- [ ] Add AppPage.md documenting what changed and where
+- [ ] Run lints for app/page.tsx after edit and address any introduced issues
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="apply_patch">
+<details>
+<summary>Tool use: **apply_patch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "relativeWorkspacePath": "app/page.tsx"
+}
+```
+Additional data:
+
+```json
+{
+  "codeblockId": "36f32b5b-23b0-4e1d-b3ea-41eae60089d0"
+}
+```
+Result:
+
+```json
+{
+  "diff": {
+    "chunks": [
+      {
+        "diffString": "              &lt;/Magnetic&gt;\n            &lt;/div&gt;\n-         &lt;/section&gt;\n+         &lt;/div&gt;\n+       &lt;/section&gt;\n  \n        {/* CASE STUDIES / BURN LOGS */}",
+        "oldStart": 472,
+        "newStart": 472,
+        "oldLines": 5,
+        "newLines": 6,
+        "linesRemoved": 1,
+        "linesAdded": 2
+      }
+    ],
+    "editor": "EDITOR_AI"
+  },
+  "shouldAutoFixLints": true,
+  "resultForModel": "Success. Updated the following files:\nM app/page.tsx",
+  "contentsAfterEdit": "\"use client\"\n\nimport Link from \"next/link\"\nimport {\n  Flame,\n  ArrowRight,\n  ChevronRight,\n  Target,\n  X,\n  Brain,\n  Monitor,\n  Bot,\n  SlidersHorizontal,\n  Radar,\n  Crosshair,\n  Zap,\n  Eye,\n  Users,\n  Globe,\n  Activity,\n  Layers,\n  AlertTriangle,\n  TrendingUp,\n  Search,\n  FileSearch,\n  Shield,\n  Swords,\n  ScanEye,\n  Radio,\n  Telescope,\n} from \"lucide-react\"\nimport { SignupForm, useSignupForm } from \"@/components/SignupForm\"\nimport { MeetTheTeam } from \"@/components/MeetTheTeam\"\nimport { CardSwap, Card } from \"@/components/CardSwap\"\nimport {\n  ScrollReveal,\n  StaggerReveal,\n  Parallax,\n  GlitchText,\n  ScaleReveal,\n  Magnetic,\n} from \"@/components/scroll-animations\"\nimport { useState, useRef, useEffect } from \"react\"\n\nexport default function Home() {\n  const signupForm = useSignupForm()\n  const [daedalusOpen, setDaedalusOpen] = useState(false)\n  const dropdownRef = useRef&lt;HTMLDivElement&gt;(null)\n\n  useEffect(() =&gt; {\n    const handleClickOutside = (event: MouseEvent) =&gt; {\n      if (dropdownRef.current &amp;&amp; !dropdownRef.current.contains(event.target as Node)) {\n        setDaedalusOpen(false)\n      }\n    }\n    document.addEventListener(\"mousedown\", handleClickOutside)\n    return () =&gt; document.removeEventListener(\"mousedown\", handleClickOutside)\n  }, [])\n\n  return (\n    &lt;div className=\"min-h-screen bg-zinc-950 text-zinc-200 selection:bg-orange-500 selection:text-white font-mono\"&gt;\n      {/* NAVIGATION */}\n      &lt;nav className=\"fixed top-0 w-full border-b border-white/10 bg-zinc-950/80 backdrop-blur-md z-50\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6 h-16 flex items-center justify-between\"&gt;\n          &lt;div className=\"flex items-center gap-2\"&gt;\n            &lt;div className=\"w-2 h-2 bg-orange-500 animate-pulse rounded-full\" /&gt;\n            &lt;span className=\"font-mono font-bold tracking-tighter text-lg\"&gt;[ DMG ]&lt;/span&gt;\n          &lt;/div&gt;\n          &lt;div className=\"hidden md:flex items-center gap-8 text-sm text-zinc-400\"&gt;\n            &lt;Link href=\"#cortex\" className=\"hover:text-white transition-colors\"&gt;\n              Revenue Cortex\n            &lt;/Link&gt;\n            &lt;Link href=\"#protocol\" className=\"hover:text-white transition-colors\"&gt;\n              Protocol\n            &lt;/Link&gt;\n            &lt;Link href=\"#cases\" className=\"hover:text-white transition-colors\"&gt;\n              Burn Logs\n            &lt;/Link&gt;\n            &lt;Link href=\"#mission\" className=\"hover:text-white transition-colors\"&gt;\n              Mission\n            &lt;/Link&gt;\n            &lt;Link href=\"/arsenal\" className=\"hover:text-white transition-colors\"&gt;\n              Arsenal\n            &lt;/Link&gt;\n            &lt;div className=\"relative\" ref={dropdownRef}&gt;\n              &lt;button\n                onClick={() =&gt; setDaedalusOpen(!daedalusOpen)}\n                className=\"flex items-center gap-1 hover:text-white transition-colors\"\n              &gt;\n                &lt;Radar className=\"w-3 h-3 text-orange-500\" /&gt;\n                &lt;span&gt;Daedalus&lt;/span&gt;\n                &lt;ChevronRight className={&#96;w-3 h-3 transition-transform ${daedalusOpen ? \"rotate-180\" : \"\"}&#96;} /&gt;\n              &lt;/button&gt;\n              {daedalusOpen &amp;&amp; (\n                &lt;div className=\"absolute top-full left-0 mt-2 w-56 rounded-lg border border-zinc-800 bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden\"&gt;\n                  &lt;div className=\"px-3 py-2 border-b border-zinc-800\"&gt;\n                    &lt;span className=\"text-[10px] font-mono text-orange-500 uppercase tracking-widest\"&gt;\n                      Reconnaissance Suite\n                    &lt;/span&gt;\n                  &lt;/div&gt;\n                  &lt;div className=\"py-1\"&gt;\n                    &lt;Link\n                      href=\"/enrich\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;FileSearch className=\"w-4 h-4 text-orange-500\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;Research + Enrichment&lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Deep Company Intelligence&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                    &lt;Link\n                      href=\"/research\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;Telescope className=\"w-4 h-4 text-orange-400\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;Open-Researcher&lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Autonomous Research Missions&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                    &lt;Link\n                      href=\"/scouts\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;Shield className=\"w-4 h-4 text-orange-400\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;\n                          Intel &amp; Competitive Threat Detection\n                        &lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Market Position Analysis&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                    &lt;Link\n                      href=\"/brand-recon\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;Swords className=\"w-4 h-4 text-orange-500\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;Counter Ops&lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Brand Fracture &amp; Ambush Targeting&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                    &lt;Link\n                      href=\"/observe\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;ScanEye className=\"w-4 h-4 text-orange-400\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;Surveillance + Extraction&lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Change Detection &amp; Data Harvesting&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                    &lt;Link\n                      href=\"#daedalus\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group\"\n                    &gt;\n                      &lt;Radio className=\"w-4 h-4 text-orange-500\" /&gt;\n                      &lt;div&gt;\n                        &lt;div className=\"text-sm text-zinc-200 group-hover:text-white\"&gt;Recon &amp; Sentinel Suite&lt;/div&gt;\n                        &lt;div className=\"text-[10px] text-zinc-500\"&gt;Autonomous Watch Protocols&lt;/div&gt;\n                      &lt;/div&gt;\n                    &lt;/Link&gt;\n                  &lt;/div&gt;\n                  &lt;div className=\"px-3 py-2 border-t border-zinc-800 bg-zinc-900/50\"&gt;\n                    &lt;Link\n                      href=\"#daedalus\"\n                      onClick={() =&gt; setDaedalusOpen(false)}\n                      className=\"flex items-center gap-2 text-[10px] font-mono text-zinc-500 hover:text-orange-500 transition-colors\"\n                    &gt;\n                      &lt;span&gt;View Full System →&lt;/span&gt;\n                    &lt;/Link&gt;\n                  &lt;/div&gt;\n                &lt;/div&gt;\n              )}\n            &lt;/div&gt;\n          &lt;/div&gt;\n          &lt;button\n            onClick={signupForm.open}\n            className=\"px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300\"\n          &gt;\n            Deploy →\n          &lt;/button&gt;\n        &lt;/div&gt;\n      &lt;/nav&gt;\n\n      {/* HERO SECTION */}\n      &lt;section className=\"relative min-h-screen flex items-center justify-center overflow-hidden\"&gt;\n        {/* Background Grid */}\n        &lt;div className=\"absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]\" /&gt;\n\n        {/* Radial Gradient */}\n        &lt;div className=\"absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08)_0%,transparent_70%)]\" /&gt;\n\n        {/* Parallax Decorative Elements */}\n        &lt;Parallax speed={0.3} direction=\"up\" className=\"absolute top-20 left-10 text-orange-500/20 text-6xl font-bold\"&gt;\n          //\n        &lt;/Parallax&gt;\n        &lt;Parallax\n          speed={0.5}\n          direction=\"down\"\n          className=\"absolute bottom-32 right-20 text-orange-500/10 text-8xl font-bold\"\n        &gt;\n          {\"{ }\"}\n        &lt;/Parallax&gt;\n\n        &lt;div className=\"relative z-10 max-w-5xl mx-auto px-6 text-center pt-20\"&gt;\n          {/* Logo Section */}\n          &lt;ScrollReveal y={30} duration={0.8}&gt;\n            &lt;div className=\"mb-8\"&gt;\n              {/* Corner Accents */}\n              &lt;div className=\"relative inline-block p-8\"&gt;\n                &lt;div className=\"absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-orange-500/50\" /&gt;\n                &lt;div className=\"absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-orange-500/50\" /&gt;\n                &lt;div className=\"absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-orange-500/50\" /&gt;\n                &lt;div className=\"absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-orange-500/50\" /&gt;\n\n                {/* Main Logo Text */}\n                &lt;h1 className=\"text-4xl md:text-6xl font-black tracking-tighter\"&gt;\n                  &lt;span className=\"bg-gradient-to-r from-zinc-400 to-zinc-200 bg-clip-text text-transparent\"&gt;\n                    DIGITAL\n                  &lt;/span&gt;{\" \"}\n                  &lt;span className=\"text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]\"&gt;MISCHIEF&lt;/span&gt;{\" \"}\n                  &lt;span className=\"text-zinc-400 tracking-[0.2em]\"&gt;GROUP&lt;/span&gt;\n                &lt;/h1&gt;\n              &lt;/div&gt;\n\n              {/* Slogan */}\n              &lt;div className=\"flex items-center justify-center gap-4 mt-4\"&gt;\n                &lt;div className=\"h-px w-16 bg-gradient-to-r from-orange-500 to-transparent\" /&gt;\n                &lt;span className=\"inline-flex items-center gap-2 text-sm text-zinc-500 italic tracking-wide\"&gt;\n                  an ideas lab with matches\n                  &lt;Flame className=\"w-4 h-4 text-orange-500 animate-pulse\" /&gt;\n                &lt;/span&gt;\n                &lt;div className=\"h-px w-16 bg-gradient-to-l from-orange-500 to-transparent\" /&gt;\n              &lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;GlitchText&gt;\n            &lt;h2 className=\"text-5xl md:text-7xl font-black mb-6 leading-[0.9]\"&gt;\n              &lt;span className=\"text-white\"&gt;Your Data Is Cold.&lt;/span&gt;\n              &lt;br /&gt;\n              &lt;span className=\"text-orange-500\"&gt;We Bring the Matches.&lt;/span&gt;\n            &lt;/h2&gt;\n          &lt;/GlitchText&gt;\n\n          &lt;ScrollReveal y={20} delay={0.3}&gt;\n            &lt;p className=\"text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed\"&gt;\n              Digital Mischief is a &lt;span className=\"text-zinc-200\"&gt;Systems Engineering Skunkworks&lt;/span&gt;. We test\n              volatile AI agents in the lab—breaking them so you don't have to—then deploy the governed, bulletproof\n              version into your business.\n            &lt;/p&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;StaggerReveal stagger={0.1} className=\"flex flex-col sm:flex-row items-center justify-center gap-4\"&gt;\n            &lt;Magnetic&gt;\n              &lt;button\n                onClick={signupForm.open}\n                className=\"group flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300\"\n              &gt;\n                &lt;Flame className=\"w-4 h-4\" /&gt;\n                &lt;span&gt;INITIALIZE SYSTEM AUDIT&lt;/span&gt;\n                &lt;ArrowRight className=\"w-4 h-4 group-hover:translate-x-1 transition-transform\" /&gt;\n              &lt;/button&gt;\n            &lt;/Magnetic&gt;\n            &lt;Link\n              href=\"#cases\"\n              className=\"flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300\"\n            &gt;\n              &lt;span&gt;ACCESS BURN LOGS&lt;/span&gt;\n              &lt;ChevronRight className=\"w-4 h-4\" /&gt;\n            &lt;/Link&gt;\n          &lt;/StaggerReveal&gt;\n        &lt;/div&gt;\n\n        {/* Scroll Indicator */}\n        &lt;div className=\"absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-600\"&gt;\n          &lt;span className=\"text-xs tracking-widest\"&gt;SCROLL&lt;/span&gt;\n          &lt;div className=\"w-px h-8 bg-gradient-to-b from-zinc-600 to-transparent animate-pulse\" /&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* PROBLEM SECTION */}\n      &lt;section id=\"problem\" className=\"relative py-32 border-t border-white/5 overflow-hidden\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"text-center max-w-4xl mx-auto\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 text-xs text-zinc-500 mb-6\"&gt;\n                &lt;span&gt;// THE PROBLEM&lt;/span&gt;\n              &lt;/div&gt;\n\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-6xl font-black mb-8\"&gt;\n                  AI Everywhere. &lt;span className=\"text-orange-500\"&gt;Nowhere You Need It.&lt;/span&gt;\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n\n              &lt;p className=\"text-lg text-zinc-400 leading-relaxed mb-16\"&gt;\n                &lt;span className=\"text-zinc-200\"&gt;Tribal knowledge&lt;/span&gt; and{\" \"}\n                &lt;span className=\"text-zinc-200\"&gt;data silos&lt;/span&gt; are static.{\" \"}\n                &lt;span className=\"text-zinc-200\"&gt;Context switching&lt;/span&gt; is a tax on focus, momentum, and execution.{\" \"}\n                &lt;span className=\"text-orange-500\"&gt;It's fatal.&lt;/span&gt; We build the infrastructure that eliminates the\n                friction and forces your dormant data to go kinetic.\n              &lt;/p&gt;\n\n              &lt;StaggerReveal stagger={0.1} className=\"grid md:grid-cols-3 gap-6 mb-12\"&gt;\n                {[\n                  { title: \"Data Silos are locking you out.\" },\n                  { title: \"Zero trust in autonomous output.\" },\n                  { title: \"Compliance risk is paralyzing you.\" },\n                ].map((item, i) =&gt; (\n                  &lt;div key={i} className=\"p-6 border border-zinc-800 bg-zinc-900/30\"&gt;\n                    &lt;X className=\"w-4 h-4 text-orange-500 mb-4\" /&gt;\n                    &lt;p className=\"text-sm text-zinc-500\"&gt;{item.title}&lt;/p&gt;\n                  &lt;/div&gt;\n                ))}\n              &lt;/StaggerReveal&gt;\n\n              &lt;p className=\"text-lg text-zinc-300 font-medium\"&gt;DMG exists to close that gap.&lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* SOLUTION / CORTEX SECTION */}\n      &lt;section id=\"cortex\" className=\"relative py-32 border-t border-white/5 bg-zinc-900/30 overflow-hidden\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"text-center max-w-4xl mx-auto mb-16\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 text-xs text-zinc-500 mb-6\"&gt;\n                &lt;span&gt;// THE SOLUTION&lt;/span&gt;\n              &lt;/div&gt;\n\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-6xl font-black mb-8\"&gt;\n                  The Revenue Cortex: &lt;span className=\"text-orange-500\"&gt;Your AI Nervous System&lt;/span&gt;\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n\n              &lt;p className=\"text-lg text-zinc-400 max-w-2xl mx-auto\"&gt;\n                We don't sell isolated features. We install a system.\n              &lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;div className=\"flex justify-center items-center\" style={{ height: \"500px\", position: \"relative\" }}&gt;\n            &lt;CardSwap\n              width={340}\n              height={380}\n              cardDistance={50}\n              verticalDistance={60}\n              delay={4000}\n              pauseOnHover={true}\n              skewAmount={4}\n              easing=\"elastic\"\n            &gt;\n              &lt;Card className=\"border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer\"&gt;\n                &lt;div className=\"w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500\"&gt;\n                  &lt;Brain className=\"w-7 h-7\" /&gt;\n                &lt;/div&gt;\n                &lt;h3 className=\"text-2xl font-bold text-zinc-100 mb-3\"&gt;The Cortex&lt;/h3&gt;\n                &lt;p className=\"text-zinc-400 mb-6 leading-relaxed\"&gt;\n                  Unified, permissions-aware data intelligence layer. RAG pipelines, vector stores, and semantic\n                  search—governed and ready.\n                &lt;/p&gt;\n                &lt;div className=\"flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4\"&gt;\n                  &lt;Brain className=\"w-3 h-3\" /&gt;\n                  &lt;span&gt;Data Intelligence&lt;/span&gt;\n                &lt;/div&gt;\n              &lt;/Card&gt;\n\n              &lt;Card className=\"border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer\"&gt;\n                &lt;div className=\"w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500\"&gt;\n                  &lt;Monitor className=\"w-7 h-7\" /&gt;\n                &lt;/div&gt;\n                &lt;h3 className=\"text-2xl font-bold text-zinc-100 mb-3\"&gt;The Interface&lt;/h3&gt;\n                &lt;p className=\"text-zinc-400 mb-6 leading-relaxed\"&gt;\n                  Role-specific copilots and command centers. Dashboards that adapt to your team's workflow, not the\n                  other way around.\n                &lt;/p&gt;\n                &lt;div className=\"flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4\"&gt;\n                  &lt;Monitor className=\"w-3 h-3\" /&gt;\n                  &lt;span&gt;Adoption Layer&lt;/span&gt;\n                &lt;/div&gt;\n              &lt;/Card&gt;\n\n              &lt;Card className=\"border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer\"&gt;\n                &lt;div className=\"w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500\"&gt;\n                  &lt;Bot className=\"w-7 h-7\" /&gt;\n                &lt;/div&gt;\n                &lt;h3 className=\"text-2xl font-bold text-zinc-100 mb-3\"&gt;The Autopilot&lt;/h3&gt;\n                &lt;p className=\"text-zinc-400 mb-6 leading-relaxed\"&gt;\n                  Agents that act on signals, not just display them. Multi-agent orchestration for autonomous, governed\n                  workflows.\n                &lt;/p&gt;\n                &lt;div className=\"flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4\"&gt;\n                  &lt;Bot className=\"w-3 h-3\" /&gt;\n                  &lt;span&gt;Workflow Agents&lt;/span&gt;\n                &lt;/div&gt;\n              &lt;/Card&gt;\n\n              &lt;Card className=\"border border-zinc-700 bg-zinc-900/95 backdrop-blur-sm p-8 hover:border-orange-500/50 transition-colors cursor-pointer\"&gt;\n                &lt;div className=\"w-14 h-14 border border-zinc-700 flex items-center justify-center mb-6 text-orange-500\"&gt;\n                  &lt;SlidersHorizontal className=\"w-7 h-7\" /&gt;\n                &lt;/div&gt;\n                &lt;h3 className=\"text-2xl font-bold text-zinc-100 mb-3\"&gt;The Relay&lt;/h3&gt;\n                &lt;p className=\"text-zinc-400 mb-6 leading-relaxed\"&gt;\n                  Enablement and governance so it all sticks. Training, documentation, and guardrails that scale with\n                  your team.\n                &lt;/p&gt;\n                &lt;div className=\"flex items-center gap-2 text-xs text-orange-500/70 border-t border-zinc-800 pt-4\"&gt;\n                  &lt;SlidersHorizontal className=\"w-3 h-3\" /&gt;\n                  &lt;span&gt;Governance&lt;/span&gt;\n                &lt;/div&gt;\n              &lt;/Card&gt;\n            &lt;/CardSwap&gt;\n          &lt;/div&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* PROCESS SECTION */}\n      &lt;section id=\"protocol\" className=\"relative py-32 border-t border-white/5 overflow-hidden\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"text-center mb-16\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 text-xs text-zinc-500 mb-6\"&gt;\n                &lt;span&gt;// PROCESS&lt;/span&gt;\n              &lt;/div&gt;\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-6xl font-black mb-4\"&gt;\n                  The DMG &lt;span className=\"text-orange-500\"&gt;Ignition Protocol&lt;/span&gt;\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;StaggerReveal stagger={0.08} className=\"grid md:grid-cols-5 gap-4 mb-12\"&gt;\n            {[\n              { num: \"01\", title: \"DIAGNOSTIC\", desc: \"System Architecture Audit to map your current state\" },\n              { num: \"02\", title: \"ARCHITECTURE\", desc: \"Cortex architecture, workflows, guardrails\" },\n              { num: \"03\", title: \"FABRICATION\", desc: \"Implement Cortex, Interface, and Autopilot v1\" },\n              { num: \"04\", title: \"DEPLOYMENT\", desc: \"Deploy to real users, monitor everything\" },\n              { num: \"05\", title: \"OVERWATCH\", desc: \"Cortex Ops retainer for continuous improvements\" },\n            ].map((step, i) =&gt; (\n              &lt;div key={i} className=\"relative group\"&gt;\n                &lt;div className=\"p-6 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 transition-all duration-300 h-full\"&gt;\n                  &lt;div className=\"text-3xl font-black text-orange-500 mb-4\"&gt;{step.num}&lt;/div&gt;\n                  &lt;h3 className=\"text-sm font-bold mb-2 text-zinc-200\"&gt;{step.title}&lt;/h3&gt;\n                  &lt;p className=\"text-xs text-zinc-500\"&gt;{step.desc}&lt;/p&gt;\n                &lt;/div&gt;\n              &lt;/div&gt;\n            ))}\n          &lt;/StaggerReveal&gt;\n\n          &lt;div className=\"text-center\"&gt;\n            &lt;Magnetic&gt;\n              &lt;button\n                onClick={signupForm.open}\n                className=\"inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors\"\n              &gt;\n                &lt;Flame className=\"w-4 h-4\" /&gt;\n                START WITH A DIAGNOSTIC\n                &lt;ArrowRight className=\"w-4 h-4\" /&gt;\n              &lt;/button&gt;\n            &lt;/Magnetic&gt;\n          &lt;/div&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* CASE STUDIES / BURN LOGS */}\n      &lt;section id=\"cases\" className=\"py-32 border-t border-white/5 bg-zinc-900/30\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"text-center mb-16\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 px-3 py-1 border border-orange-500/30 text-orange-500 text-xs mb-6\"&gt;\n                &lt;Flame className=\"w-3 h-3\" /&gt;\n                &lt;span&gt;BURN_LOGS&lt;/span&gt;\n              &lt;/div&gt;\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-6xl font-black mb-4\"&gt;\n                  Controlled &lt;span className=\"text-orange-500\"&gt;Burns&lt;/span&gt;\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n              &lt;p className=\"text-xl text-zinc-400 max-w-2xl mx-auto\"&gt;\n                Real results from real deployments. No vanity metrics.\n              &lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;StaggerReveal stagger={0.15} className=\"grid md:grid-cols-2 gap-8\"&gt;\n            {[\n              {\n                client: \"Series B SaaS\",\n                metric: \"340%\",\n                label: \"Pipeline Increase\",\n                desc: \"Automated lead scoring and outreach sequencing across 12 data sources.\",\n              },\n              {\n                client: \"Enterprise FinTech\",\n                metric: \"67%\",\n                label: \"Faster Deal Cycles\",\n                desc: \"AI-powered buying committee mapping and engagement tracking.\",\n              },\n            ].map((study, i) =&gt; (\n              &lt;ScaleReveal key={i}&gt;\n                &lt;div className=\"p-8 border border-zinc-800 bg-zinc-950 hover:border-orange-500/30 transition-all duration-300\"&gt;\n                  &lt;div className=\"text-xs text-zinc-600 mb-4 font-mono\"&gt;{study.client}&lt;/div&gt;\n                  &lt;div className=\"text-6xl font-black text-orange-500 mb-2\"&gt;{study.metric}&lt;/div&gt;\n                  &lt;div className=\"text-lg font-bold mb-4\"&gt;{study.label}&lt;/div&gt;\n                  &lt;p className=\"text-zinc-400\"&gt;{study.desc}&lt;/p&gt;\n                &lt;/div&gt;\n              &lt;/ScaleReveal&gt;\n            ))}\n          &lt;/StaggerReveal&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* ABOUT / MISSION SECTION */}\n      &lt;section id=\"mission\" className=\"py-32 border-t border-white/5\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"max-w-4xl mx-auto text-center\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 px-3 py-1 border border-orange-500/30 text-orange-500 text-xs mb-6\"&gt;\n                &lt;Target className=\"w-3 h-3\" /&gt;\n                &lt;span&gt;MISSION_BRIEF&lt;/span&gt;\n              &lt;/div&gt;\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-5xl font-black mb-8\"&gt;\n                  Built by operators, &lt;span className=\"text-orange-500\"&gt;for operators&lt;/span&gt;\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n              &lt;p className=\"text-xl text-zinc-400 leading-relaxed mb-12\"&gt;\n                We're not consultants. We're engineers who've built and scaled revenue systems at high-growth companies.\n                We know what works because we've deployed it ourselves.\n              &lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          &lt;MeetTheTeam /&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* DAEDALUS AUTONOMOUS RECONNAISSANCE SECTION */}\n      &lt;section\n        id=\"daedalus\"\n        className=\"py-32 px-6 border-t border-zinc-800 bg-gradient-to-b from-zinc-950 via-zinc-900/20 to-zinc-950\"\n      &gt;\n        &lt;div className=\"max-w-6xl mx-auto\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;div className=\"text-center mb-16\"&gt;\n              &lt;div className=\"inline-flex items-center gap-2 px-3 py-1 mb-6 border border-orange-500/30 bg-orange-500/5\"&gt;\n                &lt;Radar className=\"w-3 h-3 text-orange-500 animate-pulse\" /&gt;\n                &lt;span className=\"text-[10px] font-mono text-orange-500 uppercase tracking-widest\"&gt;\n                  // INTELLIGENCE RECONNAISSANCE SYSTEM\n                &lt;/span&gt;\n              &lt;/div&gt;\n\n              &lt;GlitchText&gt;\n                &lt;h2 className=\"text-4xl md:text-6xl font-black mb-4\"&gt;\n                  Daedalus &lt;span className=\"text-orange-500\"&gt;Autonomous&lt;/span&gt; Reconnaissance\n                &lt;/h2&gt;\n              &lt;/GlitchText&gt;\n\n              &lt;p className=\"text-xl text-zinc-500 font-mono italic mb-8\"&gt;\"No sleep, no surprises.\"&lt;/p&gt;\n\n              &lt;p className=\"text-lg text-zinc-400 max-w-3xl mx-auto leading-relaxed\"&gt;\n                A &lt;span className=\"text-zinc-200\"&gt;Skunkworks-grade intelligence engine&lt;/span&gt; that scrapes, maps, and\n                enriches the world. It performs multi-dimensional reconnaissance across brand, market, persona,\n                geography, and narrative structures, then assembles the insights into{\" \"}\n                &lt;span className=\"text-orange-500\"&gt;actionable systems&lt;/span&gt;.\n              &lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          {/* Visual Teaser */}\n          &lt;ScrollReveal delay={0.2}&gt;\n            &lt;div className=\"text-center mb-16\"&gt;\n              &lt;div className=\"inline-flex items-center gap-3 px-6 py-3 border border-zinc-800 bg-zinc-900/50 rounded-full\"&gt;\n                &lt;div className=\"w-2 h-2 bg-orange-500 rounded-full animate-pulse\" /&gt;\n                &lt;span className=\"text-sm font-mono text-zinc-400\"&gt;\n                  \"It reads the internet's &lt;span className=\"text-orange-500\"&gt;thermal signature&lt;/span&gt;.\"\n                &lt;/span&gt;\n                &lt;div className=\"w-2 h-2 bg-orange-500 rounded-full animate-pulse\" /&gt;\n              &lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          {/* Capabilities Grid */}\n          &lt;StaggerReveal className=\"grid grid-cols-1 md:grid-cols-3 gap-4 mb-16\"&gt;\n            {[\n              { icon: Zap, title: \"Brand DNA Extraction\", desc: \"Deep identity analysis and visual fingerprinting\" },\n              { icon: Target, title: \"Competitor Recon Packs\", desc: \"Full competitive intelligence dossiers\" },\n              { icon: Users, title: \"Persona Affinity Mapping\", desc: \"Audience behavior and preference modeling\" },\n              { icon: Search, title: \"Autonomous Research Missions\", desc: \"Self-directed deep-dive investigations\" },\n              { icon: Globe, title: \"Geo Intelligence &amp; Scoring\", desc: \"Location-based market opportunity analysis\" },\n              { icon: Activity, title: \"Narrative Change Detection\", desc: \"Real-time market sentiment shifts\" },\n              { icon: Layers, title: \"Multi-Step Pipeline Orchestration\", desc: \"Chained intelligence workflows\" },\n              { icon: Eye, title: \"Autonomous Watch Protocols\", desc: \"24/7 monitoring without human intervention\" },\n              { icon: AlertTriangle, title: \"Diff/Shift Monitoring\", desc: \"Instant alerts on critical changes\" },\n            ].map((item, i) =&gt; (\n              &lt;ScaleReveal key={i}&gt;\n                &lt;div className=\"group relative p-5 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300\"&gt;\n                  {/* Corner accents */}\n                  &lt;div className=\"absolute top-0 left-0 w-2 h-2 border-l border-t border-orange-500/50\" /&gt;\n                  &lt;div className=\"absolute top-0 right-0 w-2 h-2 border-r border-t border-orange-500/50\" /&gt;\n                  &lt;div className=\"absolute bottom-0 left-0 w-2 h-2 border-l border-b border-orange-500/50\" /&gt;\n                  &lt;div className=\"absolute bottom-0 right-0 w-2 h-2 border-r border-b border-orange-500/50\" /&gt;\n\n                  &lt;item.icon className=\"w-5 h-5 text-orange-500 mb-3 group-hover:scale-110 transition-transform\" /&gt;\n                  &lt;h3 className=\"text-sm font-bold text-zinc-200 mb-1\"&gt;{item.title}&lt;/h3&gt;\n                  &lt;p className=\"text-xs text-zinc-500\"&gt;{item.desc}&lt;/p&gt;\n                &lt;/div&gt;\n              &lt;/ScaleReveal&gt;\n            ))}\n          &lt;/StaggerReveal&gt;\n\n          {/* Intelligence Models */}\n          &lt;ScrollReveal delay={0.3}&gt;\n            &lt;div className=\"border border-zinc-800 bg-zinc-900/20 p-8 mb-16\"&gt;\n              &lt;div className=\"flex items-center gap-2 mb-6\"&gt;\n                &lt;Crosshair className=\"w-4 h-4 text-orange-500\" /&gt;\n                &lt;span className=\"text-xs font-mono text-orange-500 uppercase tracking-widest\"&gt;\n                  Lock-On Targeting Systems\n                &lt;/span&gt;\n              &lt;/div&gt;\n\n              &lt;div className=\"grid grid-cols-1 md:grid-cols-3 gap-6\"&gt;\n                {/* Narrative Heat Model */}\n                &lt;div className=\"p-5 border border-zinc-800 bg-zinc-950/50\"&gt;\n                  &lt;div className=\"flex items-center gap-2 mb-3\"&gt;\n                    &lt;TrendingUp className=\"w-5 h-5 text-orange-500\" /&gt;\n                    &lt;h4 className=\"font-bold text-zinc-200\"&gt;Narrative Heat Model&lt;/h4&gt;\n                  &lt;/div&gt;\n                  &lt;p className=\"text-xs text-zinc-500 mb-4\"&gt;Maps rising/declining narratives in real-time&lt;/p&gt;\n                  &lt;div className=\"space-y-1\"&gt;\n                    {[\"Industries\", \"Sectors\", \"Fanbases\", \"News Cycles\"].map((item, i) =&gt; (\n                      &lt;div key={i} className=\"flex items-center gap-2 text-xs text-zinc-400\"&gt;\n                        &lt;div className=\"w-1 h-1 bg-orange-500 rounded-full\" /&gt;\n                        &lt;span&gt;{item}&lt;/span&gt;\n                      &lt;/div&gt;\n                    ))}\n                  &lt;/div&gt;\n                &lt;/div&gt;\n\n                {/* Brand Fracture Detection */}\n                &lt;div className=\"p-5 border border-zinc-800 bg-zinc-950/50\"&gt;\n                  &lt;div className=\"flex items-center gap-2 mb-3\"&gt;\n                    &lt;AlertTriangle className=\"w-5 h-5 text-orange-400\" /&gt;\n                    &lt;h4 className=\"font-bold text-zinc-200\"&gt;Brand Fracture Detection&lt;/h4&gt;\n                  &lt;/div&gt;\n                  &lt;p className=\"text-xs text-zinc-500 mb-4\"&gt;Detects when competitor messaging becomes incoherent&lt;/p&gt;\n                  &lt;div className=\"text-xs text-orange-500 font-mono\"&gt;→ Gives DMG clients the ambush opportunity&lt;/div&gt;\n                &lt;/div&gt;\n\n                {/* Opportunity Aperture Model */}\n                &lt;div className=\"p-5 border border-zinc-800 bg-zinc-950/50\"&gt;\n                  &lt;div className=\"flex items-center gap-2 mb-3\"&gt;\n                    &lt;Crosshair className=\"w-5 h-5 text-orange-500\" /&gt;\n                    &lt;h4 className=\"font-bold text-zinc-200\"&gt;Opportunity Aperture Model&lt;/h4&gt;\n                  &lt;/div&gt;\n                  &lt;p className=\"text-xs text-zinc-500 mb-4\"&gt;DMG's targeting system finds:&lt;/p&gt;\n                  &lt;div className=\"space-y-1\"&gt;\n                    {[\n                      \"Weak spots\",\n                      \"Open lanes\",\n                      \"Unclaimed narrative territory\",\n                      \"Content gaps\",\n                      \"Product opportunities\",\n                    ].map((item, i) =&gt; (\n                      &lt;div key={i} className=\"flex items-center gap-2 text-xs text-zinc-400\"&gt;\n                        &lt;div className=\"w-1 h-1 bg-orange-500 rounded-full\" /&gt;\n                        &lt;span&gt;{item}&lt;/span&gt;\n                      &lt;/div&gt;\n                    ))}\n                  &lt;/div&gt;\n                &lt;/div&gt;\n              &lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n\n          {/* CTA */}\n          &lt;ScrollReveal delay={0.4}&gt;\n            &lt;div className=\"text-center\"&gt;\n              &lt;p className=\"text-zinc-500 mb-6 font-mono text-sm\"&gt;\n                Daedalus is the reconnaissance eye. &lt;span className=\"text-orange-500\"&gt;Sentinels&lt;/span&gt; are the boots on\n                the ground.\n              &lt;/p&gt;\n              &lt;Magnetic&gt;\n                &lt;button\n                  onClick={signupForm.open}\n                  className=\"inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors\"\n                &gt;\n                  &lt;Radar className=\"w-4 h-4\" /&gt;\n                  ACTIVATE RECONNAISSANCE\n                  &lt;ArrowRight className=\"w-4 h-4\" /&gt;\n                &lt;/button&gt;\n              &lt;/Magnetic&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* FOOTER CTA */}\n      &lt;section className=\"py-32 border-t border-white/5 bg-zinc-900/50\"&gt;\n        &lt;div className=\"max-w-4xl mx-auto px-6 text-center\"&gt;\n          &lt;ScrollReveal&gt;\n            &lt;GlitchText&gt;\n              &lt;h2 className=\"text-4xl md:text-5xl font-black mb-6\"&gt;\n                Stop playing in the sandbox.\n                &lt;br /&gt;\n                &lt;span className=\"text-orange-500\"&gt;Move to production.&lt;/span&gt;\n              &lt;/h2&gt;\n            &lt;/GlitchText&gt;\n            &lt;p className=\"text-zinc-400 text-lg mb-10\"&gt;\n              Start with a System Architecture Audit and we'll map your Cortex.\n            &lt;/p&gt;\n            &lt;Magnetic&gt;\n              &lt;button\n                onClick={signupForm.open}\n                className=\"inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300\"\n              &gt;\n                &lt;Flame className=\"w-4 h-4\" /&gt;\n                &lt;span&gt;INITIALIZE SYSTEM AUDIT&lt;/span&gt;\n                &lt;ArrowRight className=\"w-4 h-4\" /&gt;\n              &lt;/button&gt;\n            &lt;/Magnetic&gt;\n            &lt;div className=\"mt-8 text-xs text-zinc-600 font-mono\"&gt;\n              &lt;p&gt;Liam Ellis — Founding Partner, Digital Mischief Group&lt;/p&gt;\n              &lt;p className=\"text-orange-500/70\"&gt;liam@digitalmischief.group&lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/ScrollReveal&gt;\n        &lt;/div&gt;\n      &lt;/section&gt;\n\n      {/* FOOTER */}\n      &lt;footer className=\"py-8 border-t border-white/5\"&gt;\n        &lt;div className=\"max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600\"&gt;\n          &lt;div className=\"flex items-center gap-2\"&gt;\n            &lt;div className=\"w-2 h-2 bg-orange-500 rounded-full\" /&gt;\n            &lt;span&gt;© 2025 Digital Mischief Group&lt;/span&gt;\n          &lt;/div&gt;\n          &lt;div className=\"flex items-center gap-6\"&gt;\n            &lt;span&gt;Systems Online&lt;/span&gt;\n            &lt;span className=\"text-orange-500\"&gt;●&lt;/span&gt;\n            &lt;span&gt;All Systems Nominal&lt;/span&gt;\n          &lt;/div&gt;\n        &lt;/div&gt;\n      &lt;/footer&gt;\n\n      {/* SignupForm modal */}\n      &lt;SignupForm isOpen={signupForm.isOpen} onClose={signupForm.close} /&gt;\n    &lt;/div&gt;\n  )\n}\n"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Fix unclosed wrapper div in app/page.tsx protocol section to restore valid JSX
+- [x] Add AppPage_PSUEDOCODE.md describing intended change before editing code
+- [ ] Add AppPage.md documenting what changed and where
+- [-] Run lints for app/page.tsx after edit and address any introduced issues
+
+</details>
+</tool-use>
+
+---
+
+Aha—this was exactly a JSX nesting issue: the `#protocol` section’s outer container `<div>` was left open, so React’s parser would choke right at `</section>`. I’ve applied the minimal close-tag fix; next I’ll run lint diagnostics on `app/page.tsx` and then write the short `AppPage.md` change log.
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
+
+- `/Users/liamellis/Desktop/digital-mischief-group/app/page.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="apply_patch">
+<details>
+<summary>Tool use: **apply_patch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "relativeWorkspacePath": "AppPage.md"
+}
+```
+Additional data:
+
+```json
+{
+  "codeblockId": "e645e98b-dd5b-42c4-a514-0654108f12de"
+}
+```
+Result:
+
+```json
+{
+  "diff": {
+    "chunks": [
+      {
+        "diffString": "- \n+ # App Page Fix\n+ \n+ ## Summary\n+ \n+ Fixed invalid JSX structure in &#96;app/page.tsx&#96; by closing the &#96;#protocol&#96; section’s outer wrapper &#96;&lt;div&gt;&#96; before closing the &#96;&lt;section&gt;&#96;.\n+ \n+ ## Why\n+ \n+ The &#96;#protocol&#96; (“PROCESS”) section opened an outer wrapper:\n+ \n+ - &#96;&lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;&#96;\n+ \n+ but did not close it before &#96;&lt;/section&gt;&#96;, which breaks JSX parsing and can prevent builds from succeeding.\n+ \n+ ## Files changed\n+ \n+ - &#96;app/page.tsx&#96;\n+   - Added a missing &#96;&lt;/div&gt;&#96; immediately before the &#96;&lt;/section&gt;&#96; closing tag for the &#96;#protocol&#96; section.\n+ \n+ ## Notes\n+ \n+ - No functional/behavioral changes beyond restoring valid JSX nesting.\n+ ",
+        "oldStart": 1,
+        "newStart": 1,
+        "oldLines": 1,
+        "newLines": 23,
+        "linesRemoved": 1,
+        "linesAdded": 23
+      }
+    ],
+    "editor": "EDITOR_AI"
+  },
+  "shouldAutoFixLints": true,
+  "resultForModel": "Success. Updated the following files:\nM AppPage.md",
+  "contentsAfterEdit": "# App Page Fix\n\n## Summary\n\nFixed invalid JSX structure in &#96;app/page.tsx&#96; by closing the &#96;#protocol&#96; section’s outer wrapper &#96;&lt;div&gt;&#96; before closing the &#96;&lt;section&gt;&#96;.\n\n## Why\n\nThe &#96;#protocol&#96; (“PROCESS”) section opened an outer wrapper:\n\n- &#96;&lt;div className=\"max-w-7xl mx-auto px-6 relative z-10\"&gt;&#96;\n\nbut did not close it before &#96;&lt;/section&gt;&#96;, which breaks JSX parsing and can prevent builds from succeeding.\n\n## Files changed\n\n- &#96;app/page.tsx&#96;\n  - Added a missing &#96;&lt;/div&gt;&#96; immediately before the &#96;&lt;/section&gt;&#96; closing tag for the &#96;#protocol&#96; section.\n\n## Notes\n\n- No functional/behavioral changes beyond restoring valid JSX nesting.\n\n"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="task" data-tool-name="todo_write">
+<details><summary>Tool use: **todo_write** • Todo List</summary>
+
+- [x] Fix unclosed wrapper div in app/page.tsx protocol section to restore valid JSX
+- [x] Add AppPage_PSUEDOCODE.md describing intended change before editing code
+- [x] Add AppPage.md documenting what changed and where
+- [x] Run lints for app/page.tsx after edit and address any introduced issues
+
+</details>
+</tool-use>
+
+---
+
+### What I fixed
+- **JSX nesting bug in `app/page.tsx`**: the `#protocol` (“PROCESS”) section opened an outer wrapper `<div className="max-w-7xl ...">` but didn’t close it before `</section>`. I added the missing `</div>` so the JSX tree is valid again.
+
+### Exact change
+```428:476:app/page.tsx
+      {/* PROCESS SECTION */}
+      <section id="protocol" className="relative py-32 border-t border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          // ... content ...
+          <div className="text-center">
+            <Magnetic>
+              <button
+                onClick={signupForm.open}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
+              >
+                <Flame className="w-4 h-4" />
+                START WITH A DIAGNOSTIC
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Magnetic>
+          </div>
+        </div>
+      </section>
+```
+
+### Lint status
+- **No linter errors** reported for `app/page.tsx`.
+
+### Files added (per your process rules)
+- **`AppPage_PSUEDOCODE.md`**: pseudocode + rationale for the minimal fix
+- **`AppPage.md`**: brief implementation note / change log
+
+---
+
