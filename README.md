@@ -1,13 +1,152 @@
 A unified, AI-powered web intelligence suite built on Firecrawl.
 
-It combines four core capabilities in a single dashboard:
+It combines five core capabilities in a single dashboard:
 
-- **Scouts** – Always-on search agents that watch the web for new pages and send alerts.
-- **Observe** – URL monitors that detect content changes and summarize what changed.
-- **Enrich** – CSV → enriched leads (firmographics + light tech intel).
-- **Brand** – Brand + competitor extraction with optional asset generation.
+- **Enrich** – CSV → enriched leads (firmographics + tech intel + funding data)
+- **Brand Recon** – Brand identity extraction + competitive intelligence + market positioning
+- **Scouts** – Always-on search agents that watch the web for new pages and send alerts
+- **Observe** – URL monitors that detect content changes and summarize what changed
+- **Research** – AI-powered visual research assistant with streaming reasoning
 
-The suite shares **auth, database, Firecrawl integration, AI, notifications, and usage tracking**.
+The suite shares **auth, database, Firecrawl integration, AI, billing, notifications, and usage tracking**.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ or Bun
+- PostgreSQL database (Neon recommended)
+- Stripe account (for billing)
+- Firecrawl API key
+
+### Environment Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Monichre/digital-mischief-group.git
+cd digital-mischief-group
+```
+
+2. Install dependencies:
+```bash
+bun install
+# or
+npm install
+```
+
+3. Create `.env.local` with required variables:
+```env
+# Database
+DATABASE_URL=postgresql://...
+
+# Better Auth
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+BETTER_AUTH_SECRET=your-32-character-secret-here
+BETTER_AUTH_URL=http://localhost:3000
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+NEXT_PUBLIC_STRIPE_PRICE_ID=price_...
+
+# Firecrawl
+FIRECRAWL_API_KEY=fc-...
+
+# AI Providers
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+XAI_API_KEY=xai-...
+
+# Admin (optional)
+ADMIN_EMAILS=admin@example.com
+```
+
+4. Run database migrations:
+```bash
+# Apply auth tables
+psql $DATABASE_URL -f scripts/002-add-auth-tables.sql
+
+# Apply additional migrations
+psql $DATABASE_URL -f scripts/003-add-missing-columns.sql
+psql $DATABASE_URL -f scripts/004-add-user-scoping.sql
+```
+
+5. Start the development server:
+```bash
+bun run dev
+# or
+npm run dev
+```
+
+6. Open [http://localhost:3000](http://localhost:3000)
+
+### First-Time Setup
+1. Navigate to `/sign-up` to create an account
+2. Sign in at `/sign-in`
+3. Visit `/pricing` to upgrade to Pro (or add your email to `ADMIN_EMAILS` for free Pro access)
+
+---
+
+## 📚 Documentation
+
+- **[Implementation Status](./docs/IMPLEMENTATION_STATUS.md)** - Current project status, module completion, and roadmap
+- **[Auth & Billing Notes](./AUTH_STRIPE_NOTES.md)** - Better Auth + Stripe integration details and troubleshooting
+- **[Implementation Plan](./IMPLEMENTATION_PLAN_AUTH_BILLING.md)** - Auth and billing implementation guide
+- **[Canonical PRD](#1-product-overview)** - Full product requirements (see below)
+
+---
+
+## 🔒 Security
+
+**Important:** This repository has been cleaned of sensitive files and API keys. If you're pulling from an old clone:
+
+1. Ensure your `.gitignore` includes:
+   ```
+   .env
+   .env.local
+   .env.*.local
+   .next
+   node_modules/
+   ```
+
+2. **Never commit** `.env.local` or other environment files
+3. Use environment variables for all secrets
+4. Rotate any API keys if accidentally committed
+
+---
+
+## 🏗️ Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Database**: PostgreSQL (Neon) + Drizzle ORM
+- **Auth**: Better Auth
+- **Billing**: Stripe + Autumn
+- **AI**: OpenAI, Anthropic, Groq, Perplexity
+- **Scraping**: Firecrawl API
+- **Deployment**: Vercel
+- **Notifications**: Resend (email)
+
+---
+
+## 📊 Module Status
+
+| Module | Completion | Status |
+|--------|------------|--------|
+| Core Infrastructure | 100% | ✅ Complete |
+| Authentication & Billing | 100% | ✅ Complete |
+| Research | 95% | ✅ Mostly Complete |
+| Scouts | 85% | 🔄 In Progress |
+| Observe | 80% | 🔄 In Progress |
+| Enrich | 70% | 🔄 In Progress |
+| Brand Recon | 65% | 🔄 In Progress |
+
+See [IMPLEMENTATION_STATUS.md](./docs/IMPLEMENTATION_STATUS.md) for detailed breakdown.
+
+---
 
 ---
 

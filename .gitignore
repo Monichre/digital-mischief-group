@@ -1,4 +1,12 @@
 .vercel
 .next
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# AI Assistant Logs
+.specstory/
+
 node_modules/
