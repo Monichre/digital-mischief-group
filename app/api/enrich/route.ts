@@ -1,13 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
-import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
-import { COMPANY_ENRICHMENT_SCHEMA, type CompanyEnrichmentData, type EnrichmentJob } from "@/lib/firecrawl/types"
+import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { type EnrichmentJob } from "@/lib/firecrawl/types"
+import { orchestrateEnrichment, type EnrichmentInput } from "@/lib/agents"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-
   try {
     // Require authentication
     const session = await auth.api.getSession({ headers: await headers() })
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
     const userId = session.user.id
 
-    const { input } = await request.json()
+    const { input, useAgents = true } = await request.json()
 
     if (!input || typeof input !== "string") {
       return NextResponse.json(
@@ -27,139 +26,168 @@ export async function POST(request: NextRequest) {
 
     const inputTrimmed = input.trim()
 
-    // Determine input type
-    let inputType: "url" | "email" | "domain" | "company_name" = "company_name"
+    // Determine input type and build enrichment input
+    const enrichmentInput: EnrichmentInput = {}
     if (inputTrimmed.includes("@")) {
-      inputType = "email"
+      enrichmentInput.email = inputTrimmed
+    } else if (inputTrimmed.includes("://")) {
+      enrichmentInput.url = inputTrimmed
     } else if (inputTrimmed.includes(".") && !inputTrimmed.includes(" ")) {
-      inputType = inputTrimmed.includes("://") ? "url" : "domain"
+      enrichmentInput.domain = inputTrimmed
+    } else {
+      enrichmentInput.company_name = inputTrimmed
     }
 
-    // Normalize to URL
-    let normalizedUrl: string
-    let domain: string
+    // Run multi-agent orchestration
+    const result = await orchestrateEnrichment(enrichmentInput, {
+      onProgress: (progress) => {
+        console.log(`[Enrich] ${progress.phase}: ${progress.status} - ${progress.message}`)
+      },
+    })
 
-    try {
-      normalizedUrl = normalizeUrl(inputTrimmed)
-      domain = extractDomain(normalizedUrl)
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, error: "Could not parse input as valid URL or email" },
-        { status: 400 },
-      )
-    }
-
-    // Get Firecrawl client
-    const firecrawl = getFirecrawlClient()
-
-    // Extract company data using Firecrawl's extract feature
-    const extractResult = await firecrawl.extract<{ extract: CompanyEnrichmentData }>(
-      normalizedUrl,
-      COMPANY_ENRICHMENT_SCHEMA,
-      "Extract comprehensive company information including name, description, industry, social links, contact info, leadership team, technology stack, and funding details.",
-    )
-
-    if (!extractResult.success || !extractResult.data) {
-      // Try to save failed job
+    if (!result.success) {
+      // Save failed job
       try {
         await sql`
-          INSERT INTO enrichment_jobs (input_type, input_value, normalized_url, domain, status, error_message, user_id)
-          VALUES (${inputType}, ${inputTrimmed}, ${normalizedUrl}, ${domain}, 'failed', ${extractResult.error || "Extraction failed"}, ${userId})
+          INSERT INTO enrichment_jobs (
+            input_type, input_value, domain, status, error_message, user_id
+          ) VALUES (
+            ${Object.keys(enrichmentInput)[0]}, 
+            ${inputTrimmed}, 
+            ${result.data?.discovery?.domain || null}, 
+            'failed', 
+            ${result.errors?.[0]?.error || "Enrichment failed"}, 
+            ${userId}
+          )
         `
       } catch (dbError) {
         console.error("[Enrich] DB error saving failed job:", dbError)
       }
 
       return NextResponse.json(
-        { success: false, error: extractResult.error || "Failed to extract company data" },
+        { success: false, error: result.errors?.[0]?.error || "Enrichment failed" },
         { status: 422 },
       )
     }
 
-    const enrichmentData = extractResult.data.extract || extractResult.data
+    const { discovery, profile, funding, techStack, customFields, sources } = result.data
 
     // Also get branding/screenshot
-    const brandResult = await firecrawl.extractBrand(normalizedUrl)
+    const firecrawl = getFirecrawlClient()
+    const brandResult = await firecrawl.extractBrand(discovery.website)
     const screenshot = brandResult.success ? brandResult.data?.screenshot : null
     const logo = brandResult.success ? brandResult.data?.branding?.logo : null
 
-    // Prepare job data
-    const jobData: Partial<EnrichmentJob> = {
-      input_type: inputType,
-      input_value: inputTrimmed,
-      normalized_url: normalizedUrl,
-      domain,
-      company_name: enrichmentData.company?.name,
-      company_description: enrichmentData.company?.description,
-      company_logo: (logo as string) || undefined,
-      company_industry: enrichmentData.company?.industry,
-      company_size: enrichmentData.company?.size,
-      company_founded: enrichmentData.company?.founded,
-      company_headquarters: enrichmentData.company?.headquarters,
-      company_website: enrichmentData.company?.website,
-      linkedin_url: enrichmentData.social?.linkedin,
-      twitter_url: enrichmentData.social?.twitter,
-      facebook_url: enrichmentData.social?.facebook,
-      crunchbase_url: enrichmentData.social?.crunchbase,
-      contact_emails: enrichmentData.contact?.emails,
-      contact_phones: enrichmentData.contact?.phones,
-      tech_stack: enrichmentData.technology,
-      funding_total: enrichmentData.funding?.total,
-      investors: enrichmentData.funding?.investors,
-      key_people: enrichmentData.leadership,
-      status: "completed",
-    }
-
-    // Save to database
+    // Save to database with full agent phase data
     let savedJob: EnrichmentJob | null = null
     try {
-      // Convert empty strings to null for integer fields
-      const foundedYear = jobData.company_founded ? parseInt(String(jobData.company_founded), 10) : null
-      const validFoundedYear = foundedYear && !isNaN(foundedYear) ? foundedYear : null
-
-      const result = await sql`
+      const dbResult = await sql`
         INSERT INTO enrichment_jobs (
           input_type, input_value, normalized_url, domain,
           company_name, company_description, industry,
           employee_count, founded_year, headquarters, website,
-          linkedin_url, twitter_url, funding_total,
-          technologies, leadership, contacts,
-          raw_data, status, user_id
+          funding_total, technologies, leadership,
+          discovery_data, profile_data, funding_data,
+          tech_stack_data, custom_fields_data, sources,
+          icp_fit_score, icp_fit_reasons, buying_signals,
+          completed_phases, raw_data, status, user_id
         ) VALUES (
-          ${jobData.input_type}, ${jobData.input_value}, ${jobData.normalized_url}, ${jobData.domain},
-          ${jobData.company_name || null}, ${jobData.company_description || null}, ${jobData.company_industry || null},
-          ${jobData.company_size || null}, ${validFoundedYear}, ${jobData.company_headquarters || null}, ${jobData.company_website || null},
-          ${jobData.linkedin_url || null}, ${jobData.twitter_url || null}, ${jobData.funding_total || null},
-          ${JSON.stringify(jobData.tech_stack) || null}, ${JSON.stringify(jobData.key_people) || null}, 
-          ${JSON.stringify(jobData.contact_emails) || null},
-          ${JSON.stringify(enrichmentData)}, 'completed', ${userId}
+          ${Object.keys(enrichmentInput)[0]}, 
+          ${inputTrimmed}, 
+          ${discovery.website}, 
+          ${discovery.domain},
+          ${discovery.company_name}, 
+          ${profile.description}, 
+          ${profile.industry},
+          ${profile.employee_count}, 
+          ${profile.year_founded}, 
+          ${profile.headquarters}, 
+          ${discovery.website},
+          ${funding.total_funding},
+          ${JSON.stringify([...techStack.languages, ...techStack.frameworks, ...techStack.tools])}, 
+          ${JSON.stringify(customFields.key_executives)},
+          ${JSON.stringify(discovery)},
+          ${JSON.stringify(profile)},
+          ${JSON.stringify(funding)},
+          ${JSON.stringify(techStack)},
+          ${JSON.stringify(customFields)},
+          ${JSON.stringify(sources)},
+          ${customFields.icp_fit_score},
+          ${customFields.icp_fit_reasons},
+          ${JSON.stringify(customFields.buying_signals)},
+          ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
+          ${JSON.stringify(result.data)}, 
+          'completed', 
+          ${userId}
         )
         RETURNING *
       `
-      savedJob = result[0] as EnrichmentJob
+      savedJob = dbResult[0] as EnrichmentJob
     } catch (dbError) {
       console.error("[Enrich] DB error saving job:", dbError)
-      // Continue without saving - still return data to user
     }
 
     // Log usage event
-    const duration = Date.now() - startTime
     try {
       await sql`
         INSERT INTO usage_events (event_type, module, input_value, status, metadata, user_id)
-        VALUES ('enrichment', 'enrich', ${inputTrimmed}, 'success', ${JSON.stringify({ domain, duration_ms: duration })}, ${userId})
+        VALUES (
+          'enrichment', 
+          'enrich', 
+          ${inputTrimmed}, 
+          'success', 
+          ${JSON.stringify({ 
+            domain: discovery.domain, 
+            duration_ms: result.duration_ms,
+            icp_score: customFields.icp_fit_score,
+            errors: result.errors?.length || 0
+          })}, 
+          ${userId}
+        )
       `
     } catch (usageError) {
       console.error("[Enrich] Usage logging error:", usageError)
     }
 
+    // Return enriched data in a compatible format
     return NextResponse.json({
       success: true,
       data: {
         id: savedJob?.id,
-        ...jobData,
+        input_type: Object.keys(enrichmentInput)[0],
+        input_value: inputTrimmed,
+        normalized_url: discovery.website,
+        domain: discovery.domain,
+        company_name: discovery.company_name,
+        company_description: profile.description,
+        company_logo: logo as string | undefined,
+        company_industry: profile.industry,
+        company_size: profile.employee_range,
+        company_founded: profile.year_founded?.toString(),
+        company_headquarters: profile.headquarters,
+        company_website: discovery.website,
+        tech_stack: [...techStack.languages, ...techStack.frameworks, ...techStack.tools],
+        funding_total: funding.total_funding,
+        funding_stage: funding.funding_stage,
+        investors: funding.investors,
+        key_people: customFields.key_executives,
+        ceo_name: customFields.ceo_name,
+        icp_fit_score: customFields.icp_fit_score,
+        icp_fit_reasons: customFields.icp_fit_reasons,
+        buying_signals: customFields.buying_signals,
+        tech_signals: techStack.signals,
         screenshot,
-        raw: enrichmentData,
+        sources,
+        duration_ms: result.duration_ms,
+        errors: result.errors,
+        // Full agent results
+        agents: {
+          discovery,
+          profile,
+          funding,
+          techStack,
+          customFields,
+        },
       },
     })
   } catch (error) {

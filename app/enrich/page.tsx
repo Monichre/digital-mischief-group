@@ -13,27 +13,114 @@ import {
   Calendar,
   Linkedin,
   Twitter,
-  Mail,
   DollarSign,
-  Cpu,
   ExternalLink,
   Copy,
   Check,
   Sparkles,
   Download,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
-import type { EnrichmentJob } from "@/lib/firecrawl/types"
 import { UnifiedInput } from "@/components/enrich/UnifiedInput"
 import { FieldMapper } from "@/components/enrich/FieldMapper"
-import { EnrichmentProgress } from "@/components/enrich/EnrichmentProgress"
-import { EnrichmentTable } from "@/components/enrich/EnrichmentTable"
+import { AgentPhaseTracker, type PhaseProgress, type AgentPhase } from "@/components/enrich/AgentPhaseTracker"
+import { ICPScoreCard } from "@/components/enrich/ICPScoreCard"
+import { BuyingSignals } from "@/components/enrich/BuyingSignals"
+import { TechSignals } from "@/components/enrich/TechSignals"
+import { SourceAttribution } from "@/components/enrich/SourceAttribution"
+import { EnrichThinkingPanel } from "@/components/enrich/EnrichThinkingPanel"
+import { BulkEnrichTable } from "@/components/enrich/BulkEnrichTable"
+import { useEnrichStream } from "@/hooks/useEnrichStream"
 
 type EnrichStatus = "idle" | "loading" | "success" | "error"
 type BulkStep = "input" | "mapping" | "processing" | "complete"
 
-interface EnrichmentResult extends Partial<EnrichmentJob> {
+interface AgentResults {
+  discovery?: {
+    company_name: string
+    domain: string
+    website: string
+    confidence: number
+    sources: string[]
+  }
+  profile?: {
+    industry: string | null
+    segment: string
+    headquarters: string | null
+    employee_count: number | null
+    employee_range: string | null
+    year_founded: number | null
+    business_type: string | null
+    description: string | null
+    sources: Record<string, string[]>
+  }
+  funding?: {
+    funding_stage: string | null
+    total_funding: string | null
+    last_round_date: string | null
+    last_round_amount: string | null
+    investors: string[]
+    valuation: string | null
+    sources: Record<string, string[]>
+  }
+  techStack?: {
+    languages: string[]
+    frameworks: string[]
+    infrastructure: string[]
+    tools: string[]
+    signals: {
+      ai_adoption: boolean
+      modern_stack: boolean
+      cloud_native: boolean
+    }
+    sources: string[]
+  }
+  customFields?: {
+    ceo_name: string | null
+    key_executives: Array<{ name: string; title: string; linkedin: string | null }>
+    icp_fit_score: number
+    icp_fit_reasons: string[]
+    pain_points: string[]
+    buying_signals: Array<{ signal: string; confidence: number }>
+    competitive_landscape: string[]
+    sources: Record<string, string[]>
+  }
+}
+
+interface EnrichmentResult {
+  id?: string
+  company_name?: string
+  company_description?: string
+  company_logo?: string
+  company_industry?: string
+  company_size?: string
+  company_founded?: string
+  company_headquarters?: string
+  company_website?: string
+  domain?: string
+  linkedin_url?: string
+  twitter_url?: string
+  funding_total?: string
+  funding_stage?: string
+  investors?: string[]
+  tech_stack?: string[]
+  tech_signals?: {
+    ai_adoption: boolean
+    modern_stack: boolean
+    cloud_native: boolean
+  }
+  icp_fit_score?: number
+  icp_fit_reasons?: string[]
+  buying_signals?: Array<{ signal: string; confidence: number }>
+  ceo_name?: string
+  key_people?: Array<{ name: string; title: string; linkedin?: string }>
+  sources?: string[]
   screenshot?: string
-  raw?: unknown
+  duration_ms?: number
+  errors?: Array<{ phase: string; error: string; recoverable: boolean }>
+  agents?: AgentResults
 }
 
 interface EnrichedRow {
@@ -43,70 +130,76 @@ interface EnrichedRow {
   enriched?: {
     company_name?: string
     company_description?: string
-    company_industry?: string
-    company_size?: string
-    company_website?: string
-    company_logo?: string
-    linkedin_url?: string
-    twitter_url?: string
-    contact_emails?: string[]
-    contact_phones?: string[]
-    tech_stack?: string[]
+    industry?: string
+    segment?: string
+    employee_count?: number
+    headquarters?: string
+    website?: string
+    funding_stage?: string
     funding_total?: string
-    key_people?: Array<{ name: string; title: string; linkedin?: string }>
+    investors?: string[]
+    technologies?: string[]
+    tech_signals?: { ai_adoption: boolean; modern_stack: boolean; cloud_native: boolean }
+    leadership?: Array<{ name: string; title: string; linkedin?: string | null }>
+    ceo_name?: string
+    icp_fit_score?: number
+    icp_fit_reasons?: string[]
+    buying_signals?: Array<{ signal: string; confidence: number }>
+    sources?: string[]
   }
   error?: string
 }
 
 export default function EnrichPage() {
-  // Single enrichment state
-  const [status, setStatus] = useState<EnrichStatus>("idle")
-  const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<EnrichmentResult | null>(null)
+  // Streaming enrichment state
+  const stream = useEnrichStream()
+  
+  // UI state
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [showRawData, setShowRawData] = useState(false)
 
   // Bulk enrichment state
   const [bulkStep, setBulkStep] = useState<BulkStep>("input")
   const [csvData, setCsvData] = useState<Record<string, string>[]>([])
   const [csvHeaders, setCsvHeaders] = useState<string[]>([])
+  const [bulkRows, setBulkRows] = useState<Array<{
+    id: string
+    input: string
+    domain?: string
+    email?: string
+    company_name?: string
+    original: Record<string, string>
+  }>>([])
+  const [fieldMapping, setFieldMapping] = useState<Record<string, string | null>>({})
   const [enrichedRows, setEnrichedRows] = useState<EnrichedRow[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [batchId, setBatchId] = useState<string | null>(null)
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+
+  // Derive status from stream state
+  const status: EnrichStatus = stream.isLoading ? "loading" : stream.result ? "success" : stream.error ? "error" : "idle"
+  const error = stream.error
+  const result = stream.result as EnrichmentResult | null
+
+  // Convert stream phases to AgentPhaseTracker format
+  const phases: PhaseProgress[] = Object.entries(stream.phases)
+    .filter(([phase]) => phase !== 'branding')
+    .map(([phase, state]) => ({
+      phase: phase as AgentPhase,
+      status: state.status === 'running' ? 'running' : state.status === 'completed' ? 'completed' : state.status === 'failed' ? 'failed' : 'pending',
+    }))
 
   const handleTextSubmit = async (input: string) => {
-    setStatus("loading")
-    setError(null)
-    setResult(null)
-    setBulkStep("input") // Reset bulk state
-
-    try {
-      const response = await fetch("/api/enrich", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
-      })
-
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to enrich data")
-      }
-
-      setResult(data.data)
-      setStatus("success")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred")
-      setStatus("error")
-    }
+    setBulkStep("input")
+    stream.enrich(input)
   }
 
   const handleCsvUpload = useCallback((data: Record<string, string>[], headers: string[]) => {
-    setResult(null) // Clear single result
-    setStatus("idle")
+    stream.reset()
     setCsvData(data)
     setCsvHeaders(headers)
     setBulkStep("mapping")
-  }, [])
+  }, [stream])
 
   const copyToClipboard = async (text: string, field: string) => {
     await navigator.clipboard.writeText(text)
@@ -115,81 +208,30 @@ export default function EnrichPage() {
   }
 
   const handleMappingComplete = useCallback(
-    async (mapping: Record<string, string | null>) => {
+    (mapping: Record<string, string | null>) => {
+      setFieldMapping(mapping)
+      
+      // Prepare rows for BulkEnrichTable
+      const rows = csvData.map((row, idx) => {
+        const domain = mapping.domain ? row[mapping.domain] : undefined
+        const email = mapping.email ? row[mapping.email] : undefined
+        const company_name = mapping.company_name ? row[mapping.company_name] : undefined
+        const input = domain || email || company_name || Object.values(row)[0] || `Row ${idx + 1}`
+        
+        return {
+          id: `row-${idx}`,
+          input,
+          domain,
+          email,
+          company_name,
+          original: row,
+        }
+      })
+      
+      setBulkRows(rows)
       setBulkStep("processing")
-      setIsProcessing(true)
-
-      const initialRows: EnrichedRow[] = csvData.map((row, idx) => ({
-        id: `row-${idx}`,
-        status: "pending",
-        original: row,
-      }))
-      setEnrichedRows(initialRows)
-
-      try {
-        const batchResponse = await fetch("/api/enrich/batch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rows: csvData, mapping }),
-        })
-        const batchData = await batchResponse.json()
-
-        if (!batchData.success) {
-          throw new Error(batchData.error)
-        }
-
-        setBatchId(batchData.data.batchId)
-
-        for (let i = 0; i < csvData.length; i++) {
-          const row = csvData[i]
-
-          setEnrichedRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: "processing" } : r)))
-
-          try {
-            const response = await fetch("/api/enrich/batch", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                rowId: `row-${i}`,
-                batchId: batchData.data.batchId,
-                domain: mapping.domain ? row[mapping.domain] : undefined,
-                email: mapping.email ? row[mapping.email] : undefined,
-                company_name: mapping.company_name ? row[mapping.company_name] : undefined,
-              }),
-            })
-
-            const result = await response.json()
-
-            setEnrichedRows((prev) =>
-              prev.map((r, idx) =>
-                idx === i
-                  ? {
-                      ...r,
-                      status: result.data.status,
-                      enriched: result.data.enriched,
-                      error: result.data.error,
-                    }
-                  : r,
-              ),
-            )
-          } catch (err) {
-            setEnrichedRows((prev) =>
-              prev.map((r, idx) => (idx === i ? { ...r, status: "failed", error: "Request failed" } : r)),
-            )
-          }
-
-          if (i < csvData.length - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 500))
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Batch processing failed")
-      } finally {
-        setIsProcessing(false)
-        setBulkStep("complete")
-      }
     },
-    [csvData],
+    [csvData]
   )
 
   const handleExportCsv = useCallback(() => {
@@ -199,14 +241,16 @@ export default function EnrichPage() {
     const enrichedHeaders = [
       "enriched_company_name",
       "enriched_industry",
-      "enriched_size",
+      "enriched_segment",
+      "enriched_employees",
+      "enriched_headquarters",
       "enriched_website",
-      "enriched_linkedin",
-      "enriched_twitter",
-      "enriched_emails",
-      "enriched_phones",
-      "enriched_funding",
-      "enriched_tech_stack",
+      "enriched_funding_stage",
+      "enriched_funding_total",
+      "enriched_technologies",
+      "enriched_icp_score",
+      "enriched_icp_reasons",
+      "enriched_buying_signals",
       "enrichment_status",
     ]
     const allHeaders = [...originalHeaders, ...enrichedHeaders]
@@ -215,15 +259,17 @@ export default function EnrichPage() {
       const originalValues = originalHeaders.map((h) => row.original[h] || "")
       const enrichedValues = [
         row.enriched?.company_name || "",
-        row.enriched?.company_industry || "",
-        row.enriched?.company_size || "",
-        row.enriched?.company_website || "",
-        row.enriched?.linkedin_url || "",
-        row.enriched?.twitter_url || "",
-        (row.enriched?.contact_emails || []).join("; "),
-        (row.enriched?.contact_phones || []).join("; "),
+        row.enriched?.industry || "",
+        row.enriched?.segment || "",
+        row.enriched?.employee_count?.toString() || "",
+        row.enriched?.headquarters || "",
+        row.enriched?.website || "",
+        row.enriched?.funding_stage || "",
         row.enriched?.funding_total || "",
-        (row.enriched?.tech_stack || []).join("; "),
+        (row.enriched?.technologies || []).join("; "),
+        row.enriched?.icp_fit_score?.toString() || "",
+        (row.enriched?.icp_fit_reasons || []).join("; "),
+        (row.enriched?.buying_signals || []).map((s) => `${s.signal} (${Math.round(s.confidence * 100)}%)`).join("; "),
         row.status,
       ]
       return [...originalValues, ...enrichedValues]
@@ -247,11 +293,11 @@ export default function EnrichPage() {
     setBulkStep("input")
     setCsvData([])
     setCsvHeaders([])
+    setBulkRows([])
+    setFieldMapping({})
     setEnrichedRows([])
     setBatchId(null)
-    setError(null)
-    setResult(null)
-    setStatus("idle")
+    stream.reset()
   }
 
   const InfoCard = ({
@@ -261,7 +307,7 @@ export default function EnrichPage() {
     href,
     copyable = false,
   }: {
-    icon: React.ElementType
+    icon: React.ComponentType<{ className?: string }>
     label: string
     value?: string | null
     href?: string
@@ -292,11 +338,7 @@ export default function EnrichPage() {
             onClick={() => copyToClipboard(value, label)}
             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-zinc-800 rounded"
           >
-            {copiedField === label ? (
-              <Check className="w-3 h-3 text-green-500" />
-            ) : (
-              <Copy className="w-3 h-3 text-zinc-500" />
-            )}
+            {copiedField === label ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-zinc-500" />}
           </button>
         )}
       </div>
@@ -328,30 +370,26 @@ export default function EnrichPage() {
       </nav>
 
       <main className="relative z-10 pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500 mb-6">
               <Building2 className="w-3 h-3 text-orange-500" />
-              <span>// COMPANY INTELLIGENCE</span>
+              <span>// MULTI-AGENT INTELLIGENCE</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
               <span className="text-zinc-100">Fire</span>
               <span className="text-orange-500">-Enrich</span>
             </h1>
             <p className="text-zinc-400 max-w-xl mx-auto">
-              Transform any URL, email, or domain into comprehensive company intelligence. Upload a CSV for bulk
-              enrichment or enrich one at a time.
+              5-phase AI pipeline extracts company intelligence, calculates ICP fit, and detects buying signals.
             </p>
           </div>
 
+          {/* Input Section */}
           {bulkStep === "input" && status !== "loading" && status !== "success" && (
             <div className="mb-12">
-              <UnifiedInput
-                onTextSubmit={handleTextSubmit}
-                onCsvUpload={handleCsvUpload}
-                isLoading={status === "loading"}
-              />
+              <UnifiedInput onTextSubmit={handleTextSubmit} onCsvUpload={handleCsvUpload} isLoading={false} />
             </div>
           )}
 
@@ -361,33 +399,39 @@ export default function EnrichPage() {
               <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 text-red-400">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
+                <button onClick={resetAll} className="ml-auto text-sm hover:text-red-300">
+                  Try Again
+                </button>
               </div>
             </div>
           )}
 
-          {/* Loading State */}
+          {/* Loading State with Agent Progress */}
           {status === "loading" && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="relative w-24 h-24 mb-6">
-                <div className="absolute inset-0 border-2 border-orange-500/30 rounded-full animate-ping" />
-                <div className="absolute inset-2 border border-orange-500/50 rounded-full animate-pulse" />
-                <Building2 className="absolute inset-0 m-auto w-8 h-8 text-orange-500" />
-              </div>
-              <p className="text-zinc-500 text-sm animate-pulse">Extracting company intelligence...</p>
+            <div className="max-w-4xl mx-auto h-[500px]">
+              <EnrichThinkingPanel 
+                phases={stream.phases} 
+                events={stream.events} 
+                isComplete={false} 
+              />
             </div>
           )}
 
           {/* Single Enrichment Results */}
           {status === "success" && result && (
             <div className="space-y-8 animate-in fade-in duration-500">
-              {/* Back Button */}
-              <button
-                onClick={resetAll}
-                className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Enrich another
-              </button>
+              {/* Back Button & Duration */}
+              <div className="flex items-center justify-between">
+                <button onClick={resetAll} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors">
+                  <ArrowLeft className="w-4 h-4" />
+                  Enrich another
+                </button>
+                {result.duration_ms && (
+                  <span className="text-xs text-zinc-500">
+                    Completed in {(result.duration_ms / 1000).toFixed(1)}s
+                  </span>
+                )}
+              </div>
 
               {/* Company Header */}
               <div className="relative border border-zinc-800 bg-zinc-900/30 p-6">
@@ -398,178 +442,186 @@ export default function EnrichPage() {
 
                 <div className="flex items-start gap-6">
                   {result.company_logo ? (
-                    <img
-                      src={result.company_logo || "/placeholder.svg"}
-                      alt={result.company_name || "Company logo"}
-                      className="w-16 h-16 object-contain bg-white rounded p-2"
-                    />
+                    <img src={result.company_logo} alt={result.company_name || "Company"} className="w-16 h-16 object-contain bg-white rounded p-2" />
                   ) : (
                     <div className="w-16 h-16 bg-zinc-800 flex items-center justify-center">
                       <Building2 className="w-8 h-8 text-zinc-600" />
                     </div>
                   )}
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-zinc-100 mb-2">
-                      {result.company_name || result.domain || "Unknown Company"}
-                    </h2>
-                    {result.company_description && (
-                      <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{result.company_description}</p>
-                    )}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-zinc-100 mb-2">{result.company_name || result.domain || "Unknown"}</h2>
+                        {result.company_description && <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{result.company_description}</p>}
+                      </div>
+                      {result.icp_fit_score !== undefined && (
+                        <ICPScoreCard score={result.icp_fit_score} reasons={result.icp_fit_reasons || []} compact />
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {result.company_industry && (
-                        <span className="px-2 py-1 bg-orange-500/10 border border-orange-500/30 text-orange-500 text-xs">
-                          {result.company_industry}
-                        </span>
+                        <span className="px-2 py-1 bg-orange-500/10 border border-orange-500/30 text-orange-500 text-xs">{result.company_industry}</span>
+                      )}
+                      {result.agents?.profile?.segment && result.agents.profile.segment !== "Unknown" && (
+                        <span className="px-2 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs">{result.agents.profile.segment}</span>
                       )}
                       {result.company_size && (
-                        <span className="px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs">
-                          {result.company_size}
-                        </span>
+                        <span className="px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs">{result.company_size}</span>
+                      )}
+                      {result.funding_stage && (
+                        <span className="px-2 py-1 bg-green-500/10 border border-green-500/30 text-green-400 text-xs">{result.funding_stage}</span>
+                      )}
+                      {result.ceo_name && (
+                        <span className="px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs">CEO: {result.ceo_name}</span>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Info Grid */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-orange-500" />
-                    <span className="text-xs uppercase tracking-widest text-zinc-500">Company Details</span>
+              {/* Main Grid */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                {/* Left Column - Company Details */}
+                <div className="space-y-6">
+                  {/* Basic Info */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-1 h-4 bg-orange-500" />
+                      <span className="text-xs uppercase tracking-widest text-zinc-500">Company Details</span>
+                    </div>
+                    <div className="space-y-2">
+                      <InfoCard icon={Globe} label="Website" value={result.company_website} href={result.company_website} />
+                      <InfoCard icon={MapPin} label="Headquarters" value={result.company_headquarters} />
+                      <InfoCard icon={Calendar} label="Founded" value={result.company_founded} />
+                      <InfoCard icon={Users} label="Employees" value={result.company_size} />
+                      <InfoCard icon={Linkedin} label="LinkedIn" value={result.linkedin_url} href={result.linkedin_url} />
+                      <InfoCard icon={Twitter} label="Twitter" value={result.twitter_url} href={result.twitter_url} />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <InfoCard
-                      icon={Globe}
-                      label="Website"
-                      value={result.company_website}
-                      href={result.company_website}
-                    />
-                    <InfoCard icon={MapPin} label="Headquarters" value={result.company_headquarters} />
-                    <InfoCard icon={Calendar} label="Founded" value={result.company_founded} />
-                    <InfoCard icon={Users} label="Company Size" value={result.company_size} />
+
+                  {/* Funding */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-1 h-4 bg-orange-500" />
+                      <span className="text-xs uppercase tracking-widest text-zinc-500">Funding</span>
+                    </div>
+                    <div className="space-y-2">
+                      <InfoCard icon={DollarSign} label="Total Raised" value={result.funding_total} />
+                      <InfoCard icon={DollarSign} label="Stage" value={result.funding_stage} />
+                      {result.investors && result.investors.length > 0 && (
+                        <div className="p-3 bg-zinc-900/50 border border-zinc-800">
+                          <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Investors</p>
+                          <div className="flex flex-wrap gap-1">
+                            {result.investors.slice(0, 5).map((inv, i) => (
+                              <span key={i} className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-xs rounded">{inv}</span>
+                            ))}
+                            {result.investors.length > 5 && (
+                              <span className="px-2 py-0.5 text-zinc-500 text-xs">+{result.investors.length - 5}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Tech Stack & Signals */}
+                  {result.tech_signals && (
+                    <TechSignals signals={result.tech_signals} technologies={result.tech_stack} />
+                  )}
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-orange-500" />
-                    <span className="text-xs uppercase tracking-widest text-zinc-500">Social & Funding</span>
-                  </div>
-                  <div className="space-y-2">
-                    <InfoCard icon={Linkedin} label="LinkedIn" value={result.linkedin_url} href={result.linkedin_url} />
-                    <InfoCard icon={Twitter} label="Twitter" value={result.twitter_url} href={result.twitter_url} />
-                    <InfoCard icon={DollarSign} label="Funding" value={result.funding_total} />
-                  </div>
+                {/* Right Column - Intelligence */}
+                <div className="space-y-6">
+                  {/* ICP Score */}
+                  {result.icp_fit_score !== undefined && (
+                    <ICPScoreCard score={result.icp_fit_score} reasons={result.icp_fit_reasons || []} />
+                  )}
+
+                  {/* Buying Signals */}
+                  {result.buying_signals && result.buying_signals.length > 0 && (
+                    <BuyingSignals signals={result.buying_signals} />
+                  )}
+
+                  {/* Key People */}
+                  {result.key_people && result.key_people.length > 0 && (
+                    <div className="border border-zinc-800 bg-zinc-900/50 p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded bg-orange-500/10 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-orange-500" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-zinc-100">Leadership</h3>
+                          <p className="text-xs text-zinc-500">{result.key_people.length} executives found</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {result.key_people.slice(0, 5).map((person, i) => (
+                          <div key={i} className="flex items-center justify-between p-2 bg-zinc-900 rounded">
+                            <div>
+                              <p className="text-sm text-zinc-200">{person.name}</p>
+                              <p className="text-xs text-zinc-500">{person.title}</p>
+                            </div>
+                            {person.linkedin && (
+                              <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                                <Linkedin className="w-4 h-4" />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sources */}
+                  {result.sources && result.sources.length > 0 && (
+                    <SourceAttribution sources={result.sources} />
+                  )}
                 </div>
               </div>
 
-              {/* Tech Stack */}
-              {result.technologies && Array.isArray(result.technologies) && result.technologies.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-orange-500" />
-                    <span className="text-xs uppercase tracking-widest text-zinc-500">Tech Stack</span>
+              {/* Raw Data Toggle */}
+              <div className="border border-zinc-800 rounded">
+                <button
+                  onClick={() => setShowRawData(!showRawData)}
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-zinc-900/50 transition-colors"
+                >
+                  <span className="text-sm text-zinc-400">Raw Agent Data</span>
+                  {showRawData ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+                </button>
+                {showRawData && (
+                  <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
+                    <pre className="text-xs text-zinc-500 overflow-auto max-h-96">{JSON.stringify(result.agents, null, 2)}</pre>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {result.technologies.map((tech: string, i: number) => (
-                      <span key={i} className="px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs">
-                        <Cpu className="w-3 h-3 inline mr-1" />
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Contacts */}
-              {result.contacts && Array.isArray(result.contacts) && result.contacts.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-orange-500" />
-                    <span className="text-xs uppercase tracking-widest text-zinc-500">Key Contacts</span>
-                  </div>
-                  <div className="grid gap-2">
-                    {result.contacts
-                      .slice(0, 5)
-                      .map((contact: { email?: string; name?: string; title?: string }, i: number) => (
-                        <div key={i} className="flex items-center gap-3 p-3 bg-zinc-900/50 border border-zinc-800">
-                          <Mail className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-zinc-200 truncate">{contact.email}</p>
-                            {contact.name && (
-                              <p className="text-xs text-zinc-500">
-                                {contact.name} {contact.title && `• ${contact.title}`}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => copyToClipboard(contact.email || "", `contact-${i}`)}
-                            className="p-1 hover:bg-zinc-800 rounded"
-                          >
-                            {copiedField === `contact-${i}` ? (
-                              <Check className="w-3 h-3 text-green-500" />
-                            ) : (
-                              <Copy className="w-3 h-3 text-zinc-500" />
-                            )}
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
           {/* Bulk Enrichment: Field Mapping Step */}
           {bulkStep === "mapping" && (
             <div className="space-y-6">
-              <button
-                onClick={resetAll}
-                className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors"
-              >
+              <button onClick={resetAll} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors">
                 <ArrowLeft className="w-4 h-4" />
                 Start over
               </button>
-              <FieldMapper
-                headers={csvHeaders}
-                sampleData={csvData.slice(0, 3)}
-                onMappingComplete={handleMappingComplete}
-              />
+              <FieldMapper csvHeaders={csvHeaders} onMappingComplete={handleMappingComplete} onCancel={resetAll} />
             </div>
           )}
 
-          {/* Bulk Enrichment: Processing Step */}
-          {(bulkStep === "processing" || bulkStep === "complete") && (
+          {/* Bulk Enrichment: Processing & Results - Using new streaming BulkEnrichTable */}
+          {bulkStep === "processing" && bulkRows.length > 0 && (
             <div className="space-y-6">
-              <EnrichmentProgress
-                total={enrichedRows.length}
-                completed={completedCount}
-                failed={failedCount}
-                isProcessing={isProcessing}
+              <button onClick={resetAll} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                Start Over
+              </button>
+
+              <BulkEnrichTable
+                rows={bulkRows}
+                csvHeaders={csvHeaders}
+                generateSynthesis={true}
+                onComplete={() => setBulkStep("complete")}
               />
-
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={resetAll}
-                  className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Start Over
-                </button>
-
-                {bulkStep === "complete" && (
-                  <button
-                    onClick={handleExportCsv}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm hover:bg-orange-600 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export Enriched CSV
-                  </button>
-                )}
-              </div>
-
-              <EnrichmentTable rows={enrichedRows} />
             </div>
           )}
         </div>

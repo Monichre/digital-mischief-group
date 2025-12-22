@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { getFirecrawlClient } from "@/lib/firecrawl/client"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
+const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 
 async function searchSerper(query: string) {
   if (!SERPER_API_KEY) return []
@@ -54,6 +56,33 @@ async function searchExa(query: string) {
   }))
 }
 
+async function searchFirecrawl(query: string) {
+  if (!FIRECRAWL_API_KEY) return []
+
+  try {
+    const firecrawl = getFirecrawlClient()
+    const result = await firecrawl.search({
+      query,
+      limit: 20,
+      scrapeOptions: {
+        formats: ["markdown"],
+        onlyMainContent: true,
+      },
+    })
+
+    if (!result.success || !result.data) return []
+
+    return result.data.map((r) => ({
+      url: r.url,
+      title: r.title,
+      snippet: r.description || r.markdown?.slice(0, 300) || "",
+      source: "firecrawl",
+    }))
+  } catch {
+    return []
+  }
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -63,13 +92,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Scout not found" }, { status: 404 })
     }
 
-    // Run searches in parallel
-    const [serperResults, exaResults] = await Promise.all([
+    // Run searches in parallel (3 search engines)
+    const [serperResults, exaResults, firecrawlResults] = await Promise.all([
       searchSerper(scout.search_query),
       searchExa(scout.search_query),
+      searchFirecrawl(scout.search_query),
     ])
 
-    const allResults = [...serperResults, ...exaResults]
+    const allResults = [...serperResults, ...exaResults, ...firecrawlResults]
     const seenUrls = new Set(scout.seen_urls || [])
     const newResults = allResults.filter((r: { url: string }) => !seenUrls.has(r.url))
 

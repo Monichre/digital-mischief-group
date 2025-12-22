@@ -30,9 +30,16 @@ const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "jp",
     name: "JP McMonagle",
-    role: "Ops Director",
+    role: "Ops Director / Media Systems",
     image: "/portrait-silhouette-neon-style-person.jpg",
     bio: "Operations lead ensuring seamless deployment pipelines and continuous system reliability across all client environments.",
+  },
+  {
+    id: "darius",
+    name: "Darius Gladwell",
+    role: "Interface Architect",
+    image: "/portrait-silhouette-cyber-style-person.jpg",
+    bio: "Interface designer crafting the command centers and dashboards that make AI systems intuitive and powerful.",
   },
 ]
 
@@ -128,18 +135,6 @@ export function MeetTheTeam() {
       </div>
 
       <div className="relative max-w-4xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <span className="text-zinc-500 text-xs tracking-[0.3em] uppercase mb-4 block">// MISSION</span>
-          <h2 className="text-4xl md:text-5xl font-mono text-white mb-6">
-            The Skunkworks <span className="text-orange-500">Unit</span>
-          </h2>
-          <p className="text-zinc-400 max-w-xl mx-auto text-base leading-relaxed">
-            A multidisciplinary team of engineers and architects obsessed with velocity. Led by{" "}
-            <span className="text-white font-medium">Liam Ellis</span>.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {EXPERTISE_AREAS.map((area, index) => (
             <div

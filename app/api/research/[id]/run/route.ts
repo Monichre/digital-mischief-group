@@ -186,7 +186,6 @@ Raw Findings:
 ${findingsText}
 
 Synthesize these findings into an intelligence brief.`,
-      maxTokens: 2000,
     })
 
     return text

@@ -18,6 +18,7 @@ import {
   Target,
   ChevronDown,
   Play,
+  Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -161,10 +162,17 @@ export default function ResearchPage() {
               <h1 className="text-4xl md:text-5xl font-mono mb-4">
                 Open-<span className="text-orange-500">Researcher</span>
               </h1>
-              <p className="text-zinc-400 max-w-2xl mx-auto">
+              <p className="text-zinc-400 max-w-2xl mx-auto mb-6">
                 Deploy autonomous research missions across multiple intelligence sources. Get synthesized, actionable
                 briefs in minutes.
               </p>
+              <Link
+                href="/research/live"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-zinc-950 font-mono text-sm rounded transition-colors"
+              >
+                <Zap className="w-4 h-4" />
+                Try Live Research Mode
+              </Link>
             </div>
           </ScrollReveal>
 

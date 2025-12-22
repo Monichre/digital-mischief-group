@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
-import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
-import { COMPANY_ENRICHMENT_SCHEMA, type CompanyEnrichmentData } from "@/lib/firecrawl/types"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { orchestrateEnrichment, type EnrichmentInput } from "@/lib/agents"
 
 export const maxDuration = 60
 
@@ -17,6 +18,13 @@ interface BatchRow {
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { rows, mapping } = (await request.json()) as {
       rows: Record<string, string>[]
       mapping: Record<string, string | null>
@@ -32,8 +40,8 @@ export async function POST(request: NextRequest) {
 
     // Create batch job in DB
     const batchResult = await sql`
-      INSERT INTO enrichment_batches (total_rows, status)
-      VALUES (${rows.length}, 'processing')
+      INSERT INTO enrichment_batches (total_rows, status, user_id)
+      VALUES (${rows.length}, 'processing', ${userId})
       RETURNING id
     `
     const batchId = batchResult[0].id
@@ -67,129 +75,152 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Process a single row from the batch
+// Process a single row from the batch using multi-agent orchestrator
 export async function PUT(request: NextRequest) {
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { rowId, batchId, domain, email, company_name } = await request.json()
 
-    // Determine input to enrich
-    let inputValue = domain || email
-    if (!inputValue && email) {
-      // Extract domain from email
-      const emailParts = email.split("@")
-      if (emailParts.length === 2) {
-        inputValue = emailParts[1]
+    // Build enrichment input
+    const enrichmentInput: EnrichmentInput = {}
+    if (email) enrichmentInput.email = email
+    else if (domain) enrichmentInput.domain = domain
+    else if (company_name) enrichmentInput.company_name = company_name
+
+    if (!enrichmentInput.email && !enrichmentInput.domain && !enrichmentInput.company_name) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: rowId,
+          status: "failed",
+          error: "No domain, email, or company name provided",
+        },
+      })
+    }
+
+    // Check cache first (by domain if available)
+    const cacheKey = domain || (email ? email.split("@")[1] : null)
+    if (cacheKey) {
+      const cached = await sql`
+        SELECT * FROM enrichment_jobs 
+        WHERE domain = ${cacheKey} 
+        AND status = 'completed'
+        AND created_at > NOW() - INTERVAL '7 days'
+        ORDER BY created_at DESC
+        LIMIT 1
+      `
+
+      if (cached.length > 0 && cached[0].discovery_data) {
+        // Return cached multi-agent results
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: rowId,
+            status: "completed",
+            enriched: {
+              company_name: cached[0].company_name,
+              company_description: cached[0].company_description,
+              industry: cached[0].industry,
+              employee_count: cached[0].employee_count,
+              headquarters: cached[0].headquarters,
+              website: cached[0].website,
+              funding_total: cached[0].funding_total,
+              technologies: cached[0].technologies,
+              leadership: cached[0].leadership,
+              icp_fit_score: cached[0].icp_fit_score,
+              icp_fit_reasons: cached[0].icp_fit_reasons,
+              buying_signals: cached[0].buying_signals,
+            },
+            cached: true,
+          },
+        })
       }
     }
 
-    if (!inputValue) {
+    // Run multi-agent orchestration
+    const result = await orchestrateEnrichment(enrichmentInput, {
+      onProgress: (progress) => {
+        console.log(`[Batch ${batchId}] Row ${rowId}: ${progress.phase} - ${progress.status}`)
+      },
+    })
+
+    if (!result.success) {
+      // Update batch failed count
+      await sql`
+        UPDATE enrichment_batches 
+        SET failed_rows = failed_rows + 1, updated_at = NOW()
+        WHERE id = ${batchId}
+      `
+
       return NextResponse.json({
         success: true,
         data: {
           id: rowId,
           status: "failed",
-          error: "No domain or email provided",
+          error: result.errors?.[0]?.error || "Enrichment failed",
         },
       })
     }
 
-    // Normalize URL
-    let normalizedUrl: string
-    let domainName: string
-    try {
-      normalizedUrl = normalizeUrl(inputValue)
-      domainName = extractDomain(normalizedUrl)
-    } catch {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: rowId,
-          status: "failed",
-          error: "Invalid domain or email",
-        },
-      })
-    }
+    const { discovery, profile, funding, techStack, customFields, sources } = result.data
 
-    // Check cache first
-    const cached = await sql`
-      SELECT * FROM enrichment_jobs 
-      WHERE domain = ${domainName} 
-      AND status = 'completed'
-      AND created_at > NOW() - INTERVAL '7 days'
-      ORDER BY created_at DESC
-      LIMIT 1
-    `
-
-    if (cached.length > 0) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: rowId,
-          status: "completed",
-          enriched: {
-            company_name: cached[0].company_name,
-            company_description: cached[0].company_description,
-            company_industry: cached[0].company_industry,
-            company_size: cached[0].company_size,
-            company_website: cached[0].company_website,
-            company_logo: cached[0].company_logo,
-            linkedin_url: cached[0].linkedin_url,
-            twitter_url: cached[0].twitter_url,
-            contact_emails: cached[0].contact_emails,
-            contact_phones: cached[0].contact_phones,
-            tech_stack: cached[0].tech_stack,
-            funding_total: cached[0].funding_total,
-            key_people: cached[0].key_people,
-          },
-          cached: true,
-        },
-      })
-    }
-
-    // Call Firecrawl
-    const firecrawl = getFirecrawlClient()
-
-    const extractResult = await firecrawl.extract<{ extract: CompanyEnrichmentData }>(
-      normalizedUrl,
-      COMPANY_ENRICHMENT_SCHEMA,
-      "Extract comprehensive company information.",
-    )
-
-    if (!extractResult.success || !extractResult.data) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: rowId,
-          status: "failed",
-          error: extractResult.error || "Extraction failed",
-        },
-      })
-    }
-
-    const enrichmentData = extractResult.data.extract || extractResult.data
-
-    // Save to DB for caching
+    // Save to DB with full agent phase data
     try {
       await sql`
         INSERT INTO enrichment_jobs (
           input_type, input_value, normalized_url, domain,
-          company_name, company_description, company_industry,
-          company_size, company_website, linkedin_url, twitter_url,
-          contact_emails, contact_phones, tech_stack, funding_total, key_people,
-          status, batch_id
+          company_name, company_description, industry,
+          employee_count, founded_year, headquarters, website,
+          funding_total, technologies, leadership,
+          discovery_data, profile_data, funding_data, 
+          tech_stack_data, custom_fields_data, sources,
+          icp_fit_score, icp_fit_reasons, buying_signals,
+          completed_phases, status, batch_id, user_id
         ) VALUES (
-          'domain', ${inputValue}, ${normalizedUrl}, ${domainName},
-          ${enrichmentData.company?.name}, ${enrichmentData.company?.description},
-          ${enrichmentData.company?.industry}, ${enrichmentData.company?.size},
-          ${enrichmentData.company?.website}, ${enrichmentData.social?.linkedin},
-          ${enrichmentData.social?.twitter}, ${JSON.stringify(enrichmentData.contact?.emails)},
-          ${JSON.stringify(enrichmentData.contact?.phones)}, ${JSON.stringify(enrichmentData.technology)},
-          ${enrichmentData.funding?.total}, ${JSON.stringify(enrichmentData.leadership)},
-          'completed', ${batchId}
+          ${Object.keys(enrichmentInput)[0]},
+          ${email || domain || company_name},
+          ${discovery.website},
+          ${discovery.domain},
+          ${discovery.company_name},
+          ${profile.description},
+          ${profile.industry},
+          ${profile.employee_count},
+          ${profile.year_founded},
+          ${profile.headquarters},
+          ${discovery.website},
+          ${funding.total_funding},
+          ${JSON.stringify([...techStack.languages, ...techStack.frameworks, ...techStack.tools])},
+          ${JSON.stringify(customFields.key_executives)},
+          ${JSON.stringify(discovery)},
+          ${JSON.stringify(profile)},
+          ${JSON.stringify(funding)},
+          ${JSON.stringify(techStack)},
+          ${JSON.stringify(customFields)},
+          ${JSON.stringify(sources)},
+          ${customFields.icp_fit_score},
+          ${customFields.icp_fit_reasons},
+          ${JSON.stringify(customFields.buying_signals)},
+          ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
+          'completed',
+          ${batchId},
+          ${userId}
         )
       `
+
+      // Update batch completed count
+      await sql`
+        UPDATE enrichment_batches 
+        SET completed_rows = completed_rows + 1, updated_at = NOW()
+        WHERE id = ${batchId}
+      `
     } catch (dbError) {
-      console.error("[Enrich Batch] DB cache error:", dbError)
+      console.error("[Enrich Batch] DB error:", dbError)
     }
 
     return NextResponse.json({
@@ -198,18 +229,24 @@ export async function PUT(request: NextRequest) {
         id: rowId,
         status: "completed",
         enriched: {
-          company_name: enrichmentData.company?.name,
-          company_description: enrichmentData.company?.description,
-          company_industry: enrichmentData.company?.industry,
-          company_size: enrichmentData.company?.size,
-          company_website: enrichmentData.company?.website,
-          linkedin_url: enrichmentData.social?.linkedin,
-          twitter_url: enrichmentData.social?.twitter,
-          contact_emails: enrichmentData.contact?.emails,
-          contact_phones: enrichmentData.contact?.phones,
-          tech_stack: enrichmentData.technology,
-          funding_total: enrichmentData.funding?.total,
-          key_people: enrichmentData.leadership,
+          company_name: discovery.company_name,
+          company_description: profile.description,
+          industry: profile.industry,
+          segment: profile.segment,
+          employee_count: profile.employee_count,
+          headquarters: profile.headquarters,
+          website: discovery.website,
+          funding_stage: funding.funding_stage,
+          funding_total: funding.total_funding,
+          investors: funding.investors,
+          technologies: [...techStack.languages, ...techStack.frameworks, ...techStack.tools],
+          tech_signals: techStack.signals,
+          leadership: customFields.key_executives,
+          ceo_name: customFields.ceo_name,
+          icp_fit_score: customFields.icp_fit_score,
+          icp_fit_reasons: customFields.icp_fit_reasons,
+          buying_signals: customFields.buying_signals,
+          sources,
         },
       },
     })

@@ -1,42 +1,20 @@
 // Unified Firecrawl Client for DMG Intelligence Suite
+// Uses official @mendable/firecrawl-js SDK
+
+import Firecrawl from '@mendable/firecrawl-js'
 
 const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
-const FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v1"
 
-export type FirecrawlFormat = "markdown" | "html" | "rawHtml" | "links" | "screenshot" | "branding" | "extract"
+// Re-export types for convenience
+export type FirecrawlFormat = "markdown" | "html" | "rawHtml" | "links" | "screenshot" | "branding" | "json"
 
-export interface FirecrawlScrapeOptions {
+export interface FirecrawlSearchResult {
   url: string
-  formats?: FirecrawlFormat[]
-  onlyMainContent?: boolean
-  includeTags?: string[]
-  excludeTags?: string[]
-  waitFor?: number
-  timeout?: number
-  extract?: {
-    schema?: Record<string, unknown>
-    systemPrompt?: string
-    prompt?: string
-  }
-}
-
-export interface FirecrawlMapOptions {
-  url: string
-  search?: string
-  ignoreSitemap?: boolean
-  includeSubdomains?: boolean
-  limit?: number
-}
-
-export interface FirecrawlCrawlOptions {
-  url: string
-  excludePaths?: string[]
-  includePaths?: string[]
-  maxDepth?: number
-  limit?: number
-  allowBackwardLinks?: boolean
-  allowExternalLinks?: boolean
-  scrapeOptions?: Omit<FirecrawlScrapeOptions, "url">
+  title: string
+  description: string
+  markdown?: string
+  html?: string
+  metadata?: Record<string, unknown>
 }
 
 export interface FirecrawlResponse<T = unknown> {
@@ -45,114 +23,331 @@ export interface FirecrawlResponse<T = unknown> {
   error?: string
 }
 
+export interface BrandingProfile {
+  colorScheme?: 'light' | 'dark' | string
+  logo?: string | null
+  colors?: {
+    primary?: string
+    secondary?: string
+    accent?: string
+    background?: string
+    textPrimary?: string
+    textSecondary?: string
+    [key: string]: string | undefined
+  }
+  typography?: {
+    fontFamilies?: {
+      primary?: string
+      heading?: string
+      [key: string]: string | undefined
+    }
+    [key: string]: unknown
+  }
+  fonts?: Array<{ family: string; [key: string]: unknown }>
+  spacing?: Record<string, unknown>
+  components?: Record<string, unknown>
+  images?: Record<string, unknown>
+  animations?: Record<string, unknown>
+  layout?: Record<string, unknown>
+  personality?: Record<string, unknown>
+}
+
 class FirecrawlClient {
-  private apiKey: string
-  private baseUrl: string
+  private app: Firecrawl
 
   constructor() {
     if (!FIRECRAWL_API_KEY) {
       throw new Error("FIRECRAWL_API_KEY is not configured")
     }
-    this.apiKey = FIRECRAWL_API_KEY
-    this.baseUrl = FIRECRAWL_BASE_URL
+    this.app = new Firecrawl({ apiKey: FIRECRAWL_API_KEY })
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<FirecrawlResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`
-
+  // Scrape a single URL
+  async scrape<T = unknown>(options: {
+    url: string
+    formats?: FirecrawlFormat[]
+    onlyMainContent?: boolean
+    includeTags?: string[]
+    excludeTags?: string[]
+    waitFor?: number
+    timeout?: number
+  }): Promise<FirecrawlResponse<T>> {
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-          ...options.headers,
-        },
+      const result = await this.app.scrape(options.url, {
+        formats: options.formats as any,
+        onlyMainContent: options.onlyMainContent,
+        includeTags: options.includeTags,
+        excludeTags: options.excludeTags,
+        waitFor: options.waitFor,
+        timeout: options.timeout,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: data.error || `API error: ${response.status}`,
-        }
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
       }
 
-      return {
-        success: true,
-        data: data.data || data,
-      }
+      return { success: true, data: result as T }
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : "Scrape failed",
       }
     }
   }
 
-  // Scrape a single URL
-  async scrape<T = unknown>(options: FirecrawlScrapeOptions): Promise<FirecrawlResponse<T>> {
-    return this.request<T>("/scrape", {
-      method: "POST",
-      body: JSON.stringify(options),
-    })
-  }
-
   // Extract brand identity
-  async extractBrand(url: string): Promise<
-    FirecrawlResponse<{
-      branding: Record<string, unknown>
-      metadata?: Record<string, unknown>
-      screenshot?: string
-    }>
-  > {
-    return this.scrape({
-      url,
-      formats: ["branding", "screenshot"],
-    })
+  async extractBrand(url: string): Promise<FirecrawlResponse<{
+    branding?: BrandingProfile
+    metadata?: Record<string, unknown>
+    screenshot?: string
+  }>> {
+    try {
+      const result = await this.app.scrape(url, {
+        formats: ['branding', 'screenshot'] as any,
+      })
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return {
+        success: true,
+        data: {
+          branding: (result as any).branding,
+          metadata: (result as any).metadata,
+          screenshot: (result as any).screenshot,
+        },
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Brand extraction failed",
+      }
+    }
   }
 
-  // Extract structured data with schema
-  async extract<T>(url: string, schema: Record<string, unknown>, prompt?: string): Promise<FirecrawlResponse<T>> {
-    return this.scrape<T>({
-      url,
-      formats: ["extract"],
-      extract: {
-        schema,
-        prompt,
-      },
-    })
+  // Extract structured data with JSON schema
+  async extract<T>(
+    url: string,
+    schema: Record<string, unknown>,
+    prompt?: string
+  ): Promise<FirecrawlResponse<T>> {
+    try {
+      const result = await this.app.scrape(url, {
+        formats: [{
+          type: 'json',
+          schema,
+          prompt,
+        }] as any,
+      })
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return { success: true, data: (result as any).json as T }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Extraction failed",
+      }
+    }
+  }
+
+  // Search the web
+  async search(options: {
+    query: string
+    limit?: number
+    lang?: string
+    country?: string
+    scrapeOptions?: {
+      formats?: FirecrawlFormat[]
+      onlyMainContent?: boolean
+    }
+  }): Promise<FirecrawlResponse<FirecrawlSearchResult[]>> {
+    try {
+      const result = await this.app.search(options.query, {
+        limit: options.limit || 5,
+        scrapeOptions: options.scrapeOptions as any,
+      } as any)
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      // Normalize search results
+      const searchResults: FirecrawlSearchResult[] = []
+      
+      if (result.web) {
+        for (const item of result.web) {
+          searchResults.push({
+            url: (item as any).url || '',
+            title: (item as any).title || '',
+            description: (item as any).description || (item as any).snippet || '',
+            markdown: (item as any).markdown,
+            metadata: (item as any).metadata,
+          })
+        }
+      }
+
+      return { success: true, data: searchResults }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Search failed",
+      }
+    }
+  }
+
+  // Start an agent job (async)
+  async startAgent(options: {
+    url: string
+    prompt: string
+    schema?: Record<string, unknown>
+    enableWebSearch?: boolean
+  }): Promise<FirecrawlResponse<{ jobId: string }>> {
+    try {
+      const result = await this.app.startAgent({
+        url: options.url,
+        prompt: options.prompt,
+        schema: options.schema,
+        enableWebSearch: options.enableWebSearch,
+      } as any)
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return { success: true, data: { jobId: (result as any).id || (result as any).jobId } }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Agent start failed",
+      }
+    }
+  }
+
+  // Get agent job status
+  async getAgentStatus(jobId: string): Promise<FirecrawlResponse<{
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    data?: unknown
+    steps?: Array<{ action: string; result: unknown }>
+  }>> {
+    try {
+      const result = await this.app.getAgentStatus(jobId)
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return {
+        success: true,
+        data: {
+          status: (result as any).status,
+          data: (result as any).data,
+          steps: (result as any).steps,
+        },
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Agent status check failed",
+      }
+    }
+  }
+
+  // Run agent and wait for completion (convenience method)
+  async runAgent(options: {
+    url: string
+    prompt: string
+    schema?: Record<string, unknown>
+    enableWebSearch?: boolean
+    maxWaitMs?: number
+    pollIntervalMs?: number
+  }): Promise<FirecrawlResponse<unknown>> {
+    const startResult = await this.startAgent(options)
+    if (!startResult.success || !startResult.data?.jobId) {
+      return { success: false, error: startResult.error || 'Failed to start agent' }
+    }
+
+    const jobId = startResult.data.jobId
+    const maxWait = options.maxWaitMs || 60000
+    const pollInterval = options.pollIntervalMs || 2000
+    const startTime = Date.now()
+
+    while (Date.now() - startTime < maxWait) {
+      const statusResult = await this.getAgentStatus(jobId)
+      
+      if (!statusResult.success) {
+        return { success: false, error: statusResult.error }
+      }
+
+      if (statusResult.data?.status === 'completed') {
+        return { success: true, data: statusResult.data.data }
+      }
+
+      if (statusResult.data?.status === 'failed') {
+        return { success: false, error: 'Agent job failed' }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, pollInterval))
+    }
+
+    return { success: false, error: 'Agent job timed out' }
   }
 
   // Map a website (get all URLs)
-  async map(options: FirecrawlMapOptions): Promise<FirecrawlResponse<{ links: string[] }>> {
-    return this.request("/map", {
-      method: "POST",
-      body: JSON.stringify(options),
-    })
+  async map(options: {
+    url: string
+    search?: string
+    limit?: number
+  }): Promise<FirecrawlResponse<{ links: string[] }>> {
+    try {
+      const result = await (this.app as any).mapUrl(options.url, {
+        search: options.search,
+        limit: options.limit,
+      })
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return { success: true, data: { links: result.links || [] } }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Map failed",
+      }
+    }
   }
 
   // Crawl a website (scrape multiple pages)
-  async crawl(options: FirecrawlCrawlOptions): Promise<FirecrawlResponse<{ id: string }>> {
-    return this.request("/crawl", {
-      method: "POST",
-      body: JSON.stringify(options),
-    })
-  }
+  async crawl(options: {
+    url: string
+    limit?: number
+    maxDepth?: number
+    excludePaths?: string[]
+    includePaths?: string[]
+  }): Promise<FirecrawlResponse<{ id: string }>> {
+    try {
+      const result = await (this.app as any).crawlUrl(options.url, {
+        limit: options.limit,
+        maxDepth: options.maxDepth,
+        excludePaths: options.excludePaths,
+        includePaths: options.includePaths,
+      })
 
-  // Check crawl status
-  async getCrawlStatus(crawlId: string): Promise<
-    FirecrawlResponse<{
-      status: "scraping" | "completed" | "failed"
-      total: number
-      completed: number
-      data: unknown[]
-    }>
-  > {
-    return this.request(`/crawl/${crawlId}`, {
-      method: "GET",
-    })
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      return { success: true, data: { id: result.id } }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Crawl failed",
+      }
+    }
   }
 }
 
@@ -182,7 +377,6 @@ export function extractDomain(url: string): string {
 }
 
 export function normalizeUrl(input: string): string {
-  // Check if it's an email
   if (input.includes("@") && !input.includes("://")) {
     const domain = extractDomainFromEmail(input)
     if (domain) {
@@ -191,7 +385,6 @@ export function normalizeUrl(input: string): string {
     throw new Error("Invalid email format")
   }
 
-  // Check if it's a URL without protocol
   if (!input.startsWith("http://") && !input.startsWith("https://")) {
     return `https://${input}`
   }

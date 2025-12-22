@@ -80,7 +80,7 @@ export function FieldMapper({ csvHeaders, onMappingComplete, onCancel }: FieldMa
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-zinc-200">{field.label}</span>
-                {field.required && <span className="text-[10px] text-orange-500 uppercase">Required*</span>}
+                {"required" in field && field.required && <span className="text-[10px] text-orange-500 uppercase">Required*</span>}
               </div>
               <p className="text-xs text-zinc-500 truncate">{field.description}</p>
             </div>

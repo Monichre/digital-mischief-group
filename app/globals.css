@@ -298,6 +298,58 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Chromatic Aberration Glitch Effect on Hover */
+.glitch-hover {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.glitch-hover:hover {
+  text-shadow: 
+    2px 0 rgba(255, 0, 0, 0.7),
+    -2px 0 rgba(0, 255, 255, 0.7);
+  animation: glitch-shake 0.2s ease-in-out;
+}
+
+@keyframes glitch-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+}
+
+/* Button glitch effect */
+.btn-glitch {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glitch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 92, 0, 0.2),
+    transparent
+  );
+  transition: left 0.3s ease;
+}
+
+.btn-glitch:hover::before {
+  left: 100%;
+}
+
+.btn-glitch:hover {
+  text-shadow: 
+    1px 0 rgba(255, 0, 0, 0.5),
+    -1px 0 rgba(0, 255, 255, 0.5);
+}
+
 /* Custom Scrollbar for the log area */
 ::-webkit-scrollbar {
   width: 4px;
@@ -316,4 +368,28 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Float animation for menu particles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-10px) translateX(-5px);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px);
+    opacity: 0.5;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
