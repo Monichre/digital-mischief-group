@@ -64,16 +64,22 @@
 
 #### Feedback Received (3 Reviews)
 1. **Review 01**: Vibe vs. Clarity critique
-   - Saved to: `docs/feedback/review-01-vibe-vs-clarity.md` ✅
+   - ✅ Saved to: `docs/feedback/review-01-vibe-vs-clarity.md`
    - Key issues: Legibility, too much apocalypse, need proof/receipts
 
 2. **Review 02**: Pivot to High-Performance Engineer
-   - Status: Ready to save to `docs/feedback/review-02-pivot-to-engineer.md`
+   - ✅ Saved to: `docs/feedback/review-02-pivot-to-engineer.md`
    - Key directive: From "Edgy Hacker" to "High-Performance Engineer"
 
 3. **Review 03**: Specific visual/copy fixes
-   - Status: Ready to save to `docs/feedback/review-03-visual-fixes.md`
+   - ✅ Saved to: `docs/feedback/review-03-visual-fixes.md`
    - Critical errors identified in current site
+
+#### Synthesis & Action Plan
+- ✅ Saved to: `docs/feedback/ACTION-PLAN.md`
+- Prioritized implementation roadmap
+- 3 tiers: Critical (today), High (this week), Medium (2-4 weeks)
+- Estimated time: 50 min critical, 80 min high priority, 120 min medium
 
 #### Homepage Copy Extracted
 - ✅ Saved to: `docs/homepage-copy.md`
@@ -181,6 +187,8 @@ app/api/
 
 ## ⚠️ Known Issues
 
+### Homepage (High Priority)
+
 1. **Legibility Crisis**
    - Dark text on dark backgrounds throughout site
    - Blur/glow effects reducing readability
@@ -196,6 +204,13 @@ app/api/
    - Process section still has old headline
    - Team section text hard to read
    - Problem cards need visual separation (border/glow)
+
+### Database (RESOLVED ✅)
+
+1. ~~**Brand Extraction Schema Mismatch**~~ - FIXED
+   - ~~Missing `input_url`, `normalized_url` columns in `brand_extractions`~~
+   - ~~Missing `duration_ms` column in `usage_events`~~
+   - ✅ Fixed with migration 009-fix-brand-schema-mismatch.sql
 
 ---
 
