@@ -262,3 +262,261 @@ export async function PUT(request: NextRequest) {
     })
   }
 }
+
+// ========================================
+// CSV Export Helpers
+// ========================================
+
+interface EnrichmentJobRow {
+  id: string
+  input_type: string
+  input_value: string
+  domain: string
+  company_name: string
+  company_description: string | null
+  industry: string | null
+  employee_count: number | null
+  founded_year: number | null
+  headquarters: string | null
+  website: string
+  funding_total: string | null
+  technologies: string[] | null
+  leadership: Array<{ name: string; title: string; linkedin?: string }> | null
+  icp_fit_score: number | null
+  icp_fit_reasons: string[] | null
+  buying_signals: Array<{ signal: string; confidence: number }> | null
+  discovery_data: any
+  profile_data: any
+  funding_data: any
+  tech_stack_data: any
+  custom_fields_data: any
+  sources: string[] | null
+  status: string
+  created_at: string
+  error_message: string | null
+}
+
+function escapeCSV(value: any): string {
+  if (value === null || value === undefined) return ""
+  const str = String(value)
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`
+  }
+  return str
+}
+
+function formatArray(arr: any[] | null | undefined): string {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) return ""
+  return arr.map(item => typeof item === "object" ? JSON.stringify(item) : String(item)).join("; ")
+}
+
+function transformToCSVRow(job: EnrichmentJobRow): Record<string, any> {
+  return {
+    // Input data
+    "Input Type": job.input_type,
+    "Input Value": job.input_value,
+
+    // Discovery data
+    "Company Name": job.company_name,
+    "Domain": job.domain,
+    "Website": job.website,
+    "Discovery Confidence": job.discovery_data?.confidence ? `${Math.round(job.discovery_data.confidence * 100)}%` : "",
+
+    // Company profile
+    "Industry": job.industry,
+    "Segment": job.profile_data?.segment || "",
+    "Employee Count": job.employee_count,
+    "Employee Range": job.profile_data?.employee_range || "",
+    "Founded Year": job.founded_year,
+    "Headquarters": job.headquarters,
+    "Business Type": job.profile_data?.business_type || "",
+    "Description": job.company_description,
+
+    // Funding data
+    "Funding Stage": job.funding_data?.funding_stage || "",
+    "Total Funding": job.funding_total,
+    "Last Round Date": job.funding_data?.last_round_date || "",
+    "Last Round Amount": job.funding_data?.last_round_amount || "",
+    "Investors": formatArray(job.funding_data?.investors),
+    "Valuation": job.funding_data?.valuation || "",
+    "Is Public": job.funding_data?.is_public ? "Yes" : "No",
+
+    // Tech stack
+    "Languages": formatArray(job.tech_stack_data?.languages),
+    "Frameworks": formatArray(job.tech_stack_data?.frameworks),
+    "Infrastructure": formatArray(job.tech_stack_data?.infrastructure),
+    "Tools": formatArray(job.tech_stack_data?.tools),
+    "AI Adoption": job.tech_stack_data?.signals?.ai_adoption ? "Yes" : "No",
+    "Modern Stack": job.tech_stack_data?.signals?.modern_stack ? "Yes" : "No",
+    "Cloud Native": job.tech_stack_data?.signals?.cloud_native ? "Yes" : "No",
+
+    // Custom fields / Intelligence
+    "CEO Name": job.custom_fields_data?.ceo_name || "",
+    "Key Executives": formatArray(job.leadership),
+    "ICP Fit Score": job.icp_fit_score,
+    "ICP Fit Reasons": formatArray(job.icp_fit_reasons),
+    "Is Personal Site": job.custom_fields_data?.is_personal_site ? "Yes" : "No",
+    "Pain Points": formatArray(job.custom_fields_data?.pain_points),
+    "Buying Signals": formatArray(job.buying_signals),
+    "Competitive Landscape": formatArray(job.custom_fields_data?.competitive_landscape),
+
+    // Metadata
+    "Sources": formatArray(job.sources),
+    "Status": job.status,
+    "Error": job.error_message || "",
+    "Enriched At": new Date(job.created_at).toISOString(),
+  }
+}
+
+function generateCSV(jobs: EnrichmentJobRow[]): string {
+  if (jobs.length === 0) return ""
+
+  const csvRows = jobs.map(transformToCSVRow)
+  const headers = Object.keys(csvRows[0])
+  const csvLines: string[] = []
+
+  // Header row
+  csvLines.push(headers.map(escapeCSV).join(","))
+
+  // Data rows
+  for (const row of csvRows) {
+    const values = headers.map(header => escapeCSV(row[header]))
+    csvLines.push(values.join(","))
+  }
+
+  return csvLines.join("\n")
+}
+
+// ========================================
+// GET - Fetch or Export Batch Results
+// ========================================
+
+export async function GET(request: NextRequest) {
+  try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
+    const { searchParams } = new URL(request.url)
+    const batchId = searchParams.get("batchId")
+    const format = searchParams.get("format") || "json" // "json" or "csv"
+
+    if (!batchId) {
+      return NextResponse.json(
+        { success: false, error: "Missing batchId parameter" },
+        { status: 400 }
+      )
+    }
+
+    // Verify batch belongs to user
+    const batchCheck = await sql`
+      SELECT id, user_id, total_rows, completed_rows, failed_rows, status
+      FROM enrichment_batches
+      WHERE id = ${batchId}
+    `
+
+    if (batchCheck.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Batch not found" },
+        { status: 404 }
+      )
+    }
+
+    if (batchCheck[0].user_id !== userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access to batch" },
+        { status: 403 }
+      )
+    }
+
+    const batch = batchCheck[0]
+
+    // Fetch all enrichment jobs for this batch
+    const jobs = await sql`
+      SELECT
+        id, input_type, input_value, domain, company_name,
+        company_description, industry, employee_count, founded_year,
+        headquarters, website, funding_total, technologies, leadership,
+        icp_fit_score, icp_fit_reasons, buying_signals,
+        discovery_data, profile_data, funding_data, tech_stack_data,
+        custom_fields_data, sources, status, error_message, created_at
+      FROM enrichment_jobs
+      WHERE batch_id = ${batchId}
+      ORDER BY created_at ASC
+    ` as unknown as EnrichmentJobRow[]
+
+    // CSV export
+    if (format === "csv") {
+      if (jobs.length === 0) {
+        return NextResponse.json(
+          { success: false, error: "No enrichment results to export" },
+          { status: 404 }
+        )
+      }
+
+      const csvContent = generateCSV(jobs)
+      const timestamp = new Date().toISOString().split("T")[0]
+      const filename = `enrichment_export_${batchId}_${timestamp}.csv`
+
+      return new NextResponse(csvContent, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Cache-Control": "no-cache",
+        },
+      })
+    }
+
+    // JSON response (default)
+    return NextResponse.json({
+      success: true,
+      data: {
+        batch: {
+          id: batch.id,
+          totalRows: batch.total_rows,
+          completedRows: batch.completed_rows,
+          failedRows: batch.failed_rows,
+          status: batch.status,
+        },
+        jobs: jobs.map(job => ({
+          id: job.id,
+          status: job.status,
+          input: {
+            type: job.input_type,
+            value: job.input_value,
+          },
+          enriched: job.status === "completed" ? {
+            company_name: job.company_name,
+            domain: job.domain,
+            website: job.website,
+            industry: job.industry,
+            segment: job.profile_data?.segment,
+            employee_count: job.employee_count,
+            headquarters: job.headquarters,
+            funding_total: job.funding_total,
+            funding_stage: job.funding_data?.funding_stage,
+            technologies: job.technologies,
+            leadership: job.leadership,
+            icp_fit_score: job.icp_fit_score,
+            sources: job.sources,
+          } : null,
+          error: job.error_message,
+          enrichedAt: job.created_at,
+        })),
+      },
+    })
+  } catch (error) {
+    console.error("[Enrich Batch GET] Error:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch batch results",
+      },
+      { status: 500 }
+    )
+  }
+}
