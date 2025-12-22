@@ -24,6 +24,7 @@ import {
   ChevronUp,
   History,
   X,
+  Crosshair,
 } from "lucide-react"
 import { UnifiedInput } from "@/components/enrich/UnifiedInput"
 import { FieldMapper } from "@/components/enrich/FieldMapper"
@@ -480,12 +481,23 @@ export default function EnrichPage() {
           {/* Single Enrichment Results */}
           {status === "success" && result && (
             <div className="space-y-8 animate-in fade-in duration-500">
-              {/* Back Button & Duration */}
+              {/* Action Bar with Brand Recon */}
               <div className="flex items-center justify-between">
-                <button onClick={resetAll} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors">
-                  <ArrowLeft className="w-4 h-4" />
-                  Enrich another
-                </button>
+                <div className="flex items-center gap-4">
+                  <button onClick={resetAll} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors">
+                    <ArrowLeft className="w-4 h-4" />
+                    Enrich another
+                  </button>
+                  {result.id && (
+                    <Link
+                      href={`/brand-recon/competitive?enrichmentJobId=${result.id}`}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-mono"
+                    >
+                      <Crosshair className="w-4 h-4 animate-pulse" />
+                      <span>COMPETITIVE INTEL</span>
+                    </Link>
+                  )}
+                </div>
                 {result.duration_ms && (
                   <span className="text-xs text-zinc-500">
                     Completed in {(result.duration_ms / 1000).toFixed(1)}s

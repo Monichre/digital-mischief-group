@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -240,12 +240,21 @@
 }
 
 @utility bg-radial-gradient {
-  background: radial-gradient(circle at 60% 50%, #1a1a20 0%, var(--color-void) 60%);
+  background: radial-gradient(
+    circle at 60% 50%,
+    #1a1a20 0%,
+    var(--color-void) 60%
+  );
 }
 
 @utility mask-gradient-bottom {
   mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 80%,
+    transparent 100%
+  );
 }
 
 @utility glitch-header {
@@ -305,17 +314,24 @@
 }
 
 .glitch-hover:hover {
-  text-shadow: 
-    2px 0 rgba(255, 0, 0, 0.7),
-    -2px 0 rgba(0, 255, 255, 0.7);
+  text-shadow: 2px 0 rgba(255, 0, 0, 0.7), -2px 0 rgba(0, 255, 255, 0.7);
   animation: glitch-shake 0.2s ease-in-out;
 }
 
 @keyframes glitch-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  50% { transform: translateX(2px); }
-  75% { transform: translateX(-1px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
 }
 
 /* Button glitch effect */
@@ -345,9 +361,7 @@
 }
 
 .btn-glitch:hover {
-  text-shadow: 
-    1px 0 rgba(255, 0, 0, 0.5),
-    -1px 0 rgba(0, 255, 255, 0.5);
+  text-shadow: 1px 0 rgba(255, 0, 0, 0.5), -1px 0 rgba(0, 255, 255, 0.5);
 }
 
 /* Custom Scrollbar for the log area */
@@ -372,7 +386,8 @@
 
 /* Float animation for menu particles */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px);
     opacity: 0.3;
   }
@@ -392,4 +407,261 @@
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
+}
+
+/* ============================================
+   ENHANCED UI EFFECTS - Atmospheric Overlays
+   ============================================ */
+
+/* Scan beam animation for CRT effect */
+@keyframes scan-beam {
+  0% {
+    top: -10%;
+  }
+  100% {
+    top: 110%;
+  }
+}
+
+.animate-scan-beam {
+  animation: scan-beam 8s linear infinite;
+}
+
+/* Border flow animation for intel cards */
+@keyframes border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* Data pulse animation */
+@keyframes data-pulse {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Holographic shimmer */
+@keyframes holo-shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Glow pulse for status indicators */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 4px currentColor, 0 0 8px currentColor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 8px currentColor, 0 0 16px currentColor,
+      0 0 24px currentColor;
+    opacity: 0.8;
+  }
+}
+
+/* Text glow utility */
+.text-glow-orange {
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.8),
+    0 0 30px rgba(249, 115, 22, 0.6), 0 0 50px rgba(249, 115, 22, 0.4),
+    0 0 80px rgba(249, 115, 22, 0.2);
+}
+
+.text-glow-orange-intense {
+  text-shadow: 0 0 15px rgba(249, 115, 22, 1), 0 0 40px rgba(249, 115, 22, 0.8),
+    0 0 80px rgba(249, 115, 22, 0.6), 0 0 120px rgba(249, 115, 22, 0.4);
+}
+
+/* Chromatic text effect - visible RGB split */
+.text-chromatic {
+  position: relative;
+}
+
+.text-chromatic::before,
+.text-chromatic::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.text-chromatic::before {
+  color: #00ffff;
+  transform: translateX(-3px);
+  opacity: 0.6;
+  filter: blur(0.5px);
+}
+
+.text-chromatic::after {
+  color: #ff0040;
+  transform: translateX(3px);
+  opacity: 0.6;
+  filter: blur(0.5px);
+}
+
+/* Glass panel effect */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-dark {
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Animated border */
+.border-animated {
+  position: relative;
+}
+
+.border-animated::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(249, 115, 22, 0.3),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: border-flow 3s linear infinite;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Button glow effect - always visible, intensifies on hover */
+.btn-glow {
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.3), 0 0 30px rgba(249, 115, 22, 0.1);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 40px rgba(249, 115, 22, 0.4),
+    0 0 60px rgba(249, 115, 22, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(90deg, #f97316, #ea580c, #f97316);
+  border-radius: inherit;
+  filter: blur(20px);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.btn-glow:hover::after {
+  opacity: 0.7;
+}
+
+/* Holographic text effect */
+.holo-text {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    #fff 0%,
+    #f97316 25%,
+    #fff 50%,
+    #f97316 75%,
+    #fff 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holo-shimmer 3s linear infinite;
+}
+
+/* Corner brackets decoration */
+.corner-brackets {
+  position: relative;
+}
+
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: rgba(249, 115, 22, 0.4);
+  pointer-events: none;
+}
+
+.corner-brackets::before {
+  top: -4px;
+  left: -4px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.corner-brackets::after {
+  bottom: -4px;
+  right: -4px;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
+
+/* Typing cursor effect */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  color: #f97316;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scan-beam,
+  .animate-float,
+  .animate-pulse,
+  .animate-ping,
+  .animate-spin,
+  .holo-text,
+  .border-animated::before {
+    animation: none !important;
+  }
+
+  .btn-glow::after {
+    transition: none !important;
+  }
 }

@@ -29,6 +29,19 @@ import {
   ScaleReveal,
   Magnetic,
 } from '@/components/scroll-animations'
+import {
+  NoiseOverlay,
+  ScanlineOverlay,
+  HoloText,
+  HUDCorners,
+  FloatingStatus,
+  CircuitDivider,
+  IntelCard,
+  AnimatedGridBG,
+  HeroBurst,
+  GlowingOrb,
+  SectionGlow,
+} from '@/components/effects'
 import {useState, useRef, useEffect} from 'react'
 
 export default function Home() {
@@ -51,46 +64,58 @@ export default function Home() {
 
   return (
     <div className='min-h-screen bg-zinc-950 text-zinc-200 selection:bg-orange-500 selection:text-white font-mono'>
-      {/* Background Dot Pattern */}
-      <div className='fixed inset-0 z-0'>
+      {/* === ATMOSPHERIC LAYERS === */}
+      <AnimatedGridBG />
+      <NoiseOverlay />
+      <ScanlineOverlay />
+
+      {/* Background Dot Pattern (secondary layer) */}
+      <div className='fixed inset-0 z-[1] opacity-30'>
         <DotPattern
-          width={24}
-          height={24}
-          cr={1}
-          className='text-orange-500/20'
+          width={32}
+          height={32}
+          cr={0.5}
+          className='text-orange-500/10'
         />
       </div>
 
       {/* NAVIGATION */}
-      <nav className='fixed top-0 w-full border-b border-white/10 bg-zinc-950/80 backdrop-blur-md z-50'>
+      <nav className='fixed top-0 w-full border-b border-white/5 bg-zinc-950/60 backdrop-blur-xl z-50'>
         <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <div className='w-2 h-2 bg-orange-500 animate-pulse rounded-full' />
+            <div className='w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)]' />
             <span className='font-mono font-bold tracking-tighter text-lg'>
               [ DMG ]
             </span>
           </div>
           <div className='hidden md:flex items-center gap-8 text-sm text-zinc-400'>
-            <Link href='#cortex' className='hover:text-white transition-colors'>
+            <Link
+              href='#cortex'
+              className='hover:text-white transition-colors relative group'
+            >
               Daedalus
+              <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <Link
               href='#protocol'
-              className='hover:text-white transition-colors'
+              className='hover:text-white transition-colors relative group'
             >
               Protocol
+              <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <Link
               href='#mission'
-              className='hover:text-white transition-colors'
+              className='hover:text-white transition-colors relative group'
             >
               The Unit
+              <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <Link
               href='/arsenal'
-              className='hover:text-white transition-colors'
+              className='hover:text-white transition-colors relative group'
             >
               Arsenal
+              <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <div className='relative' ref={dropdownRef}>
               <button
@@ -98,27 +123,29 @@ export default function Home() {
                 className='flex items-center gap-1 hover:text-white transition-colors'
               >
                 <Radar className='w-3 h-3 text-orange-500' />
-                <span>Daedalus</span>
+                <span>Recon</span>
                 <ChevronRight
                   className={`w-3 h-3 transition-transform ${
-                    daedalusOpen ? 'rotate-180' : ''
+                    daedalusOpen ? 'rotate-90' : ''
                   }`}
                 />
               </button>
               {daedalusOpen && (
-                <div className='absolute top-full left-0 mt-2 w-56 rounded-lg border border-zinc-800 bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden'>
-                  <div className='px-3 py-2 border-b border-zinc-800'>
+                <div className='absolute top-full left-0 mt-2 w-64 rounded-lg border border-zinc-800/80 bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden'>
+                  <div className='px-4 py-3 border-b border-zinc-800/50'>
                     <span className='text-[10px] font-mono text-orange-500 uppercase tracking-widest'>
                       Reconnaissance Suite
                     </span>
                   </div>
-                  <div className='py-1'>
+                  <div className='py-2'>
                     <Link
                       href='/enrich'
                       onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
-                      <FileSearch className='w-4 h-4 text-orange-500' />
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <FileSearch className='w-4 h-4 text-orange-500' />
+                      </div>
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
                           Research + Enrichment
@@ -131,9 +158,11 @@ export default function Home() {
                     <Link
                       href='/research'
                       onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
-                      <Telescope className='w-4 h-4 text-orange-400' />
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <Telescope className='w-4 h-4 text-orange-400' />
+                      </div>
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
                           Open-Researcher
@@ -146,12 +175,14 @@ export default function Home() {
                     <Link
                       href='/scouts'
                       onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
-                      <Shield className='w-4 h-4 text-orange-400' />
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <Shield className='w-4 h-4 text-orange-400' />
+                      </div>
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
-                          Intel & Competitive Threat Detection
+                          Competitive Intel
                         </div>
                         <div className='text-[10px] text-zinc-500'>
                           Market Position Analysis
@@ -161,150 +192,166 @@ export default function Home() {
                     <Link
                       href='/brand-recon'
                       onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
-                      <Swords className='w-4 h-4 text-orange-500' />
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <Swords className='w-4 h-4 text-orange-500' />
+                      </div>
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
                           Counter Ops
                         </div>
                         <div className='text-[10px] text-zinc-500'>
-                          Brand Fracture & Ambush Targeting
+                          Brand Fracture & Ambush
                         </div>
                       </div>
                     </Link>
                     <Link
                       href='/observe'
                       onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
-                      <ScanEye className='w-4 h-4 text-orange-400' />
-                      <div>
-                        <div className='text-sm text-zinc-200 group-hover:text-white'>
-                          Surveillance + Extraction
-                        </div>
-                        <div className='text-[10px] text-zinc-500'>
-                          Change Detection & Data Harvesting
-                        </div>
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <ScanEye className='w-4 h-4 text-orange-400' />
                       </div>
-                    </Link>
-                    <Link
-                      href='#daedalus'
-                      onClick={() => setDaedalusOpen(false)}
-                      className='flex items-center gap-3 px-3 py-2 hover:bg-orange-500/10 transition-colors group'
-                    >
-                      <Radio className='w-4 h-4 text-orange-500' />
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
-                          Recon & Sentinel Suite
+                          Surveillance
                         </div>
                         <div className='text-[10px] text-zinc-500'>
-                          Autonomous Watch Protocols
+                          Change Detection & Extraction
                         </div>
                       </div>
                     </Link>
                   </div>
-                  <div className='px-3 py-2 border-t border-zinc-800 bg-zinc-900/50'>
+                  <div className='px-4 py-3 border-t border-zinc-800/50 bg-zinc-900/30'>
                     <Link
-                      href='#daedalus'
+                      href='#cortex'
                       onClick={() => setDaedalusOpen(false)}
                       className='flex items-center gap-2 text-[10px] font-mono text-zinc-500 hover:text-orange-500 transition-colors'
                     >
-                      <span>View Full System →</span>
+                      <Radio className='w-3 h-3' />
+                      <span>View Full System Architecture →</span>
                     </Link>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <button
-            onClick={signupForm.open}
-            className='px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300'
-          >
-            Deploy →
-          </button>
+          <Magnetic strength={0.15}>
+            <button
+              onClick={signupForm.open}
+              className='px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300 btn-glow'
+            >
+              Deploy →
+            </button>
+          </Magnetic>
         </div>
       </nav>
 
       {/* HERO SECTION */}
       <section className='relative min-h-screen flex items-center justify-center overflow-hidden'>
-        {/* Background Grid */}
-        <div className='absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]' />
+        {/* Dramatic Hero Burst - the main visual anchor */}
+        <HeroBurst />
 
-        {/* Radial Gradient */}
-        <div className='absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08)_0%,transparent_70%)]' />
+        {/* Floating Status HUD */}
+        <FloatingStatus />
+
+        {/* Floating orbs for depth */}
+        <GlowingOrb size='lg' className='top-[15%] left-[5%]' pulseSpeed={5} />
+        <GlowingOrb
+          size='xl'
+          className='bottom-[20%] right-[8%]'
+          pulseSpeed={7}
+        />
+        <GlowingOrb
+          size='md'
+          color='cyan'
+          className='top-[40%] right-[15%]'
+          pulseSpeed={4}
+        />
 
         {/* Parallax Decorative Elements */}
         <Parallax
           speed={0.3}
           direction='up'
-          className='absolute top-20 left-10 text-orange-500/20 text-6xl font-bold'
+          className='absolute top-20 left-10 text-orange-500/10 text-8xl font-bold select-none'
         >
           //
         </Parallax>
         <Parallax
           speed={0.5}
           direction='down'
-          className='absolute bottom-32 right-20 text-orange-500/10 text-8xl font-bold'
+          className='absolute bottom-32 right-20 text-orange-500/5 text-9xl font-bold select-none'
         >
           {'{ }'}
         </Parallax>
+        <Parallax
+          speed={0.2}
+          direction='left'
+          className='absolute top-1/3 right-10 text-zinc-800 text-6xl font-mono select-none'
+        >
+          01
+        </Parallax>
 
         <div className='relative z-10 max-w-5xl mx-auto px-6 text-center pt-20'>
-          {/* Logo Section */}
+          {/* Logo Section with HUD */}
           <ScrollReveal y={30} duration={0.8}>
-            <div className='mb-8'>
-              {/* Corner Accents */}
-              <div className='relative inline-block p-8'>
-                <div className='absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-orange-500/50' />
-                <div className='absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-orange-500/50' />
-                <div className='absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-orange-500/50' />
-                <div className='absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-orange-500/50' />
-
-                {/* Main Logo Text */}
-                <h1 className='text-4xl md:text-6xl font-black tracking-tighter'>
-                  <span className='bg-gradient-to-r from-zinc-400 to-zinc-200 bg-clip-text text-transparent'>
-                    DIGITAL
-                  </span>{' '}
-                  <span className='text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]'>
-                    MISCHIEF
-                  </span>{' '}
-                  <span className='text-zinc-400 tracking-[0.2em]'>GROUP</span>
-                </h1>
-              </div>
+            <div className='mb-12'>
+              <HUDCorners status='online' showTimestamp label='SYSTEM ACTIVE'>
+                <div className='p-12'>
+                  {/* Main Logo Text */}
+                  <h1 className='text-4xl md:text-7xl font-black tracking-tighter'>
+                    <span className='bg-gradient-to-r from-zinc-500 to-zinc-200 bg-clip-text text-transparent'>
+                      DIGITAL
+                    </span>{' '}
+                    <HoloText className='text-orange-500' glitchInterval={4000}>
+                      MISCHIEF
+                    </HoloText>{' '}
+                    <span className='text-zinc-500 tracking-[0.15em] text-3xl md:text-5xl'>
+                      GROUP
+                    </span>
+                  </h1>
+                </div>
+              </HUDCorners>
 
               {/* Slogan */}
-              <div className='flex items-center justify-center gap-4 mt-4'>
-                <div className='h-px w-16 bg-gradient-to-r from-orange-500 to-transparent' />
+              <div className='flex items-center justify-center gap-4 mt-8'>
+                <div className='h-px w-20 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent' />
                 <span className='inline-flex items-center gap-2 text-sm text-zinc-500 italic tracking-wide'>
                   an ideas lab with matches
                   <Flame className='w-4 h-4 text-orange-500 animate-pulse' />
                 </span>
-                <div className='h-px w-16 bg-gradient-to-l from-orange-500 to-transparent' />
+                <div className='h-px w-20 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent' />
               </div>
             </div>
           </ScrollReveal>
 
           {/* Eyebrow with blinking cursor */}
-          <div className='text-xs text-zinc-500 font-mono mb-4 glitch-hover cursor-default'>
-            <span>// PROTOCOL: CONTROLLED BURNS</span>
-            <span className='animate-pulse'>_</span>
+          <div className='text-xs text-zinc-600 font-mono mb-6 glitch-hover cursor-default'>
+            <span className='text-orange-500/60'>{'>'}</span>
+            <span> PROTOCOL: CONTROLLED BURNS</span>
+            <span className='animate-pulse text-orange-500'>_</span>
           </div>
 
-          <h2 className='text-5xl md:text-7xl font-black mb-6 leading-[0.9]'>
+          <h2 className='text-4xl md:text-6xl font-black mb-8 leading-[1.1]'>
             <span className='text-white'>
               <TypeWriter text='Your Data Is Cold.' speed={50} />
             </span>
             <br />
-            <span className='text-orange-500'>
-              <TypeWriter text='We Bring the Matches.' speed={50} delay={1000} />
+            <span className='text-orange-500 text-glow-orange'>
+              <TypeWriter
+                text='We Bring the Matches.'
+                speed={50}
+                delay={1000}
+              />
             </span>
           </h2>
 
           <ScrollReveal y={20} delay={0.3}>
-            <p className='text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed'>
+            <p className='text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-12 leading-relaxed'>
               Digital Mischief is a{' '}
-              <span className='text-zinc-200'>
+              <span className='text-zinc-200 font-medium'>
                 Systems Engineering Skunkworks
               </span>
               . We test volatile AI agents in the lab—breaking them so you don't
@@ -320,16 +367,16 @@ export default function Home() {
             <Magnetic>
               <button
                 onClick={signupForm.open}
-                className='group flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glitch'
+                className='group flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm'
               >
-                <Flame className='w-4 h-4' />
+                <Flame className='w-5 h-5' />
                 <span>[ INITIALIZE SYSTEM AUDIT ]</span>
-                <ArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
+                <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
               </button>
             </Magnetic>
             <Link
               href='#cortex'
-              className='flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300 btn-glitch'
+              className='flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all duration-300 rounded-sm glass-panel'
             >
               <span>[ VIEW THE WEAPON ]</span>
               <ChevronRight className='w-4 h-4' />
@@ -339,20 +386,22 @@ export default function Home() {
 
         {/* Scroll Indicator */}
         <div className='absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-600'>
-          <span className='text-xs tracking-widest'>SCROLL</span>
-          <div className='w-px h-8 bg-gradient-to-b from-zinc-600 to-transparent animate-pulse' />
+          <span className='text-[10px] tracking-[0.3em] uppercase'>Scroll</span>
+          <div className='w-px h-10 bg-gradient-to-b from-orange-500/50 to-transparent' />
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* PROBLEM SECTION */}
-      <section
-        id='problem'
-        className='relative py-32 border-t border-white/5 overflow-hidden'
-      >
+      <section id='problem' className='relative py-32 overflow-hidden'>
+        {/* Section glow accent */}
+        <SectionGlow position='left' intensity='medium' />
         <div className='max-w-7xl mx-auto px-6 relative z-10'>
           <ScrollReveal>
             <div className='text-center max-w-4xl mx-auto'>
-              <div className='inline-flex items-center gap-2 text-xs text-zinc-500 mb-6 glitch-hover cursor-default'>
+              <div className='inline-flex items-center gap-2 text-xs text-zinc-600 mb-6 glitch-hover cursor-default'>
+                <span className='text-orange-500/60'>{'>'}</span>
                 <span>// THE FRICTION</span>
               </div>
 
@@ -368,9 +417,9 @@ export default function Home() {
                 <span className='text-zinc-200'>data silos</span> are static.{' '}
                 <span className='text-zinc-200'>Context switching</span> is a
                 tax on focus, momentum, and execution.{' '}
-                <span className='text-orange-500'>It's fatal.</span> We build
-                the infrastructure that eliminates the friction and forces your
-                dormant data to go kinetic.
+                <span className='text-orange-500 font-medium'>It's fatal.</span>{' '}
+                We build the infrastructure that eliminates the friction and
+                forces your dormant data to go kinetic.
               </p>
 
               <StaggerReveal
@@ -393,9 +442,9 @@ export default function Home() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className='p-6 border border-zinc-800 bg-zinc-900/30'
+                    className='p-6 border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm rounded-lg group hover:border-orange-500/30 transition-colors'
                   >
-                    <X className='w-4 h-4 text-orange-500 mb-4' />
+                    <X className='w-5 h-5 text-red-500/70 mb-4' />
                     <h3 className='text-sm font-bold text-zinc-200 mb-2'>
                       {item.title}
                     </h3>
@@ -412,28 +461,43 @@ export default function Home() {
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* THE WARNING - Pattern Interrupt */}
-      <section className='py-32 bg-black'>
-        <div className='max-w-xl mx-auto px-6'>
+      <section className='py-32 bg-black relative overflow-hidden'>
+        {/* Red glow for danger/warning */}
+        <div
+          className='absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none'
+          style={{
+            background:
+              'radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Subtle vignette */}
+        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,black_70%)]' />
+
+        <div className='max-w-xl mx-auto px-6 relative z-10'>
           <div className='font-mono text-left'>
             {/* Eyebrow */}
-            <div className='text-[10px] text-orange-500/70 tracking-widest mb-8 glitch-hover cursor-default'>
-              // SYSTEM ALERT: OBSOLESCENCE IMMINENT
+            <div className='text-[10px] text-red-500/70 tracking-widest mb-8 flex items-center gap-2'>
+              <div className='w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse' />
+              <span>// SYSTEM ALERT: OBSOLESCENCE IMMINENT</span>
             </div>
 
             {/* Headline */}
             <h2 className='text-3xl md:text-5xl font-black text-white mb-12 leading-tight'>
               The end is near.
               <br />
-              <span className='text-zinc-400'>For some more than others.</span>
+              <span className='text-zinc-500'>For some more than others.</span>
             </h2>
 
             {/* Body */}
-            <div className='space-y-1 text-lg md:text-xl text-zinc-300 mb-12'>
-              <p>For your competitors.</p>
-              <p>For your front-end guy.</p>
-              <p>For your content guy.</p>
-              <p>For your marketing guy.</p>
+            <div className='space-y-2 text-lg md:text-xl text-zinc-300 mb-12'>
+              <p className='opacity-90'>For your competitors.</p>
+              <p className='opacity-80'>For your front-end guy.</p>
+              <p className='opacity-70'>For your content guy.</p>
+              <p className='opacity-60'>For your marketing guy.</p>
             </div>
 
             <p className='text-zinc-500 text-base leading-relaxed mb-8'>
@@ -442,115 +506,103 @@ export default function Home() {
               thinks.
             </p>
 
-            <p className='text-orange-500 font-bold text-lg'>
+            <p className='text-orange-500 font-bold text-lg text-glow-orange'>
               Stop hiring "Guys." Start installing Sentience.
             </p>
           </div>
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* SOLUTION / THE WEAPON SECTION */}
-      <section
-        id='cortex'
-        className='relative py-32 border-t border-white/5 bg-zinc-900/30 overflow-hidden'
-      >
+      <section id='cortex' className='relative py-32 overflow-hidden'>
+        {/* Dramatic center glow for the weapon reveal */}
+        <SectionGlow position='center' intensity='strong' />
+        <GlowingOrb size='lg' className='top-[10%] right-[5%]' pulseSpeed={6} />
+        <GlowingOrb
+          size='md'
+          color='cyan'
+          className='bottom-[15%] left-[8%]'
+          pulseSpeed={5}
+        />
+
         <div className='max-w-6xl mx-auto px-6 relative z-10'>
           <ScrollReveal>
-            <div className='text-center max-w-4xl mx-auto mb-16'>
-              <div className='inline-flex items-center gap-2 px-3 py-1 mb-6 border border-orange-500/30 bg-orange-500/5 glitch-hover cursor-default'>
-                <Radar className='w-3 h-3 text-orange-500 animate-pulse' />
+            <div className='text-center max-w-4xl mx-auto mb-20'>
+              <div className='inline-flex items-center gap-2 px-4 py-2 mb-8 border border-orange-500/30 bg-orange-500/5 rounded-full glitch-hover cursor-default'>
+                <Radar className='w-4 h-4 text-orange-500 animate-pulse' />
                 <span className='text-[10px] font-mono text-orange-500 uppercase tracking-widest'>
                   // THE WEAPON
                 </span>
               </div>
 
               <GlitchText>
-                <h2 className='text-4xl md:text-6xl font-black mb-4'>
-                  Introducing Daedalus.{' '}
-                  <span className='text-orange-500'>
-                    Your Personal Military-Industrial Complex.
-                  </span>
+                <h2 className='text-4xl md:text-6xl font-black mb-6'>
+                  Introducing <span className='text-orange-500'>Daedalus.</span>
                 </h2>
               </GlitchText>
 
-              <p className='text-xl text-zinc-400 max-w-2xl mx-auto mb-4'>
-                We don't sell tools. We install a system.
+              <p className='text-2xl text-zinc-300 font-medium mb-4'>
+                Your Personal Military-Industrial Complex.
               </p>
 
               <p className='text-lg text-zinc-500 max-w-3xl mx-auto leading-relaxed'>
-                A <span className='text-zinc-200'>Skunkworks-grade intelligence engine</span> that 
-                scrapes, maps, and enriches the world. It performs multi-dimensional reconnaissance 
-                across brand, market, persona, geography, and narrative structures.
+                A{' '}
+                <span className='text-zinc-300'>
+                  Skunkworks-grade intelligence engine
+                </span>{' '}
+                that scrapes, maps, and enriches the world. It performs
+                multi-dimensional reconnaissance across brand, market, persona,
+                geography, and narrative structures.
               </p>
             </div>
           </ScrollReveal>
 
           {/* The System - 4 Core Components */}
-          <StaggerReveal className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-16'>
-            {[
-              {
-                icon: Radar,
-                title: 'Sentience',
-                subtitle: 'Recon',
-                desc: 'Autonomous surveillance and threat detection. Always watching, always learning.',
-              },
-              {
-                icon: Layers,
-                title: 'The Cortex',
-                subtitle: 'Intelligence',
-                desc: 'Unified, permissions-aware data layer. RAG pipelines, vector stores, semantic search.',
-              },
-              {
-                icon: Zap,
-                title: 'The Autopilot',
-                subtitle: 'Action',
-                desc: 'Workflow agents that act on signals 24/7. No sleep, no breaks, no excuses.',
-              },
-              {
-                icon: Shield,
-                title: 'The Relay',
-                subtitle: 'Governance',
-                desc: 'The safety switch that keeps you compliant. Guardrails that scale.',
-              },
-            ].map((item, i) => (
-              <ScaleReveal key={i}>
-                <div className='group relative p-8 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300'>
-                  {/* Corner accents */}
-                  <div className='absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-orange-500/50' />
-                  <div className='absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-orange-500/50' />
-                  <div className='absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-orange-500/50' />
-                  <div className='absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-orange-500/50' />
-
-                  <div className='flex items-start gap-4'>
-                    <div className='w-12 h-12 border border-zinc-700 flex items-center justify-center bg-zinc-950'>
-                      <item.icon className='w-6 h-6 text-orange-500 group-hover:scale-110 transition-transform' />
-                    </div>
-                    <div className='flex-1'>
-                      <div className='text-[10px] text-orange-500/70 font-mono uppercase tracking-widest mb-1'>
-                        {item.subtitle}
-                      </div>
-                      <h3 className='text-xl font-bold text-zinc-200 mb-2'>
-                        {item.title}
-                      </h3>
-                      <p className='text-sm text-zinc-500'>{item.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              </ScaleReveal>
-            ))}
+          <StaggerReveal className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+            <IntelCard
+              icon={Radar}
+              title='Sentience'
+              subtitle='Recon'
+              description='Autonomous surveillance and threat detection. Always watching, always learning.'
+              classification='classified'
+            />
+            <IntelCard
+              icon={Layers}
+              title='The Cortex'
+              subtitle='Intelligence'
+              description='Unified, permissions-aware data layer. RAG pipelines, vector stores, semantic search.'
+              classification='secret'
+            />
+            <IntelCard
+              icon={Zap}
+              title='The Autopilot'
+              subtitle='Action'
+              description='Workflow agents that act on signals 24/7. No sleep, no breaks, no excuses.'
+              classification='classified'
+            />
+            <IntelCard
+              icon={Shield}
+              title='The Relay'
+              subtitle='Governance'
+              description='The safety switch that keeps you compliant. Guardrails that scale.'
+              classification='restricted'
+            />
           </StaggerReveal>
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* PROCESS SECTION */}
-      <section
-        id='protocol'
-        className='relative py-32 border-t border-white/5 overflow-hidden'
-      >
+      <section id='protocol' className='relative py-32 overflow-hidden'>
+        <SectionGlow position='right' intensity='medium' />
         <div className='max-w-7xl mx-auto px-6 relative z-10'>
           <ScrollReveal>
             <div className='text-center mb-16'>
-              <div className='inline-flex items-center gap-2 text-xs text-zinc-500 mb-6'>
+              <div className='inline-flex items-center gap-2 text-xs text-zinc-600 mb-6'>
+                <span className='text-orange-500/60'>{'>'}</span>
                 <span>// PROCESS</span>
               </div>
               <GlitchText>
@@ -594,15 +646,22 @@ export default function Home() {
               },
             ].map((step, i) => (
               <div key={i} className='relative group'>
-                <div className='p-6 border border-zinc-800 bg-zinc-900/30 hover:border-orange-500/30 transition-all duration-300 h-full'>
-                  <div className='text-3xl font-black text-orange-500 mb-4'>
+                <div className='p-6 border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm rounded-lg hover:border-orange-500/30 transition-all duration-300 h-full'>
+                  {/* Number with glow on hover */}
+                  <div className='text-4xl font-black text-orange-500 mb-4 transition-all duration-300 group-hover:text-glow-orange'>
                     {step.num}
                   </div>
                   <h3 className='text-sm font-bold mb-2 text-zinc-200'>
                     {step.title}
                   </h3>
-                  <p className='text-xs text-zinc-500'>{step.desc}</p>
+                  <p className='text-xs text-zinc-500 leading-relaxed'>
+                    {step.desc}
+                  </p>
                 </div>
+                {/* Connector line */}
+                {i < 4 && (
+                  <div className='hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-gradient-to-r from-orange-500/30 to-transparent' />
+                )}
               </div>
             ))}
           </StaggerReveal>
@@ -611,24 +670,26 @@ export default function Home() {
             <Magnetic>
               <button
                 onClick={signupForm.open}
-                className='inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors btn-glitch'
+                className='inline-flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors btn-glow rounded-sm'
               >
-                <Flame className='w-4 h-4' />
+                <Flame className='w-5 h-5' />
                 [ START WITH A DIAGNOSTIC ]
-                <ArrowRight className='w-4 h-4' />
+                <ArrowRight className='w-5 h-5' />
               </button>
             </Magnetic>
           </div>
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* THE UNIT / TEAM SECTION */}
-      <section id='mission' className='py-32 border-t border-white/5'>
+      <section id='mission' className='py-32'>
         <div className='max-w-7xl mx-auto px-6'>
           <ScrollReveal>
             <div className='max-w-4xl mx-auto text-center'>
-              <div className='inline-flex items-center gap-2 px-3 py-1 border border-orange-500/30 text-orange-500 text-xs mb-6 glitch-hover cursor-default'>
-                <Target className='w-3 h-3' />
+              <div className='inline-flex items-center gap-2 px-4 py-2 border border-orange-500/30 text-orange-500 text-xs mb-8 rounded-full glitch-hover cursor-default'>
+                <Target className='w-4 h-4' />
                 <span>// THE UNIT</span>
               </div>
               <GlitchText>
@@ -637,7 +698,7 @@ export default function Home() {
                   <span className='text-orange-500'>To Understand It.</span>
                 </h2>
               </GlitchText>
-              <p className='text-xl text-zinc-400 leading-relaxed mb-12'>
+              <p className='text-xl text-zinc-400 leading-relaxed mb-16'>
                 Meet the team that breaks it.
               </p>
             </div>
@@ -647,12 +708,17 @@ export default function Home() {
         </div>
       </section>
 
+      <CircuitDivider />
+
       {/* FOOTER CTA */}
-      <section className='py-32 border-t border-white/5 bg-zinc-900/50'>
-        <div className='max-w-4xl mx-auto px-6 text-center'>
+      <section className='py-32 relative overflow-hidden'>
+        {/* Background glow */}
+        <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.05)_0%,transparent_60%)]' />
+
+        <div className='max-w-4xl mx-auto px-6 text-center relative z-10'>
           <ScrollReveal>
             <GlitchText>
-              <h2 className='text-4xl md:text-5xl font-black mb-6'>
+              <h2 className='text-4xl md:text-5xl font-black mb-8'>
                 The end is near for the Specialist Class.
                 <br />
                 <span className='text-orange-500'>Don't join them.</span>
@@ -661,15 +727,18 @@ export default function Home() {
             <Magnetic>
               <button
                 onClick={signupForm.open}
-                className='inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glitch'
+                className='inline-flex items-center gap-3 px-10 py-5 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm text-lg'
               >
-                <Flame className='w-4 h-4' />
+                <Flame className='w-6 h-6' />
                 <span>[ INITIALIZE SYSTEM AUDIT ]</span>
-                <ArrowRight className='w-4 h-4' />
+                <ArrowRight className='w-6 h-6' />
               </button>
             </Magnetic>
-            <div className='mt-12 text-xs text-zinc-600 font-mono glitch-hover cursor-default'>
-              <p>[ DMG ] // Daedalus Systems // 2025 // An Ideas Lab with Matches.</p>
+            <div className='mt-16 text-xs text-zinc-700 font-mono glitch-hover cursor-default'>
+              <p>
+                [ DMG ] // Daedalus Systems // 2025 // An Ideas Lab with
+                Matches.
+              </p>
             </div>
           </ScrollReveal>
         </div>
@@ -679,12 +748,12 @@ export default function Home() {
       <footer className='py-8 border-t border-white/5'>
         <div className='max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600'>
           <div className='flex items-center gap-2'>
-            <div className='w-2 h-2 bg-orange-500 rounded-full' />
+            <div className='w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)]' />
             <span>© 2025 Digital Mischief Group</span>
           </div>
           <div className='flex items-center gap-6'>
             <span>Systems Online</span>
-            <span className='text-orange-500'>●</span>
+            <span className='text-green-500'>●</span>
             <span>All Systems Nominal</span>
           </div>
         </div>
