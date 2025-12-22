@@ -10,4 +10,6 @@ export { HeroBurst } from './HeroBurst'
 export { GlowingOrb } from './GlowingOrb'
 export { FloatingElement } from './FloatingElement'
 export { SectionGlow } from './SectionGlow'
+export { SniperScope } from './SniperScope'
+export { StrikeOutReveal } from './StrikeOutReveal'
 

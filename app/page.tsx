@@ -41,6 +41,7 @@ import {
   HeroBurst,
   GlowingOrb,
   SectionGlow,
+  StrikeOutReveal,
 } from '@/components/effects'
 import {useState, useRef, useEffect} from 'react'
 
@@ -70,7 +71,7 @@ export default function Home() {
       <ScanlineOverlay />
 
       {/* Background Dot Pattern (secondary layer) */}
-      <div className='fixed inset-0 z-[1] opacity-30'>
+      <div className='fixed inset-0 z-[1] opacity-30 pointer-events-none'>
         <DotPattern
           width={32}
           height={32}
@@ -492,12 +493,20 @@ export default function Home() {
               <span className='text-zinc-500'>For some more than others.</span>
             </h2>
 
-            {/* Body */}
-            <div className='space-y-2 text-lg md:text-xl text-zinc-300 mb-12'>
-              <p className='opacity-90'>For your competitors.</p>
-              <p className='opacity-80'>For your front-end guy.</p>
-              <p className='opacity-70'>For your content guy.</p>
-              <p className='opacity-60'>For your marketing guy.</p>
+            {/* Body - Animated strikethrough list */}
+            <div className='space-y-4 text-lg md:text-xl text-zinc-300 mb-12'>
+              <StrikeOutReveal delay={0} duration={0.5}>
+                <span className='opacity-90'>For your competitors.</span>
+              </StrikeOutReveal>
+              <StrikeOutReveal delay={0.3} duration={0.5}>
+                <span className='opacity-80'>For your front-end guy.</span>
+              </StrikeOutReveal>
+              <StrikeOutReveal delay={0.6} duration={0.5}>
+                <span className='opacity-70'>For your content guy.</span>
+              </StrikeOutReveal>
+              <StrikeOutReveal delay={0.9} duration={0.5}>
+                <span className='opacity-60'>For your marketing guy.</span>
+              </StrikeOutReveal>
             </div>
 
             <p className='text-zinc-500 text-base leading-relaxed mb-8'>
@@ -700,6 +709,12 @@ export default function Home() {
               </GlitchText>
               <p className='text-xl text-zinc-400 leading-relaxed mb-16'>
                 Meet the team that breaks it.
+              </p>
+              <p className='text-center text-zinc-500 italic text-md max-w-2xl mx-auto'>
+                We're an ideas lab with matches{' '}
+                <Flame className='inline w-3 h-3 text-orange-500' /> — curious
+                enough to blow it up, disciplined enough to put it back together
+                again.
               </p>
             </div>
           </ScrollReveal>

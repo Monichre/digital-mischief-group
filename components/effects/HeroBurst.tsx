@@ -10,16 +10,6 @@ import {motion} from 'framer-motion'
 export const HeroBurst = memo(function HeroBurst() {
   return (
     <div className='absolute inset-0 overflow-hidden pointer-events-none'>
-      {/* Horizontal scanline/band - atmospheric glow across middle */}
-      <div
-        className='absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[300px]'
-        style={{
-          background:
-            'linear-gradient(180deg, transparent 0%, rgba(249,115,22,0.08) 30%, rgba(249,115,22,0.12) 50%, rgba(249,115,22,0.08) 70%, transparent 100%)',
-          filter: 'blur(40px)',
-        }}
-      />
-
       {/* Top-down gradient wash */}
       <div
         className='absolute inset-0'
