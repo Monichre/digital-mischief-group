@@ -234,66 +234,32 @@ export function BulkEnrichTable({
     }
   }, [isComplete])
 
-  const handleExportCsv = useCallback(() => {
-    const enrichedHeaders = [
-      "enriched_company_name",
-      "enriched_industry",
-      "enriched_segment",
-      "enriched_employees",
-      "enriched_headquarters",
-      "enriched_website",
-      "enriched_funding_stage",
-      "enriched_funding_total",
-      "enriched_technologies",
-      "enriched_icp_score",
-      "enriched_icp_reasons",
-      "enriched_buying_signals",
-      "enriched_ceo",
-      "enrichment_status",
-      "synthesis",
-    ]
-    const allHeaders = [...csvHeaders, ...enrichedHeaders]
+  const handleExportCsv = useCallback(async () => {
+    if (!batchId) {
+      console.error("No batch ID available for export")
+      return
+    }
 
-    const csvRows = rows.map((row) => {
-      const state = rowStates[row.id]
-      const originalValues = csvHeaders.map((h) => row.original[h] || "")
-      const enrichedValues = [
-        state.enriched?.company_name || "",
-        state.enriched?.industry || "",
-        state.enriched?.segment || "",
-        state.enriched?.employee_count?.toString() || "",
-        state.enriched?.headquarters || "",
-        state.enriched?.website || "",
-        state.enriched?.funding_stage || "",
-        state.enriched?.funding_total || "",
-        (state.enriched?.technologies || []).join("; "),
-        state.enriched?.icp_fit_score?.toString() || "",
-        (state.enriched?.icp_fit_reasons || []).join("; "),
-        (state.enriched?.buying_signals || [])
-          .map((s) => `${s.signal} (${Math.round(s.confidence * 100)}%)`)
-          .join("; "),
-        state.enriched?.ceo_name || "",
-        state.status,
-        state.enriched?.synthesis || "",
-      ]
-      return [...originalValues, ...enrichedValues]
-    })
+    try {
+      // Fetch comprehensive CSV export from server
+      const response = await fetch(`/api/enrich/batch?batchId=${batchId}&format=csv`)
 
-    const csvContent = [
-      allHeaders.join(","),
-      ...csvRows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-      ),
-    ].join("\n")
+      if (!response.ok) {
+        throw new Error("Failed to export CSV")
+      }
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `enriched-leads-${new Date().toISOString().split("T")[0]}.csv`
-    link.click()
-    URL.revokeObjectURL(url)
-  }, [rows, rowStates, csvHeaders])
+      // Get the blob and create download link
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `enrichment_export_${batchId}_${new Date().toISOString().split("T")[0]}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Export failed:", error)
+    }
+  }, [batchId])
 
   return (
     <div className="space-y-6">

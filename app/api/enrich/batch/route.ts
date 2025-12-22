@@ -169,6 +169,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { discovery, profile, funding, techStack, customFields, sources } = result.data
+    const synthesis = (result as any).synthesis || null
 
     // Save to DB with full agent phase data
     try {
@@ -178,10 +179,10 @@ export async function PUT(request: NextRequest) {
           company_name, company_description, industry,
           employee_count, founded_year, headquarters, website,
           funding_total, technologies, leadership,
-          discovery_data, profile_data, funding_data, 
+          discovery_data, profile_data, funding_data,
           tech_stack_data, custom_fields_data, sources,
           icp_fit_score, icp_fit_reasons, buying_signals,
-          completed_phases, status, batch_id, user_id
+          synthesis, completed_phases, status, batch_id, user_id
         ) VALUES (
           ${Object.keys(enrichmentInput)[0]},
           ${email || domain || company_name},
@@ -206,6 +207,7 @@ export async function PUT(request: NextRequest) {
           ${customFields.icp_fit_score},
           ${customFields.icp_fit_reasons},
           ${JSON.stringify(customFields.buying_signals)},
+          ${synthesis},
           ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
           'completed',
           ${batchId},
@@ -247,6 +249,7 @@ export async function PUT(request: NextRequest) {
           icp_fit_reasons: customFields.icp_fit_reasons,
           buying_signals: customFields.buying_signals,
           sources,
+          synthesis,
         },
       },
     })
@@ -291,6 +294,7 @@ interface EnrichmentJobRow {
   tech_stack_data: any
   custom_fields_data: any
   sources: string[] | null
+  synthesis: string | null
   status: string
   created_at: string
   error_message: string | null
@@ -362,6 +366,7 @@ function transformToCSVRow(job: EnrichmentJobRow): Record<string, any> {
 
     // Metadata
     "Sources": formatArray(job.sources),
+    "Synthesis": job.synthesis || "",
     "Status": job.status,
     "Error": job.error_message || "",
     "Enriched At": new Date(job.created_at).toISOString(),
@@ -442,7 +447,7 @@ export async function GET(request: NextRequest) {
         headquarters, website, funding_total, technologies, leadership,
         icp_fit_score, icp_fit_reasons, buying_signals,
         discovery_data, profile_data, funding_data, tech_stack_data,
-        custom_fields_data, sources, status, error_message, created_at
+        custom_fields_data, sources, synthesis, status, error_message, created_at
       FROM enrichment_jobs
       WHERE batch_id = ${batchId}
       ORDER BY created_at ASC
