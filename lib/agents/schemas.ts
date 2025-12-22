@@ -70,8 +70,9 @@ export const CustomFieldsResultSchema = z.object({
       linkedin: z.string().nullable(),
     })
   ),
-  icp_fit_score: z.number().min(0).max(100),
+  icp_fit_score: z.number().min(-1).max(100), // -1 indicates personal/portfolio site
   icp_fit_reasons: z.array(z.string()),
+  is_personal_site: z.boolean().default(false),
   pain_points: z.array(z.string()),
   buying_signals: z.array(
     z.object({

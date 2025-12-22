@@ -11,11 +11,59 @@ const ICP_CONFIG = {
   preferred_funding_stages: ["Series A", "Series B", "Series C", "Series D"],
 }
 
-function calculateICPFit(context: EnrichmentContext): { score: number; reasons: string[] } {
-  let score = 0
+// Patterns that indicate personal/portfolio sites
+const PERSONAL_SITE_INDICATORS = [
+  "personal", "portfolio", "freelance", "freelancer", "consultant", "blog",
+  "resume", "cv", "about me", "my work", "my projects", "individual"
+]
+
+function isPersonalSite(context: EnrichmentContext): boolean {
+  const { profile, discovery } = context
+  
+  // Check industry/description for personal site indicators
+  const textToCheck = [
+    profile?.industry,
+    profile?.description,
+    profile?.segment,
+    discovery?.company_name
+  ].filter(Boolean).join(" ").toLowerCase()
+  
+  if (PERSONAL_SITE_INDICATORS.some(indicator => textToCheck.includes(indicator))) {
+    return true
+  }
+  
+  // No employees or employee count of 1 suggests personal
+  if (profile?.employee_count === 1 || profile?.employee_count === null) {
+    // Combined with no funding, likely personal
+    if (!context.funding?.total_funding && !context.funding?.funding_stage) {
+      return true
+    }
+  }
+  
+  // Segment is explicitly "Individual" or similar
+  if (profile?.segment?.toLowerCase().includes("individual") || 
+      profile?.segment?.toLowerCase().includes("personal")) {
+    return true
+  }
+  
+  return false
+}
+
+function calculateICPFit(context: EnrichmentContext): { score: number; reasons: string[]; isPersonalSite?: boolean } {
   const reasons: string[] = []
 
   const { profile, funding, techStack } = context
+
+  // Check for personal/portfolio site first
+  if (isPersonalSite(context)) {
+    return {
+      score: -1, // Special score to indicate personal site
+      reasons: ["Personal or portfolio website detected"],
+      isPersonalSite: true
+    }
+  }
+
+  let score = 0
 
   // Industry match (0-30 points)
   if (profile?.industry) {
@@ -70,7 +118,7 @@ function calculateICPFit(context: EnrichmentContext): { score: number; reasons: 
     }
   }
 
-  return { score: Math.min(score, 100), reasons }
+  return { score: Math.min(score, 100), reasons, isPersonalSite: false }
 }
 
 function inferPainPoints(context: EnrichmentContext): string[] {
@@ -255,13 +303,13 @@ Return structured data with ceo_name and an executives array.`,
     }
 
     // Calculate ICP fit
-    const { score: icpScore, reasons: icpReasons } = calculateICPFit(context)
+    const { score: icpScore, reasons: icpReasons, isPersonalSite } = calculateICPFit(context)
 
-    // Infer pain points
-    const painPoints = inferPainPoints(context)
+    // Infer pain points (skip for personal sites)
+    const painPoints = isPersonalSite ? [] : inferPainPoints(context)
 
-    // Detect buying signals
-    const buyingSignals = detectBuyingSignals(context)
+    // Detect buying signals (skip for personal sites)
+    const buyingSignals = isPersonalSite ? [] : detectBuyingSignals(context)
 
     // Competitive landscape - would need more sophisticated search
     const competitiveLandscape: string[] = []
@@ -271,6 +319,7 @@ Return structured data with ceo_name and an executives array.`,
       key_executives: keyExecutives.slice(0, 10), // Max 10 executives
       icp_fit_score: icpScore,
       icp_fit_reasons: icpReasons,
+      is_personal_site: isPersonalSite,
       pain_points: painPoints,
       buying_signals: buyingSignals,
       competitive_landscape: competitiveLandscape,

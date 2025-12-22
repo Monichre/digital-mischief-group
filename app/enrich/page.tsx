@@ -22,6 +22,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  History,
+  X,
 } from "lucide-react"
 import { UnifiedInput } from "@/components/enrich/UnifiedInput"
 import { FieldMapper } from "@/components/enrich/FieldMapper"
@@ -32,6 +34,7 @@ import { TechSignals } from "@/components/enrich/TechSignals"
 import { SourceAttribution } from "@/components/enrich/SourceAttribution"
 import { EnrichThinkingPanel } from "@/components/enrich/EnrichThinkingPanel"
 import { BulkEnrichTable } from "@/components/enrich/BulkEnrichTable"
+import { EnrichHistory } from "@/components/enrich/EnrichHistory"
 import { useEnrichStream } from "@/hooks/useEnrichStream"
 
 type EnrichStatus = "idle" | "loading" | "success" | "error"
@@ -82,6 +85,7 @@ interface AgentResults {
     key_executives: Array<{ name: string; title: string; linkedin: string | null }>
     icp_fit_score: number
     icp_fit_reasons: string[]
+    is_personal_site?: boolean
     pain_points: string[]
     buying_signals: Array<{ signal: string; confidence: number }>
     competitive_landscape: string[]
@@ -113,6 +117,7 @@ interface EnrichmentResult {
   }
   icp_fit_score?: number
   icp_fit_reasons?: string[]
+  is_personal_site?: boolean
   buying_signals?: Array<{ signal: string; confidence: number }>
   ceo_name?: string
   key_people?: Array<{ name: string; title: string; linkedin?: string }>
@@ -157,6 +162,9 @@ export default function EnrichPage() {
   // UI state
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [loadingHistoryItem, setLoadingHistoryItem] = useState(false)
+  const [historicalResult, setHistoricalResult] = useState<EnrichmentResult | null>(null)
 
   // Bulk enrichment state
   const [bulkStep, setBulkStep] = useState<BulkStep>("input")
@@ -176,10 +184,10 @@ export default function EnrichPage() {
   const [batchId, setBatchId] = useState<string | null>(null)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
-  // Derive status from stream state
-  const status: EnrichStatus = stream.isLoading ? "loading" : stream.result ? "success" : stream.error ? "error" : "idle"
+  // Derive status from stream state or historical result
+  const status: EnrichStatus = stream.isLoading ? "loading" : (stream.result || historicalResult) ? "success" : stream.error ? "error" : "idle"
   const error = stream.error
-  const result = stream.result as EnrichmentResult | null
+  const result = (stream.result as EnrichmentResult | null) || historicalResult
 
   // Convert stream phases to AgentPhaseTracker format
   const phases: PhaseProgress[] = Object.entries(stream.phases)
@@ -191,7 +199,45 @@ export default function EnrichPage() {
 
   const handleTextSubmit = async (input: string) => {
     setBulkStep("input")
+    setShowHistory(false)
     stream.enrich(input)
+  }
+
+  const handleHistorySelect = async (id: string) => {
+    setLoadingHistoryItem(true)
+    try {
+      const res = await fetch(`/api/enrich/${id}`)
+      if (!res.ok) throw new Error("Failed to load")
+      const data = await res.json()
+      
+      // Transform to match EnrichmentResult format
+      const loadedResult: EnrichmentResult = {
+        id: data.id,
+        company_name: data.company_name,
+        company_description: data.company_description,
+        company_industry: data.company_industry,
+        company_size: data.company_size,
+        company_founded: data.company_founded,
+        company_headquarters: data.company_headquarters,
+        company_website: data.company_website,
+        tech_stack: data.tech_stack,
+        funding_total: data.funding_total,
+        key_people: data.key_people,
+        icp_fit_score: data.icp_fit_score,
+        icp_fit_reasons: data.icp_fit_reasons,
+        buying_signals: data.buying_signals,
+        sources: data.sources,
+        agents: data.agents,
+      }
+      
+      stream.reset()
+      setHistoricalResult(loadedResult)
+      setShowHistory(false)
+    } catch (err) {
+      console.error("Failed to load history item:", err)
+    } finally {
+      setLoadingHistoryItem(false)
+    }
   }
 
   const handleCsvUpload = useCallback((data: Record<string, string>[], headers: string[]) => {
@@ -297,6 +343,7 @@ export default function EnrichPage() {
     setFieldMapping({})
     setEnrichedRows([])
     setBatchId(null)
+    setHistoricalResult(null)
     stream.reset()
   }
 
@@ -362,9 +409,20 @@ export default function EnrichPage() {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm">Back to HQ</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
-            <span className="font-mono font-bold tracking-tighter text-lg">[ FIRE-ENRICH ]</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
+                showHistory ? "bg-orange-500/20 text-orange-400" : "text-zinc-400 hover:text-orange-500"
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">History</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
+              <span className="font-mono font-bold tracking-tighter text-lg">[ FIRE-ENRICH ]</span>
+            </div>
           </div>
         </div>
       </nav>
@@ -411,7 +469,9 @@ export default function EnrichPage() {
             <div className="max-w-4xl mx-auto h-[500px]">
               <EnrichThinkingPanel 
                 phases={stream.phases} 
-                events={stream.events} 
+                events={stream.events}
+                thoughts={stream.thoughts}
+                decisions={stream.decisions}
                 isComplete={false} 
               />
             </div>
@@ -455,7 +515,12 @@ export default function EnrichPage() {
                         {result.company_description && <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{result.company_description}</p>}
                       </div>
                       {result.icp_fit_score !== undefined && (
-                        <ICPScoreCard score={result.icp_fit_score} reasons={result.icp_fit_reasons || []} compact />
+                        <ICPScoreCard 
+                          score={result.icp_fit_score} 
+                          reasons={result.icp_fit_reasons || []} 
+                          isPersonalSite={result.is_personal_site || result.agents?.customFields?.is_personal_site}
+                          compact 
+                        />
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -534,7 +599,11 @@ export default function EnrichPage() {
                 <div className="space-y-6">
                   {/* ICP Score */}
                   {result.icp_fit_score !== undefined && (
-                    <ICPScoreCard score={result.icp_fit_score} reasons={result.icp_fit_reasons || []} />
+                    <ICPScoreCard 
+                      score={result.icp_fit_score} 
+                      reasons={result.icp_fit_reasons || []} 
+                      isPersonalSite={result.is_personal_site || result.agents?.customFields?.is_personal_site}
+                    />
                   )}
 
                   {/* Buying Signals */}
@@ -626,6 +695,37 @@ export default function EnrichPage() {
           )}
         </div>
       </main>
+
+      {/* History Panel */}
+      {showHistory && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40" 
+            onClick={() => setShowHistory(false)}
+          />
+          {/* Panel */}
+          <div className="fixed top-0 right-0 h-full w-full max-w-md z-50 animate-in slide-in-from-right duration-300">
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800">
+                <span className="font-semibold">Enrichment History</span>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <EnrichHistory 
+                  onSelect={handleHistorySelect}
+                  onClose={() => setShowHistory(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

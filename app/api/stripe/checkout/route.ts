@@ -28,8 +28,8 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/profile?canceled=true`,
       metadata: {
         userId: session.user.id,
       },

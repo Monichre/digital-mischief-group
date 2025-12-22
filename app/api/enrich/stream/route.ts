@@ -1,11 +1,11 @@
 import { type NextRequest } from 'next/server'
 import { sql } from '@/lib/db/neon'
 import { getFirecrawlClient } from '@/lib/firecrawl/client'
-import { orchestrateEnrichment, type EnrichmentInput } from '@/lib/agents'
+import { conductEnrichment } from '@/lib/agents/conductor'
+import type { EnrichmentInput } from '@/lib/agents'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import type { EnrichStreamEvent } from '@/lib/enrich/stream-types'
-import type { AgentProgress } from '@/lib/agents/types'
 
 function formatSSE(event: EnrichStreamEvent): string {
   return `data: ${JSON.stringify({ ...event, timestamp: Date.now() })}\n\n`
@@ -55,47 +55,50 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Run orchestration with progress streaming
-        const result = await orchestrateEnrichment(enrichmentInput, {
-          onProgress: (progress: AgentProgress) => {
-            // Map orchestrator progress to stream events
-            if (progress.status === 'running') {
-              send({
-                type: 'phase_start',
-                data: {
-                  phase: progress.phase,
-                  message: progress.message,
-                },
-              })
-            } else if (progress.status === 'completed') {
-              send({
-                type: 'phase_complete',
-                data: {
-                  phase: progress.phase,
-                  message: progress.message,
-                  result: null, // We'll send full result at end
-                },
-              })
-            } else if (progress.status === 'failed') {
-              send({
-                type: 'phase_error',
-                data: {
-                  phase: progress.phase,
-                  error: progress.error || progress.message,
-                  recoverable: true,
-                },
-              })
-            }
-
-            // Send progress update
+        // Run conductor-orchestrated enrichment with thought streaming
+        const result = await conductEnrichment(enrichmentInput, {
+          onThought: (thought) => {
             send({
-              type: 'phase_progress',
+              type: 'conductor_thought',
               data: {
-                phase: progress.phase,
-                progress: progress.progress,
-                message: progress.message,
+                thoughtType: thought.type,
+                content: thought.content,
+                relatedPhase: thought.relatedPhase,
               },
             })
+          },
+          onDecision: (decision) => {
+            send({
+              type: 'conductor_decision',
+              data: {
+                phase: decision.phase,
+                action: decision.action,
+                reason: decision.reason,
+              },
+            })
+          },
+          onProgress: (phase, status, message) => {
+            if (status === 'running') {
+              send({
+                type: 'phase_start',
+                data: { phase, message },
+              })
+            } else if (status === 'completed') {
+              send({
+                type: 'phase_complete',
+                data: { phase, message, result: null },
+              })
+            } else if (status === 'failed') {
+              send({
+                type: 'phase_error',
+                data: { phase, error: message, recoverable: true },
+              })
+            } else if (status === 'skipped') {
+              send({
+                type: 'phase_skipped',
+                data: { phase, reason: message },
+              })
+            }
           },
         })
 
@@ -210,6 +213,9 @@ export async function POST(request: NextRequest) {
                 domain: discovery.domain, 
                 duration_ms: result.duration_ms,
                 icp_score: customFields.icp_fit_score,
+                is_personal_site: customFields.is_personal_site,
+                synthesis: !!result.synthesis,
+                thoughts_count: result.thoughts.length,
                 errors: result.errors?.length || 0
               })}, 
               ${userId}
@@ -242,10 +248,13 @@ export async function POST(request: NextRequest) {
           ceo_name: customFields.ceo_name,
           icp_fit_score: customFields.icp_fit_score,
           icp_fit_reasons: customFields.icp_fit_reasons,
+          is_personal_site: customFields.is_personal_site,
           buying_signals: customFields.buying_signals,
           tech_signals: techStack.signals,
           screenshot,
           sources,
+          synthesis: result.synthesis,
+          thoughts: result.thoughts,
           agents: {
             discovery,
             profile,

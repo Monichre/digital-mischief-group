@@ -1,25 +1,40 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Target, TrendingUp, CheckCircle2, AlertCircle } from "lucide-react"
+import { Target, TrendingUp, CheckCircle2, AlertCircle, User } from "lucide-react"
 
 interface ICPScoreCardProps {
   score: number
   reasons: string[]
   compact?: boolean
+  isPersonalSite?: boolean
 }
 
 function getScoreConfig(score: number) {
+  if (score === -1) return { label: "Personal Site", color: "blue", gradient: "from-blue-500 to-cyan-400" }
   if (score >= 80) return { label: "Excellent Fit", color: "green", gradient: "from-green-500 to-emerald-400" }
   if (score >= 60) return { label: "Good Fit", color: "orange", gradient: "from-orange-500 to-amber-400" }
   if (score >= 40) return { label: "Moderate Fit", color: "yellow", gradient: "from-yellow-500 to-amber-400" }
   return { label: "Low Fit", color: "zinc", gradient: "from-zinc-500 to-zinc-400" }
 }
 
-export function ICPScoreCard({ score, reasons, compact = false }: ICPScoreCardProps) {
-  const config = getScoreConfig(score)
+export function ICPScoreCard({ score, reasons, compact = false, isPersonalSite = false }: ICPScoreCardProps) {
+  // Detect personal site from score or explicit flag
+  const isPersonal = isPersonalSite || score === -1
+  const config = getScoreConfig(isPersonal ? -1 : score)
 
   if (compact) {
+    if (isPersonal) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/20">
+            <User className="w-4 h-4 text-blue-400" />
+          </div>
+          <span className="text-xs text-blue-400">Personal</span>
+        </div>
+      )
+    }
+    
     return (
       <div className="flex items-center gap-2">
         <div className={`
@@ -32,6 +47,35 @@ export function ICPScoreCard({ score, reasons, compact = false }: ICPScoreCardPr
           {score}
         </div>
         <span className="text-xs text-zinc-500">{config.label}</span>
+      </div>
+    )
+  }
+
+  // Personal site full card
+  if (isPersonal) {
+    return (
+      <div className="border border-blue-500/30 bg-blue-500/5 p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-cyan-400 opacity-5 blur-2xl" />
+        
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <User className="w-6 h-6 text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-blue-400 mb-1">Personal / Portfolio Site</h3>
+            <p className="text-xs text-zinc-400 mb-3">
+              This appears to be a personal website, portfolio, or individual consultant site rather than a B2B company.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs">
+                Individual
+              </span>
+              <span className="px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs">
+                Not B2B Target
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

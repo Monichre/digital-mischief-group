@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { EnrichStreamEvent } from '@/lib/enrich/stream-types'
 
-export type PhaseStatus = 'pending' | 'running' | 'completed' | 'failed'
+export type PhaseStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
 
 export interface PhaseState {
   status: PhaseStatus
@@ -13,10 +13,25 @@ export interface PhaseState {
   result?: unknown
 }
 
+export interface ConductorThought {
+  type: 'observation' | 'reasoning' | 'decision' | 'action' | 'insight'
+  content: string
+  timestamp: number
+  relatedPhase?: string
+}
+
+export interface ConductorDecision {
+  phase: string
+  action: 'run' | 'skip' | 'modify'
+  reason: string
+}
+
 export interface EnrichStreamState {
   isLoading: boolean
   phases: Record<string, PhaseState>
   events: EnrichStreamEvent[]
+  thoughts: ConductorThought[]
+  decisions: ConductorDecision[]
   result: unknown | null
   error: string | null
   duration: number | null
@@ -38,6 +53,8 @@ export function useEnrichStream() {
     isLoading: false,
     phases: { ...initialPhases },
     events: [],
+    thoughts: [],
+    decisions: [],
     result: null,
     error: null,
     duration: null,
@@ -48,6 +65,8 @@ export function useEnrichStream() {
       isLoading: false,
       phases: { ...initialPhases },
       events: [],
+      thoughts: [],
+      decisions: [],
       result: null,
       error: null,
       duration: null,
@@ -137,6 +156,40 @@ export function useEnrichStream() {
                         error: event.data.error,
                       },
                     }
+                    break
+
+                  case 'phase_skipped':
+                    newState.phases = {
+                      ...s.phases,
+                      [event.data.phase]: {
+                        ...s.phases[event.data.phase],
+                        status: 'skipped',
+                        message: event.data.reason,
+                      },
+                    }
+                    break
+
+                  case 'conductor_thought':
+                    newState.thoughts = [
+                      ...s.thoughts,
+                      {
+                        type: event.data.thoughtType,
+                        content: event.data.content,
+                        timestamp: Date.now(),
+                        relatedPhase: event.data.relatedPhase,
+                      },
+                    ]
+                    break
+
+                  case 'conductor_decision':
+                    newState.decisions = [
+                      ...s.decisions,
+                      {
+                        phase: event.data.phase,
+                        action: event.data.action,
+                        reason: event.data.reason,
+                      },
+                    ]
                     break
 
                   case 'complete':

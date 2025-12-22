@@ -506,6 +506,7 @@ export async function orchestrateEnrichment(
         key_executives: [],
         icp_fit_score: 0,
         icp_fit_reasons: [],
+        is_personal_site: false,
         pain_points: [],
         buying_signals: [],
         competitive_landscape: [],

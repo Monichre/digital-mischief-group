@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { X, Flame, ArrowRight, Sparkles, Radar, Shield, Crosshair, Brain, Palette } from "lucide-react"
+import { X, Flame, ArrowRight, Sparkles, Radar, Shield, Crosshair, Brain, Palette, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface FullscreenMenuProps {
@@ -17,6 +17,7 @@ const MENU_ITEMS = [
   { label: "Sentinels", href: "/scouts", number: "04", icon: Shield, description: "Automated competitive monitoring" },
   { label: "Observe", href: "/observe", number: "05", icon: Crosshair, description: "Page change detection" },
   { label: "Arsenal", href: "/arsenal", number: "06", icon: Radar, description: "Your intelligence toolkit" },
+  { label: "Profile", href: "/profile", number: "07", icon: User, description: "Account settings & billing" },
 ]
 
 export function FullscreenMenu({ isOpen, onClose }: FullscreenMenuProps) {

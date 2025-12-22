@@ -5,8 +5,11 @@ export type EnrichStreamEventType =
   | 'phase_progress'
   | 'phase_complete'
   | 'phase_error'
+  | 'phase_skipped'
   | 'source_found'
   | 'data_extracted'
+  | 'conductor_thought'
+  | 'conductor_decision'
   | 'complete'
   | 'error'
 
@@ -62,6 +65,32 @@ export interface DataExtractedEvent {
   }
 }
 
+export interface PhaseSkippedEvent {
+  type: 'phase_skipped'
+  data: {
+    phase: string
+    reason: string
+  }
+}
+
+export interface ConductorThoughtEvent {
+  type: 'conductor_thought'
+  data: {
+    thoughtType: 'observation' | 'reasoning' | 'decision' | 'action' | 'insight'
+    content: string
+    relatedPhase?: string
+  }
+}
+
+export interface ConductorDecisionEvent {
+  type: 'conductor_decision'
+  data: {
+    phase: string
+    action: 'run' | 'skip' | 'modify'
+    reason: string
+  }
+}
+
 export interface EnrichCompleteEvent {
   type: 'complete'
   data: {
@@ -85,7 +114,10 @@ export type EnrichStreamEvent =
   | PhaseProgressEvent
   | PhaseCompleteEvent
   | PhaseErrorEvent
+  | PhaseSkippedEvent
   | SourceFoundEvent
   | DataExtractedEvent
+  | ConductorThoughtEvent
+  | ConductorDecisionEvent
   | EnrichCompleteEvent
   | EnrichErrorEvent
