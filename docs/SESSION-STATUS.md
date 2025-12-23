@@ -49,6 +49,17 @@
 - ✅ Fixed UI export button to use server-side endpoint instead of client-side generation
 - ✅ All original 15 fields + 29 enrichment fields now exported
 
+### 3. Database Schema Fixes
+
+**Status**: COMPLETE
+
+- ✅ Fixed `brand_extractions` table schema mismatch (migration 009)
+  - Added `input_url`, `normalized_url` columns
+  - Added JSONB fields: colors, fonts, typography, spacing, components, images, animations, layout, personality
+  - Added metadata fields: site_title, site_description, status, error_message
+- ✅ Fixed `usage_events` table missing `duration_ms` column
+- ✅ Brand Recon visual extraction now fully functional
+
 ---
 
 ## 🔄 In Progress Work
