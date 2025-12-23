@@ -8,9 +8,14 @@ interface ComponentPreviewProps {
 }
 
 export function ComponentPreview({ components, colors }: ComponentPreviewProps) {
-  const buttonPrimary = components?.buttonPrimary
-  const buttonSecondary = components?.buttonSecondary
-  const input = components?.input
+  // Extract button patterns from generic buttons record
+  const buttonPatterns = components?.buttons ? Object.entries(components.buttons) : []
+  const primaryButton = buttonPatterns.find(([key]) => key.toLowerCase().includes('primary'))?.[1]
+  const secondaryButton = buttonPatterns.find(([key]) => key.toLowerCase().includes('secondary'))?.[1]
+
+  // Extract input patterns from generic inputs record
+  const inputPatterns = components?.inputs ? Object.entries(components.inputs) : []
+  const defaultInput = inputPatterns[0]?.[1]
 
   return (
     <div className="border border-zinc-800 bg-zinc-900/30 p-6 relative">
@@ -27,44 +32,50 @@ export function ComponentPreview({ components, colors }: ComponentPreviewProps) 
       </div>
 
       {/* Buttons */}
-      <div className="mb-8">
-        <div className="text-[10px] uppercase tracking-wider text-zinc-600 mb-4">Button Styles</div>
-        <div className="flex flex-wrap gap-4">
-          {/* Primary Button */}
-          <div className="space-y-2">
-            <button
-              className="px-6 py-3 text-sm font-medium transition-all"
-              style={{
-                backgroundColor: buttonPrimary?.background || colors?.primary || "#f97316",
-                color: buttonPrimary?.textColor || "#ffffff",
-                borderRadius: buttonPrimary?.borderRadius || "0px",
-              }}
-            >
-              Primary Button
-            </button>
-            <div className="text-[10px] text-zinc-600">{buttonPrimary?.background || colors?.primary || "N/A"}</div>
-          </div>
+      {(buttonPatterns.length > 0 || colors) && (
+        <div className="mb-8">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-600 mb-4">Button Styles</div>
+          <div className="flex flex-wrap gap-4">
+            {/* Primary Button */}
+            <div className="space-y-2">
+              <button
+                className="px-6 py-3 text-sm font-medium transition-all"
+                style={{
+                  backgroundColor: primaryButton?.background || colors?.primary || "#f97316",
+                  color: primaryButton?.textColor || primaryButton?.color || "#ffffff",
+                  borderRadius: primaryButton?.borderRadius || "0px",
+                }}
+              >
+                Primary Button
+              </button>
+              <div className="text-[10px] text-zinc-600">
+                {primaryButton?.background || colors?.primary || "N/A"}
+              </div>
+            </div>
 
-          {/* Secondary Button */}
-          <div className="space-y-2">
-            <button
-              className="px-6 py-3 text-sm font-medium border transition-all"
-              style={{
-                backgroundColor: buttonSecondary?.background || "transparent",
-                color: buttonSecondary?.textColor || colors?.primary || "#f97316",
-                borderColor: buttonSecondary?.borderColor || colors?.primary || "#f97316",
-                borderRadius: buttonSecondary?.borderRadius || "0px",
-              }}
-            >
-              Secondary Button
-            </button>
-            <div className="text-[10px] text-zinc-600">{buttonSecondary?.borderColor || colors?.primary || "N/A"}</div>
+            {/* Secondary Button */}
+            <div className="space-y-2">
+              <button
+                className="px-6 py-3 text-sm font-medium border transition-all"
+                style={{
+                  backgroundColor: secondaryButton?.background || "transparent",
+                  color: secondaryButton?.textColor || secondaryButton?.color || colors?.primary || "#f97316",
+                  borderColor: secondaryButton?.borderColor || colors?.primary || "#f97316",
+                  borderRadius: secondaryButton?.borderRadius || "0px",
+                }}
+              >
+                Secondary Button
+              </button>
+              <div className="text-[10px] text-zinc-600">
+                {secondaryButton?.borderColor || colors?.primary || "N/A"}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Input */}
-      {(input || colors) && (
+      {(defaultInput || colors) && (
         <div className="mb-8">
           <div className="text-[10px] uppercase tracking-wider text-zinc-600 mb-4">Input Field</div>
           <input
@@ -72,10 +83,10 @@ export function ComponentPreview({ components, colors }: ComponentPreviewProps) 
             placeholder="Input placeholder..."
             className="w-full max-w-sm px-4 py-3 text-sm border outline-none transition-all"
             style={{
-              backgroundColor: input?.background || colors?.background || "#18181b",
-              color: input?.textColor || colors?.textPrimary || "#ffffff",
-              borderColor: input?.borderColor || colors?.secondary || "#3f3f46",
-              borderRadius: input?.borderRadius || "0px",
+              backgroundColor: defaultInput?.background || colors?.background || "#18181b",
+              color: defaultInput?.textColor || defaultInput?.color || colors?.textPrimary || "#ffffff",
+              borderColor: defaultInput?.borderColor || colors?.secondary || "#3f3f46",
+              borderRadius: defaultInput?.borderRadius || "0px",
             }}
           />
         </div>

@@ -2,6 +2,7 @@
 // Uses official @mendable/firecrawl-js SDK
 
 import Firecrawl from '@mendable/firecrawl-js'
+import { z } from 'zod'
 
 const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 
@@ -23,7 +24,103 @@ export interface FirecrawlResponse<T = unknown> {
   error?: string
 }
 
-export interface BrandingProfile {
+// Comprehensive Zod Schema for Brand Extraction using Firecrawl's Extract API
+export const BrandSchema = z.object({
+  // Site metadata
+  siteTitle: z.string().optional(),
+  siteDescription: z.string().optional(),
+
+  // Color system
+  colorScheme: z.enum(['light', 'dark', 'auto']).optional(),
+  colors: z.object({
+    primary: z.string().optional(),
+    secondary: z.string().optional(),
+    accent: z.string().optional(),
+    background: z.string().optional(),
+    textPrimary: z.string().optional(),
+    textSecondary: z.string().optional(),
+    success: z.string().optional(),
+    warning: z.string().optional(),
+    error: z.string().optional(),
+    info: z.string().optional(),
+  }).catchall(z.string()).optional(),
+
+  // Typography system
+  typography: z.object({
+    fontFamilies: z.object({
+      primary: z.string().optional(),
+      heading: z.string().optional(),
+      monospace: z.string().optional(),
+    }).catchall(z.string()).optional(),
+    fontSizes: z.record(z.string(), z.string()).optional(),
+    fontWeights: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    lineHeights: z.record(z.string(), z.string()).optional(),
+  }).optional(),
+
+  // Font families as array (for compatibility)
+  fonts: z.array(z.object({
+    family: z.string(),
+    weights: z.array(z.union([z.string(), z.number()])).optional(),
+    styles: z.array(z.string()).optional(),
+    url: z.string().optional(),
+  })).optional(),
+
+  // Spacing system
+  spacing: z.object({
+    unit: z.string().optional(),
+    scale: z.record(z.string(), z.string()).optional(),
+  }).optional(),
+
+  // Component library patterns
+  components: z.object({
+    buttons: z.record(z.string(), z.any()).optional(),
+    inputs: z.record(z.string(), z.any()).optional(),
+    cards: z.record(z.string(), z.any()).optional(),
+    navigation: z.record(z.string(), z.any()).optional(),
+  }).optional(),
+
+  // Image assets
+  images: z.object({
+    logo: z.string().optional(),
+    favicon: z.string().optional(),
+    ogImage: z.string().optional(),
+    heroImage: z.string().optional(),
+    patterns: z.array(z.string()).optional(),
+  }).optional(),
+
+  // Animation patterns
+  animations: z.object({
+    transitions: z.record(z.string(), z.string()).optional(),
+    durations: z.record(z.string(), z.string()).optional(),
+    easings: z.record(z.string(), z.string()).optional(),
+  }).optional(),
+
+  // Layout patterns
+  layout: z.object({
+    maxWidth: z.string().optional(),
+    breakpoints: z.record(z.string(), z.string()).optional(),
+    grid: z.object({
+      columns: z.number().optional(),
+      gap: z.string().optional(),
+    }).optional(),
+  }).optional(),
+
+  // Brand personality
+  personality: z.object({
+    tone: z.array(z.string()).optional(), // e.g., ['professional', 'friendly', 'technical']
+    keywords: z.array(z.string()).optional(),
+    messagingThemes: z.array(z.string()).optional(),
+    targetAudience: z.string().optional(),
+  }).optional(),
+
+  // Screenshot (base64 or URL)
+  screenshot: z.string().optional(),
+})
+
+export type BrandingProfile = z.infer<typeof BrandSchema>
+
+// Legacy interface for backward compatibility
+export interface BrandingProfileLegacy {
   colorScheme?: 'light' | 'dark' | string
   logo?: string | null
   colors?: {
@@ -95,9 +192,50 @@ class FirecrawlClient {
     }
   }
 
-  // Extract brand identity
-  async extractBrand(url: string): Promise<FirecrawlResponse<{
-    branding?: BrandingProfile
+  // Extract brand identity using Firecrawl's modern extract endpoint
+  async extractBrand(url: string): Promise<FirecrawlResponse<BrandingProfile>> {
+    try {
+      // Use Firecrawl's extract endpoint with comprehensive brand schema
+      const result = await (this.app as any).extract({
+        urls: [url],
+        prompt: `Extract comprehensive brand identity and design system information from this website including:
+- Site metadata (title, description)
+- Color palette (primary, secondary, accent, background, text colors, semantic colors)
+- Typography system (font families, sizes, weights, line heights)
+- Spacing system and design tokens
+- Component patterns (buttons, inputs, cards, navigation)
+- Image assets (logo, favicon, og:image, hero images)
+- Animation patterns (transitions, durations, easings)
+- Layout patterns (max width, breakpoints, grid system)
+- Brand personality (tone, keywords, messaging themes, target audience)
+- Screenshot of the homepage
+
+Focus on extracting the actual CSS values, design tokens, and visual patterns used on the site.`,
+        schema: BrandSchema,
+      })
+
+      if ('error' in result && result.error) {
+        return { success: false, error: String(result.error) }
+      }
+
+      // Extract data from response
+      const extractedData = (result as any).data || result
+
+      return {
+        success: true,
+        data: extractedData as BrandingProfile,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Brand extraction failed",
+      }
+    }
+  }
+
+  // Legacy brand extraction (fallback using scrape endpoint)
+  async extractBrandLegacy(url: string): Promise<FirecrawlResponse<{
+    branding?: BrandingProfileLegacy
     metadata?: Record<string, unknown>
     screenshot?: string
   }>> {

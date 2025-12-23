@@ -23,10 +23,10 @@ export function BrandHeader({ branding, metadata }: BrandHeaderProps) {
 
       <div className="flex items-start gap-6">
         {/* Logo */}
-        {branding.logo && (
+        {branding.images?.logo && (
           <div className="flex-shrink-0 w-20 h-20 bg-zinc-800 border border-zinc-700 flex items-center justify-center p-2">
             <Image
-              src={branding.logo || "/placeholder.svg"}
+              src={branding.images.logo || "/placeholder.svg"}
               alt="Brand Logo"
               width={64}
               height={64}
@@ -76,14 +76,14 @@ export function BrandHeader({ branding, metadata }: BrandHeaderProps) {
           <div className="flex-shrink-0 text-right">
             <div className="text-[10px] uppercase tracking-wider text-zinc-600 mb-2">Personality</div>
             <div className="flex flex-col gap-1">
-              {branding.personality.tone && (
+              {branding.personality.tone && branding.personality.tone.length > 0 && (
                 <span className="px-2 py-1 bg-orange-500/10 text-orange-500 text-[10px] uppercase">
-                  {branding.personality.tone}
+                  {branding.personality.tone[0]}
                 </span>
               )}
-              {branding.personality.energy && (
+              {branding.personality.targetAudience && (
                 <span className="px-2 py-1 bg-zinc-800 text-zinc-400 text-[10px] uppercase">
-                  {branding.personality.energy}
+                  {branding.personality.targetAudience}
                 </span>
               )}
             </div>

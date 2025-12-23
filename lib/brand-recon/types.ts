@@ -1,130 +1,34 @@
 // Brand Recon TypeScript Types
-// Based on Firecrawl branding format response structure
+// Based on Firecrawl's modern extract endpoint with comprehensive brand schema
 
-export interface BrandColors {
-  primary?: string
-  secondary?: string
-  accent?: string
-  background?: string
-  textPrimary?: string
-  textSecondary?: string
-  link?: string
-  success?: string
-  warning?: string
-  error?: string
-}
+import type { BrandingProfile } from '@/lib/firecrawl/client'
+import { z } from 'zod'
 
-export interface BrandFont {
-  family: string
-}
+// Re-export BrandingProfile from Firecrawl client for consistency
+export type { BrandingProfile }
 
-export interface BrandTypography {
-  fontFamilies?: {
-    primary?: string
-    heading?: string
-    code?: string
-  }
-  fontSizes?: {
-    h1?: string
-    h2?: string
-    h3?: string
-    body?: string
-  }
-  fontWeights?: {
-    light?: number
-    regular?: number
-    medium?: number
-    bold?: number
-  }
-  lineHeights?: {
-    heading?: string
-    body?: string
-  }
-}
-
-export interface BrandSpacing {
-  baseUnit?: number
-  borderRadius?: string
-  padding?: Record<string, string>
-  margins?: Record<string, string>
-}
-
-export interface BrandButtonStyle {
-  background?: string
-  textColor?: string
-  borderColor?: string
-  borderRadius?: string
-}
-
-export interface BrandInputStyle {
-  background?: string
-  borderColor?: string
-  borderRadius?: string
-  textColor?: string
-}
-
-export interface BrandComponents {
-  buttonPrimary?: BrandButtonStyle
-  buttonSecondary?: BrandButtonStyle
-  input?: BrandInputStyle
-  icons?: {
-    style?: string
-    size?: string
-  }
-}
-
-export interface BrandImages {
-  logo?: string
-  favicon?: string
-  ogImage?: string
-}
-
-export interface BrandAnimations {
-  duration?: string
-  easing?: string
-  hover?: Record<string, string>
-}
-
-export interface BrandLayout {
-  grid?: {
-    columns?: number
-    gap?: string
-  }
-  headerHeight?: string
-  footerHeight?: string
-}
-
-export interface BrandPersonality {
-  tone?: string
-  energy?: string
-  targetAudience?: string
-}
-
-export interface BrandingProfile {
-  colorScheme?: "light" | "dark"
-  logo?: string
-  colors?: BrandColors
-  fonts?: BrandFont[]
-  typography?: BrandTypography
-  spacing?: BrandSpacing
-  components?: BrandComponents
-  images?: BrandImages
-  animations?: BrandAnimations
-  layout?: BrandLayout
-  personality?: BrandPersonality
-}
+// Helper types for backward compatibility with existing components
+export type BrandColors = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['colors']
+export type BrandTypography = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['typography']
+export type BrandSpacing = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['spacing']
+export type BrandComponents = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['components']
+export type BrandImages = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['images']
+export type BrandAnimations = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['animations']
+export type BrandLayout = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['layout']
+export type BrandPersonality = z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['personality']
+export type BrandFont = NonNullable<z.infer<typeof import('@/lib/firecrawl/client').BrandSchema>['fonts']>[number]
 
 export interface BrandReconResponse {
   success: boolean
   data?: {
     branding: BrandingProfile
     metadata?: {
-      title?: string
-      description?: string
+      title?: string | null
+      description?: string | null
       sourceURL?: string
       statusCode?: number
     }
-    screenshot?: string
+    screenshot?: string | null
   }
   error?: string
 }

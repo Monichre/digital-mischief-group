@@ -61,10 +61,10 @@ export function TypographyCard({ typography, fonts }: TypographyCardProps) {
                 <div className="text-sm text-zinc-300">{fontFamilies.heading}</div>
               </div>
             )}
-            {fontFamilies.code && (
+            {fontFamilies.monospace && (
               <div className="space-y-1">
-                <div className="text-[10px] text-orange-500/70">CODE</div>
-                <div className="text-sm font-mono text-zinc-300">{fontFamilies.code}</div>
+                <div className="text-[10px] text-orange-500/70">MONOSPACE</div>
+                <div className="text-sm font-mono text-zinc-300">{fontFamilies.monospace}</div>
               </div>
             )}
           </div>

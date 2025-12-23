@@ -309,9 +309,6 @@ export default function Home() {
                     <HoloText className='text-orange-500' glitchInterval={4000}>
                       MISCHIEF
                     </HoloText>{' '}
-                    <span className='text-zinc-500 tracking-[0.15em] text-3xl md:text-5xl'>
-                      GROUP
-                    </span>
                   </h1>
                 </div>
               </HUDCorners>
@@ -350,7 +347,7 @@ export default function Home() {
           </h2>
 
           <ScrollReveal y={20} delay={0.3}>
-            <p className='text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-12 leading-relaxed'>
+            <p className='text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-12 leading-8'>
               Digital Mischief is a{' '}
               <span className='text-zinc-200 font-medium'>
                 Systems Engineering Skunkworks
@@ -409,11 +406,11 @@ export default function Home() {
               <GlitchText>
                 <h2 className='text-4xl md:text-6xl font-black mb-8'>
                   AI Everywhere.{' '}
-                  <span className='text-orange-500'>Nowhere It Counts.</span>
+                  <span className='text-orange-500'>Results Are Not.</span>
                 </h2>
               </GlitchText>
 
-              <p className='text-lg text-zinc-400 leading-relaxed mb-16'>
+              <p className='text-xl md:text-2xl text-zinc-400 leading-8 mb-16'>
                 <span className='text-zinc-200'>Tribal knowledge</span> and{' '}
                 <span className='text-zinc-200'>data silos</span> are static.{' '}
                 <span className='text-zinc-200'>Context switching</span> is a
@@ -454,7 +451,7 @@ export default function Home() {
                 ))}
               </StaggerReveal>
 
-              <p className='text-lg text-zinc-300 font-medium'>
+              <p className='text-xl md:text-2xl text-zinc-300 font-medium leading-8'>
                 DMG exists to close that gap.
               </p>
             </div>
@@ -490,26 +487,28 @@ export default function Home() {
             <h2 className='text-3xl md:text-5xl font-black text-white mb-12 leading-tight'>
               The end is near.
               <br />
-              <span className='text-zinc-500'>For some more than others.</span>
+              <span className='text-zinc-500'>
+                For some it's already too late.
+              </span>
             </h2>
 
             {/* Body - Animated strikethrough list */}
             <div className='space-y-4 text-lg md:text-xl text-zinc-300 mb-12'>
               <StrikeOutReveal delay={0} duration={0.5}>
-                <span className='opacity-90'>For your competitors.</span>
+                <span className='opacity-90'>your competitors.</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.3} duration={0.5}>
-                <span className='opacity-80'>For your front-end guy.</span>
+                <span className='opacity-80'>your front-end guy.</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.6} duration={0.5}>
-                <span className='opacity-70'>For your content guy.</span>
+                <span className='opacity-70'>your content guy.</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.9} duration={0.5}>
-                <span className='opacity-60'>For your marketing guy.</span>
+                <span className='opacity-60'>your marketing guy.</span>
               </StrikeOutReveal>
             </div>
 
-            <p className='text-zinc-500 text-base leading-relaxed mb-8'>
+            <p className='text-lg md:text-xl text-zinc-500 leading-8 mb-8'>
               The "Specialist Class" is dying. While they are booking meetings
               and waiting for approvals, we are deploying infrastructure that
               thinks.
@@ -556,7 +555,7 @@ export default function Home() {
                 Your Personal Military-Industrial Complex.
               </p>
 
-              <p className='text-lg text-zinc-500 max-w-3xl mx-auto leading-relaxed'>
+              <p className='text-xl md:text-2xl text-zinc-500 max-w-3xl mx-auto leading-8'>
                 A{' '}
                 <span className='text-zinc-300'>
                   Skunkworks-grade intelligence engine
@@ -707,10 +706,10 @@ export default function Home() {
                   <span className='text-orange-500'>To Understand It.</span>
                 </h2>
               </GlitchText>
-              <p className='text-xl text-zinc-400 leading-relaxed mb-16'>
+              <p className='text-xl md:text-2xl text-zinc-400 leading-8 mb-16'>
                 Meet the team that breaks it.
               </p>
-              <p className='text-center text-zinc-500 italic text-md max-w-2xl mx-auto'>
+              <p className='text-center text-zinc-500 italic text-lg md:text-xl leading-7 max-w-2xl mx-auto'>
                 We're an ideas lab with matches{' '}
                 <Flame className='inline w-3 h-3 text-orange-500' /> — curious
                 enough to blow it up, disciplined enough to put it back together
@@ -736,9 +735,17 @@ export default function Home() {
               <h2 className='text-4xl md:text-5xl font-black mb-8'>
                 The end is near for the Specialist Class.
                 <br />
-                <span className='text-orange-500'>Don't join them.</span>
+                <span className='text-orange-500'>
+                  Don't join them.{' '}
+                  <Flame className='inline w-3 h-3 text-orange-500' /> Join us.
+                </span>
               </h2>
             </GlitchText>
+
+            <p className='text-center text-zinc-500 italic text-lg md:text-xl leading-7 max-w-2xl mx-auto'>
+              If your business runs on 12 disconnected tools and tribal
+              knowledge, you’re already bleeding margin.
+            </p>
             <Magnetic>
               <button
                 onClick={signupForm.open}

@@ -72,11 +72,11 @@ export async function POST(request: NextRequest) {
 
     const { discovery, profile, funding, techStack, customFields, sources } = result.data
 
-    // Also get branding/screenshot
+    // Also get branding/screenshot using modern extract endpoint
     const firecrawl = getFirecrawlClient()
     const brandResult = await firecrawl.extractBrand(discovery.website)
     const screenshot = brandResult.success ? brandResult.data?.screenshot : null
-    const logo = brandResult.success ? brandResult.data?.branding?.logo : null
+    const logo = brandResult.success ? brandResult.data?.images?.logo : null
 
     // Save to database with full agent phase data
     let savedJob: EnrichmentJob | null = null

@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
         const firecrawl = getFirecrawlClient()
         const brandResult = await firecrawl.extractBrand(discovery.website)
         const screenshot = brandResult.success ? brandResult.data?.screenshot : null
-        const logo = brandResult.success ? brandResult.data?.branding?.logo : null
+        const logo = brandResult.success ? brandResult.data?.images?.logo : null
 
         send({
           type: 'phase_complete',

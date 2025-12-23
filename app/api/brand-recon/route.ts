@@ -41,10 +41,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
     // Get Firecrawl client
     const firecrawl = getFirecrawlClient()
 
-    // Extract brand identity
+    // Extract brand identity using Firecrawl's modern extract endpoint
     const result = await firecrawl.extractBrand(normalizedUrl)
 
-    if (!result.success || !result.data?.branding) {
+    if (!result.success || !result.data) {
       // Try to save failed extraction
       try {
         await sql`
@@ -61,9 +61,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
       )
     }
 
-    const branding = result.data.branding
-    const metadata = result.data.metadata
-    const screenshot = result.data.screenshot
+    // New extract endpoint returns BrandingProfile directly with all fields
+    const branding = result.data
+    const screenshot = branding.screenshot || null
+    const siteTitle = branding.siteTitle || null
+    const siteDescription = branding.siteDescription || null
 
     // Save to database
     try {
@@ -75,14 +77,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
           site_title, site_description, screenshot_url, status
         ) VALUES (
           ${inputTrimmed}, ${normalizedUrl}, ${domain},
-          ${branding.colorScheme || null}, ${branding.logo || null},
+          ${branding.colorScheme || null}, ${branding.images?.logo || null},
           ${JSON.stringify(branding.colors)}, ${JSON.stringify(branding.fonts)},
           ${JSON.stringify(branding.typography)}, ${JSON.stringify(branding.spacing)},
           ${JSON.stringify(branding.components)}, ${JSON.stringify(branding.images)},
           ${JSON.stringify(branding.animations)}, ${JSON.stringify(branding.layout)},
           ${JSON.stringify(branding.personality)},
-          ${metadata?.title || null}, ${metadata?.description || null},
-          ${screenshot || null}, 'completed'
+          ${siteTitle}, ${siteDescription},
+          ${screenshot}, 'completed'
         )
       `
     } catch (dbError) {
@@ -105,7 +107,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
       success: true,
       data: {
         branding,
-        metadata,
+        metadata: {
+          title: siteTitle,
+          description: siteDescription,
+        },
         screenshot,
       },
     })
