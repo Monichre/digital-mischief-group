@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Crosshair, RefreshCw, Trash2, ExternalLink, Clock, Ale
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Monitor } from "@/lib/scouts/types"
+import { BotProtection } from "@/components/effects"
 
 export default function ObservePage() {
   const [monitors, setMonitors] = useState<(Monitor & { change_count: number })[]>([])
@@ -54,7 +55,15 @@ export default function ObservePage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200 font-mono">
+    <div className="min-h-screen bg-zinc-950 text-zinc-200 font-mono relative overflow-hidden">
+      {/* Radar scanner background */}
+      <div className="absolute top-0 left-0 right-0 opacity-60 pointer-events-none" style={{
+        maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+      }}>
+        <BotProtection />
+      </div>
+
       <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">

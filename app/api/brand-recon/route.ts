@@ -48,8 +48,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
       // Try to save failed extraction
       try {
         await sql`
-          INSERT INTO brand_extractions (input_url, normalized_url, domain, status, error_message)
-          VALUES (${inputTrimmed}, ${normalizedUrl}, ${domain}, 'failed', ${result.error || "Extraction failed"})
+          INSERT INTO brand_extractions (url, input_url, normalized_url, domain, status, error_message)
+          VALUES (${normalizedUrl}, ${inputTrimmed}, ${normalizedUrl}, ${domain}, 'failed', ${result.error || "Extraction failed"})
         `
       } catch (dbError) {
         console.error("[Brand Recon] DB error saving failed extraction:", dbError)
@@ -71,12 +71,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<BrandReco
     try {
       await sql`
         INSERT INTO brand_extractions (
-          input_url, normalized_url, domain,
+          url, input_url, normalized_url, domain,
           color_scheme, logo_url, colors, fonts, typography, spacing,
           components, images, animations, layout, personality,
           site_title, site_description, screenshot_url, status
         ) VALUES (
-          ${inputTrimmed}, ${normalizedUrl}, ${domain},
+          ${normalizedUrl}, ${inputTrimmed}, ${normalizedUrl}, ${domain},
           ${branding.colorScheme || null}, ${branding.images?.logo || null},
           ${JSON.stringify(branding.colors)}, ${JSON.stringify(branding.fonts)},
           ${JSON.stringify(branding.typography)}, ${JSON.stringify(branding.spacing)},

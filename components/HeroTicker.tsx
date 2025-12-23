@@ -16,17 +16,17 @@ export function HeroTicker({className}: {className?: string}) {
           <div className='absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black/80 to-transparent' />
         </div>
 
-        <div className='flex w-max items-center gap-6 py-3 px-4 whitespace-nowrap text-xs sm:text-sm font-mono tracking-widest text-zinc-200 motion-reduce:animate-none animate-[hero-ticker_22s_linear_infinite]'>
+        <div className='flex w-max items-center gap-10 py-4 px-6 whitespace-nowrap text-base sm:text-lg font-mono tracking-wide text-zinc-200 motion-reduce:animate-none animate-[hero-ticker_22s_linear_infinite]'>
           {[0, 1].flatMap((dup) =>
             HERO_TICKER_ITEMS.map((item, idx) => (
               <div
                 key={`${dup}-${idx}`}
-                className='flex items-center gap-3'
+                className='flex items-center gap-4'
                 aria-hidden={dup === 1}
               >
-                <span className='text-orange-500'>[ {item.tag} ]</span>
-                <span className='text-zinc-200'>{item.text}</span>
-                <span className='text-zinc-700'>//</span>
+                <span className='text-orange-500 font-semibold'>[ {item.tag} ]</span>
+                <span className='text-zinc-300'>{item.text}</span>
+                <span className='text-zinc-600'>//</span>
               </div>
             ))
           )}

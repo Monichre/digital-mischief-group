@@ -5,7 +5,6 @@ import {useRouter} from 'next/navigation'
 import {Command} from 'cmdk'
 import {
   Zap,
-  Palette,
   Users,
   ScanEye,
   Telescope,
@@ -82,82 +81,85 @@ export function CommandMenu({
         label: 'Start Pro ($30/mo)',
         shortcut: '⌘P',
         icon: Zap,
-        action: () => router.push('/loadout'),
+        action: () => {
+          window.open(
+            'https://buy.stripe.com/9B67sM6JF2jWght0gcgMw00',
+            '_blank'
+          )
+        },
         group: 'actions',
       },
       {
-        id: 'brand-recon',
-        label: 'Run Brand Recon',
-        shortcut: '⌘B',
-        icon: Palette,
-        action: () => router.push('/brand-recon'),
-        group: 'actions',
-      },
-      {
-        id: 'enrich',
-        label: 'Enrich Leads',
-        shortcut: '⌘E',
-        icon: Users,
+        id: 'demo',
+        label: 'Run Demo',
+        shortcut: '⌘D',
+        icon: Radar,
         action: () => router.push('/enrich'),
         group: 'actions',
       },
       {
-        id: 'observe',
-        label: 'Set Up Monitor',
-        shortcut: '⌘O',
-        icon: ScanEye,
-        action: () => router.push('/observe'),
-        group: 'actions',
-      },
-      {
-        id: 'research',
-        label: 'Research Mission',
-        shortcut: '⌘R',
-        icon: Telescope,
-        action: () => router.push('/research'),
-        group: 'actions',
-      },
-      // Navigation
-      {
-        id: 'home',
-        label: 'Home',
-        icon: Home,
-        action: () => router.push('/'),
-        group: 'navigation',
-      },
-      {
         id: 'arsenal',
         label: 'Arsenal',
-        icon: Radar,
-        action: () => router.push('/arsenal'),
-        group: 'navigation',
-      },
-      {
-        id: 'scouts',
-        label: 'Sentinels',
+        shortcut: '⌘A',
         icon: Shield,
-        action: () => router.push('/scouts'),
-        group: 'navigation',
+        action: () => router.push('/arsenal'),
+        group: 'actions',
       },
       {
-        id: 'profile',
-        label: 'Profile',
-        icon: User,
-        action: () => router.push('/profile'),
-        group: 'navigation',
+        id: 'intel',
+        label: 'Field Reports',
+        shortcut: '⌘I',
+        icon: Telescope,
+        action: () => router.push('/intel'),
+        group: 'actions',
       },
-      // Support
       {
         id: 'audit',
         label: 'Request Audit',
         icon: MessageSquare,
         action: () => {
-          const url =
-            process.env.NEXT_PUBLIC_CALENDLY_AUDIT_URL ||
-            'mailto:audit@digitalmischief.group?subject=System%20Audit%20Request'
-          window.open(url, '_blank')
+          window.open(
+            'https://calendly.com/liam-liamellis/digital-mischief-group',
+            '_blank'
+          )
         },
-        group: 'support',
+        group: 'actions',
+      },
+      // Navigation
+      {
+        id: 'home',
+        label: 'HQ',
+        icon: Home,
+        action: () => router.push('/'),
+        group: 'navigation',
+      },
+      {
+        id: 'loadout',
+        label: 'Loadout',
+        icon: Zap,
+        action: () => router.push('/loadout'),
+        group: 'navigation',
+      },
+      {
+        id: 'enrich',
+        label: 'Enrich',
+        icon: Users,
+        action: () => router.push('/enrich'),
+        group: 'navigation',
+      },
+      {
+        id: 'observe',
+        label: 'Observe',
+        icon: ScanEye,
+        action: () => router.push('/observe'),
+        group: 'navigation',
+      },
+      {
+        id: 'profile',
+        label: 'Uplink (Profile)',
+        icon: User,
+        action: () => router.push('/profile'),
+        group: 'navigation',
       },
     ],
     [router]
@@ -165,7 +167,6 @@ export function CommandMenu({
 
   const actionItems = items.filter((i) => i.group === 'actions')
   const navItems = items.filter((i) => i.group === 'navigation')
-  const supportItems = items.filter((i) => i.group === 'support')
 
   return (
     <Command.Dialog
@@ -255,32 +256,6 @@ export function CommandMenu({
               }
             >
               {navItems.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Command.Item
-                    key={item.id}
-                    value={item.label}
-                    onSelect={() => handleSelect(item.action)}
-                    className='flex items-center gap-3 px-3 py-3 rounded cursor-pointer data-[selected=true]:bg-orange-500/10 data-[selected=true]:text-white text-zinc-400 hover:text-white transition-colors'
-                  >
-                    <div className='w-8 h-8 flex items-center justify-center border border-zinc-700 bg-zinc-800'>
-                      <Icon className='w-4 h-4' />
-                    </div>
-                    <span className='flex-1 text-sm'>{item.label}</span>
-                  </Command.Item>
-                )
-              })}
-            </Command.Group>
-
-            {/* Support */}
-            <Command.Group
-              heading={
-                <span className='px-2 py-2 text-[10px] font-mono text-zinc-500 tracking-widest'>
-                  // SUPPORT
-                </span>
-              }
-            >
-              {supportItems.map((item) => {
                 const Icon = item.icon
                 return (
                   <Command.Item

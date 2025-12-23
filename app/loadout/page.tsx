@@ -50,7 +50,7 @@ const TIERS = [
     price: '$30',
     period: '/mo',
     description:
-      "The Intel Suite for operators who don't want another 'AI initiative.' Just outputs.",
+      'Pro is the DMG Arsenal: field-tested templates, teardown reports, and deployable system protocols—built for operators.',
     features: [
       'Unlimited Intel Missions (Brand/Research/Observe)',
       'Lead Enrich runs + exports',
@@ -59,11 +59,10 @@ const TIERS = [
       'API access',
     ],
     cta: {
-      label: 'ACTIVATE PRO',
-      href:
-        process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || '/api/stripe/checkout',
+      label: 'DEPLOY PRO',
+      href: 'https://buy.stripe.com/9B67sM6JF2jWght0gcgMw00',
       variant: 'primary' as const,
-      isExternal: !!process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK,
+      isExternal: true,
     },
     icon: Zap,
     highlight: true,
@@ -86,9 +85,7 @@ const TIERS = [
     ],
     cta: {
       label: 'REQUEST AUDIT',
-      href:
-        process.env.NEXT_PUBLIC_CALENDLY_AUDIT_URL ||
-        'mailto:audit@digitalmischief.group?subject=System%20Audit%20Request&body=I%27d%20like%20to%20schedule%20a%20system%20audit.',
+      href: 'https://calendly.com/liam-liamellis/digital-mischief-group',
       variant: 'outline' as const,
       isExternal: true,
     },
@@ -183,12 +180,12 @@ export default function LoadoutPage() {
               </span>
             </div>
 
-            <h1 className='text-4xl md:text-6xl font-black mb-4 tracking-tight'>
+            <h1 className='text-display-lg mb-6'>
               Choose Your{' '}
               <span className='text-orange-500'>Clearance Level</span>
             </h1>
 
-            <p className='text-xl text-zinc-400 max-w-2xl mx-auto'>
+            <p className='text-body-xl text-zinc-400 max-w-2xl mx-auto'>
               The Intel Suite for operators who ship. No pilots, no
               committees—just deployed infrastructure.
             </p>

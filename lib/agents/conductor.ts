@@ -134,6 +134,21 @@ Respond in JSON format:
     }))
   } catch (error) {
     console.error("[Conductor] Analysis failed:", error)
+
+    // Check if it's a credit balance error
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isCreditsError = errorMessage.includes("credit balance") ||
+                          errorMessage.includes("insufficient_quota") ||
+                          (error && typeof error === 'object' && 'status' in error && error.status === 400)
+
+    if (isCreditsError) {
+      onThought({
+        type: "reasoning",
+        content: "⚠️ AI planning unavailable (API credits low). Using default strategy: running all enrichment agents.",
+        timestamp: Date.now(),
+      })
+    }
+
     // Default: run all agents
     return [
       { phase: "company_profile", action: "run" as const, reason: "Default behavior" },
@@ -234,6 +249,52 @@ Keep it under 75 words. Be direct.`
     }
   } catch (error) {
     console.error("[Conductor] Synthesis failed:", error)
+
+    // Check if it's a credit balance error
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isCreditsError = errorMessage.includes("credit balance") ||
+                          errorMessage.includes("insufficient_quota") ||
+                          (error && typeof error === 'object' && 'status' in error && error.status === 400)
+
+    if (isCreditsError) {
+      // Emit a thought about the issue
+      onThought({
+        type: "reasoning",
+        content: "⚠️ AI synthesis unavailable (API credits low). Using data-based summary.",
+        timestamp: Date.now(),
+      })
+
+      // Generate a simple fallback synthesis from the data
+      const parts: string[] = []
+
+      if (context.discovery?.company_name) {
+        parts.push(context.discovery.company_name)
+      }
+
+      if (context.profile?.industry) {
+        parts.push(`is a ${context.profile.industry.toLowerCase()} company`)
+      } else if (context.customFields?.is_personal_site) {
+        parts.push("appears to be a personal website")
+      }
+
+      if (context.profile?.employee_count) {
+        parts.push(`with ${context.profile.employee_count} employees`)
+      }
+
+      if (context.funding?.total_funding && context.funding.total_funding !== "None found") {
+        parts.push(`and ${context.funding.total_funding} in funding`)
+      }
+
+      if (context.customFields?.icp_fit_score && context.customFields.icp_fit_score > 70) {
+        parts.push("— strong ICP fit for B2B outreach")
+      } else if (context.customFields?.icp_fit_score && context.customFields.icp_fit_score < 40) {
+        parts.push("— limited B2B relevance")
+      }
+
+      return parts.length > 0
+        ? parts.join(" ") + "."
+        : "Intelligence gathered. Detailed analysis available in data fields."
+    }
   }
 
   return null

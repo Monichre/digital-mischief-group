@@ -214,11 +214,11 @@ export function MeetTheTeam() {
               </div>
 
               {/* Member Info */}
-              <div className='mt-4 space-y-1'>
-                <h3 className='text-white font-mono text-sm tracking-wide group-hover:text-copper transition-colors duration-300'>
+              <div className='mt-5 space-y-2'>
+                <h3 className='text-white font-mono text-base font-medium tracking-wide group-hover:text-copper transition-colors duration-300'>
                   {member.name}
                 </h3>
-                <p className='text-gray-500 text-xs tracking-wider uppercase'>
+                <p className='text-gray-500 text-sm tracking-wider uppercase'>
                   {member.role}
                 </p>
               </div>

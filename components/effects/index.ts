@@ -12,4 +12,7 @@ export { FloatingElement } from './FloatingElement'
 export { SectionGlow } from './SectionGlow'
 export { SniperScope } from './SniperScope'
 export { StrikeOutReveal } from './StrikeOutReveal'
+export { BotProtection } from './BotProtection'
+export { RoleBasedAccessControl } from './RoleBasedAccessControl'
+export { RealtimeCollaboration } from './RealtimeCollaboration'
 

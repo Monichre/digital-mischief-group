@@ -125,18 +125,18 @@ export const IntelCard = memo(function IntelCard({
         </div>
 
         {/* Subtitle label */}
-        <div className='mb-1 font-mono text-[10px] uppercase tracking-widest text-orange-500/70'>
+        <div className='mb-2 font-mono text-sm uppercase tracking-widest text-orange-500/70'>
           {subtitle}
         </div>
 
         {/* Title */}
-        <h3 className='mb-3 text-xl font-bold text-zinc-100'>{title}</h3>
+        <h3 className='mb-4 text-2xl font-bold text-zinc-100'>{title}</h3>
 
         {/* Divider line */}
-        <div className='mb-3 h-px w-12 bg-gradient-to-r from-orange-500/50 to-transparent' />
+        <div className='mb-4 h-px w-12 bg-gradient-to-r from-orange-500/50 to-transparent' />
 
         {/* Description */}
-        <p className='text-sm leading-relaxed text-zinc-400'>{description}</p>
+        <p className='text-lg leading-relaxed text-zinc-400'>{description}</p>
 
         {/* Bottom fade overlay */}
         <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-zinc-900/50 to-transparent' />

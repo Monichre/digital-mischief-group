@@ -18,6 +18,7 @@ import {
   Telescope,
   MessageSquare,
 } from 'lucide-react'
+import {useState, useRef, useEffect} from 'react'
 import {SignupForm, useSignupForm} from '@/components/SignupForm'
 import {MeetTheTeam} from '@/components/MeetTheTeam'
 import {HeroTicker} from '@/components/HeroTicker'
@@ -45,8 +46,14 @@ import {
   GlowingOrb,
   SectionGlow,
   StrikeOutReveal,
+  RoleBasedAccessControl,
+  RealtimeCollaboration,
 } from '@/components/effects'
-import {useState, useRef, useEffect} from 'react'
+
+// Stripe buy link for PRO ($30/mo)
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/9B67sM6JF2jWght0gcgMw00'
+const CALENDLY_AUDIT_URL =
+  'https://calendly.com/liam-liamellis/digital-mischief-group'
 
 export default function Home() {
   const signupForm = useSignupForm()
@@ -335,7 +342,7 @@ export default function Home() {
             <span className='animate-pulse text-orange-500'>_</span>
           </div>
 
-          <h2 className='text-4xl md:text-6xl font-black mb-8 leading-[1.1]'>
+          <h2 className='text-display-lg mb-10'>
             <span className='text-white'>
               <TypeWriter text='Your Data Is Cold.' speed={50} />
             </span>
@@ -350,9 +357,9 @@ export default function Home() {
           </h2>
 
           <ScrollReveal y={20} delay={0.3}>
-            <p className='text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-8'>
+            <p className='text-body-xl text-zinc-400 max-w-3xl mx-auto mb-10'>
               Digital Mischief is a{' '}
-              <span className='text-zinc-200 font-medium'>
+              <span className='text-zinc-200 font-semibold'>
                 systems skunkworks
               </span>
               . We turn messy AI experiments into governed, production-grade
@@ -375,18 +382,20 @@ export default function Home() {
           >
             {/* Primary CTA - Revenue */}
             <Magnetic>
-              <Link
-                href='/loadout'
+              <a
+                href={STRIPE_PRO_LINK}
+                target='_blank'
+                rel='noopener noreferrer'
                 className='group flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm'
               >
                 <Zap className='w-5 h-5' />
                 <span>[ START PRO — $30/mo ]</span>
                 <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
-              </Link>
+              </a>
             </Magnetic>
             {/* Secondary CTA - Demo */}
             <Link
-              href='/brand-recon'
+              href='/enrich'
               className='group flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all duration-300 rounded-sm glass-panel'
             >
               <Radar className='w-4 h-4 text-orange-500' />
@@ -395,10 +404,7 @@ export default function Home() {
             </Link>
             {/* Tertiary CTA - Audit */}
             <a
-              href={
-                process.env.NEXT_PUBLIC_CALENDLY_AUDIT_URL ||
-                'mailto:audit@digitalmischief.group?subject=System%20Audit%20Request&body=I%27d%20like%20to%20schedule%20a%20system%20audit.'
-              }
+              href={CALENDLY_AUDIT_URL}
               target='_blank'
               rel='noopener noreferrer'
               className='flex items-center gap-2 px-6 py-3 text-zinc-500 hover:text-orange-500 transition-colors text-sm'
@@ -437,12 +443,20 @@ export default function Home() {
                 </h2>
               </GlitchText>
 
-              <p className='text-xl md:text-2xl text-zinc-400 leading-8 mb-16'>
-                <span className='text-zinc-200'>Tribal knowledge</span> and{' '}
-                <span className='text-zinc-200'>data silos</span> are static.{' '}
-                <span className='text-zinc-200'>Context switching</span> is a
-                tax on focus, momentum, and execution.{' '}
-                <span className='text-orange-500 font-medium'>It's fatal.</span>{' '}
+              <p className='text-body-xl text-zinc-400 mb-16'>
+                <span className='text-zinc-200 font-medium'>
+                  Tribal knowledge
+                </span>{' '}
+                and{' '}
+                <span className='text-zinc-200 font-medium'>data silos</span>{' '}
+                are static.{' '}
+                <span className='text-zinc-200 font-medium'>
+                  Context switching
+                </span>{' '}
+                is a tax on focus, momentum, and execution.{' '}
+                <span className='text-orange-500 font-semibold'>
+                  It's fatal.
+                </span>{' '}
                 We build the infrastructure that eliminates the friction and
                 forces your dormant data to go kinetic.
               </p>
@@ -467,18 +481,20 @@ export default function Home() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className='p-6 border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm rounded-lg group hover:border-orange-500/30 transition-colors'
+                    className='p-8 border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm rounded-lg group hover:border-orange-500/30 transition-colors'
                   >
-                    <X className='w-5 h-5 text-red-500/70 mb-4' />
-                    <h3 className='text-sm font-bold text-zinc-200 mb-2'>
+                    <X className='w-6 h-6 text-red-500/70 mb-5' />
+                    <h3 className='text-xl font-bold text-zinc-200 mb-3'>
                       {item.title}
                     </h3>
-                    <p className='text-xs text-zinc-500'>{item.body}</p>
+                    <p className='text-base text-zinc-400 leading-relaxed'>
+                      {item.body}
+                    </p>
                   </div>
                 ))}
               </StaggerReveal>
 
-              <p className='text-xl md:text-2xl text-zinc-300 font-medium leading-8'>
+              <p className='text-body-xl text-zinc-300 font-semibold'>
                 DMG exists to close that gap.
               </p>
             </div>
@@ -520,7 +536,7 @@ export default function Home() {
             </h2>
 
             {/* Body - Animated strikethrough list */}
-            <div className='space-y-4 text-lg md:text-xl text-zinc-300 mb-12'>
+            <div className='space-y-5 text-body-lg text-zinc-300 mb-12'>
               <StrikeOutReveal delay={0} duration={0.5}>
                 <span className='opacity-90'>your competitors.</span>
               </StrikeOutReveal>
@@ -535,13 +551,13 @@ export default function Home() {
               </StrikeOutReveal>
             </div>
 
-            <p className='text-lg md:text-xl text-zinc-500 leading-8 mb-8'>
+            <p className='text-body-lg text-zinc-500 mb-8'>
               The "Specialist Class" is dying. While they are booking meetings
               and waiting for approvals, we are deploying infrastructure that
               thinks.
             </p>
 
-            <p className='text-orange-500 font-bold text-lg text-glow-orange'>
+            <p className='text-body-lg text-orange-500 font-bold text-glow-orange'>
               Stop hiring "Guys." Start installing Sentience.
             </p>
           </div>
@@ -562,6 +578,11 @@ export default function Home() {
           pulseSpeed={5}
         />
 
+        {/* Governance visual - floating behind grid */}
+        <div className='absolute bottom-0 right-0 opacity-40 pointer-events-none hidden lg:block'>
+          <RoleBasedAccessControl size='lg' />
+        </div>
+
         <div className='max-w-6xl mx-auto px-6 relative z-10'>
           <ScrollReveal>
             <div className='text-center max-w-4xl mx-auto mb-20'>
@@ -578,13 +599,13 @@ export default function Home() {
                 </h2>
               </GlitchText>
 
-              <p className='text-2xl text-zinc-300 font-medium mb-4'>
+              <p className='text-heading-md text-zinc-300 font-semibold mb-6'>
                 Your Personal Military-Industrial Complex.
               </p>
 
-              <p className='text-xl md:text-2xl text-zinc-500 max-w-3xl mx-auto leading-8'>
+              <p className='text-body-xl text-zinc-500 max-w-3xl mx-auto'>
                 A{' '}
-                <span className='text-zinc-300'>
+                <span className='text-zinc-300 font-medium'>
                   Skunkworks-grade intelligence engine
                 </span>{' '}
                 that scrapes, maps, and enriches the world. It performs
@@ -625,6 +646,25 @@ export default function Home() {
               classification='restricted'
             />
           </StaggerReveal>
+
+          {/* Daedalus CTA */}
+          <ScrollReveal>
+            <div className='mt-16 text-center'>
+              <a
+                href={STRIPE_PRO_LINK}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='inline-flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm'
+              >
+                <Zap className='w-5 h-5' />
+                <span>[ UNLOCK DAEDALUS — $30/mo ]</span>
+                <ArrowRight className='w-5 h-5' />
+              </a>
+              <p className='mt-4 text-sm text-zinc-500'>
+                Full access to the arsenal. Cancel anytime.
+              </p>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -686,10 +726,10 @@ export default function Home() {
                   <div className='text-4xl font-black text-orange-500 mb-4 transition-all duration-300 group-hover:text-glow-orange'>
                     {step.num}
                   </div>
-                  <h3 className='text-sm font-bold mb-2 text-zinc-200'>
+                  <h3 className='text-base font-bold mb-3 text-zinc-200 tracking-wide'>
                     {step.title}
                   </h3>
-                  <p className='text-xs text-zinc-500 leading-relaxed'>
+                  <p className='text-base text-zinc-400 leading-relaxed'>
                     {step.desc}
                   </p>
                 </div>
@@ -701,17 +741,23 @@ export default function Home() {
             ))}
           </StaggerReveal>
 
-          <div className='text-center'>
+          <div className='text-center flex flex-col sm:flex-row items-center justify-center gap-4'>
             <Magnetic>
-              <button
-                onClick={signupForm.open}
+              <Link
+                href='/loadout'
                 className='inline-flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors btn-glow rounded-sm'
               >
-                <Flame className='w-5 h-5' />
-                [ START WITH A DIAGNOSTIC ]
+                <Zap className='w-5 h-5' />
+                [ ACTIVATE PRO ]
                 <ArrowRight className='w-5 h-5' />
-              </button>
+              </Link>
             </Magnetic>
+            <Link
+              href='/brand-recon'
+              className='inline-flex items-center gap-3 px-6 py-4 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all rounded-sm'
+            >
+              <Radar className='w-4 h-4 text-orange-500' />[ RUN DEMO ]
+            </Link>
           </div>
         </div>
       </section>
@@ -719,8 +765,13 @@ export default function Home() {
       <CircuitDivider />
 
       {/* THE UNIT / TEAM SECTION */}
-      <section id='mission' className='py-32'>
-        <div className='max-w-7xl mx-auto px-6'>
+      <section id='mission' className='py-32 relative overflow-hidden'>
+        {/* Multi-cursor collaboration visual - positioned to the right, out of the way */}
+        <div className='absolute top-1/4 right-0 opacity-20 pointer-events-none hidden lg:block translate-x-1/4'>
+          <RealtimeCollaboration />
+        </div>
+
+        <div className='max-w-7xl mx-auto px-6 relative z-10'>
           <ScrollReveal>
             <div className='max-w-4xl mx-auto text-center'>
               <div className='inline-flex items-center gap-2 px-4 py-2 border border-orange-500/30 text-orange-500 text-xs mb-8 rounded-full glitch-hover cursor-default'>
@@ -733,12 +784,12 @@ export default function Home() {
                   <span className='text-orange-500'>To Understand It.</span>
                 </h2>
               </GlitchText>
-              <p className='text-xl md:text-2xl text-zinc-400 leading-8 mb-16'>
+              <p className='text-body-xl text-zinc-400 mb-12'>
                 Meet the team that breaks it.
               </p>
-              <p className='text-center text-zinc-500 italic text-lg md:text-xl leading-7 max-w-2xl mx-auto'>
+              <p className='text-body-lg text-zinc-500 italic max-w-2xl mx-auto'>
                 We're an ideas lab with matches{' '}
-                <Flame className='inline w-3 h-3 text-orange-500' /> — curious
+                <Flame className='inline w-4 h-4 text-orange-500' /> — curious
                 enough to blow it up, disciplined enough to put it back together
                 again.
               </p>
@@ -769,20 +820,34 @@ export default function Home() {
               </h2>
             </GlitchText>
 
-            <p className='text-center text-zinc-500 italic text-lg md:text-xl leading-7 max-w-2xl mx-auto'>
+            <p className='text-body-lg text-zinc-500 italic max-w-2xl mx-auto mb-10'>
               If your business runs on 12 disconnected tools and tribal
-              knowledge, you’re already bleeding margin.
+              knowledge, you're already bleeding margin.
             </p>
-            <Magnetic>
+            <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
+              <Magnetic>
+                <a
+                  href={STRIPE_PRO_LINK}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='inline-flex items-center gap-3 px-10 py-5 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm text-lg'
+                >
+                  <Zap className='w-6 h-6' />
+                  <span>[ DEPLOY PRO ]</span>
+                  <ArrowRight className='w-6 h-6' />
+                </a>
+              </Magnetic>
               <button
                 onClick={signupForm.open}
-                className='inline-flex items-center gap-3 px-10 py-5 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm text-lg'
+                className='inline-flex items-center gap-3 px-8 py-5 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all rounded-sm text-lg cursor-pointer'
               >
-                <Flame className='w-6 h-6' />
-                <span>[ INITIALIZE SYSTEM AUDIT ]</span>
-                <ArrowRight className='w-6 h-6' />
+                <MessageSquare className='w-5 h-5 text-orange-500' />
+                <span>[ REQUEST AUDIT ]</span>
               </button>
-            </Magnetic>
+            </div>
+            <p className='text-[10px] text-zinc-600 mt-2 font-mono'>
+              // Deliverable: Architecture Map + Friction Report in 48 hours
+            </p>
             <div className='mt-16 text-xs text-zinc-700 font-mono glitch-hover cursor-default'>
               <p>
                 [ DMG ] // Daedalus Systems // 2025 // An Ideas Lab with
@@ -794,16 +859,65 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className='py-8 border-t border-white/5'>
-        <div className='max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600'>
-          <div className='flex items-center gap-2'>
-            <div className='w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)]' />
-            <span>© 2025 Digital Mischief Group</span>
+      <footer className='py-12 border-t border-white/5'>
+        <div className='max-w-7xl mx-auto px-6'>
+          {/* Contact / Feedback Section */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-12'>
+            <div>
+              <h4 className='text-base font-bold text-zinc-300 mb-3 flex items-center gap-2'>
+                <span className='text-orange-500'>{'>'}</span> Report a Bug
+              </h4>
+              <p className='text-sm text-zinc-500 mb-3 leading-relaxed'>
+                Found something broken? Let us know.
+              </p>
+              <a
+                href='mailto:liam@liamellis.dev?subject=DMG%20Bug%20Report'
+                className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
+              >
+                liam@liamellis.dev →
+              </a>
+            </div>
+            <div>
+              <h4 className='text-base font-bold text-zinc-300 mb-3 flex items-center gap-2'>
+                <span className='text-orange-500'>{'>'}</span> Suggestions
+              </h4>
+              <p className='text-sm text-zinc-500 mb-3 leading-relaxed'>
+                Ideas for new features or improvements?
+              </p>
+              <a
+                href='mailto:liam@liamellis.dev?subject=DMG%20Feature%20Suggestion'
+                className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
+              >
+                liam@liamellis.dev →
+              </a>
+            </div>
+            <div>
+              <h4 className='text-base font-bold text-zinc-300 mb-3 flex items-center gap-2'>
+                <span className='text-orange-500'>{'>'}</span> General Inquiries
+              </h4>
+              <p className='text-sm text-zinc-500 mb-3 leading-relaxed'>
+                Questions, partnerships, or just want to chat?
+              </p>
+              <a
+                href='mailto:liam@liamellis.dev?subject=DMG%20Inquiry'
+                className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
+              >
+                liam@liamellis.dev →
+              </a>
+            </div>
           </div>
-          <div className='flex items-center gap-6'>
-            <span>Systems Online</span>
-            <span className='text-green-500'>●</span>
-            <span>All Systems Nominal</span>
+
+          {/* Bottom Bar */}
+          <div className='pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600'>
+            <div className='flex items-center gap-2'>
+              <div className='w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)]' />
+              <span>© 2025 Digital Mischief Group</span>
+            </div>
+            <div className='flex items-center gap-6'>
+              <span>Systems Online</span>
+              <span className='text-green-500'>●</span>
+              <span>All Systems Nominal</span>
+            </div>
           </div>
         </div>
       </footer>
