@@ -16,9 +16,12 @@ import {
   ScanEye,
   Radio,
   Telescope,
+  MessageSquare,
 } from 'lucide-react'
 import {SignupForm, useSignupForm} from '@/components/SignupForm'
 import {MeetTheTeam} from '@/components/MeetTheTeam'
+import {HeroTicker} from '@/components/HeroTicker'
+import {CapabilitiesStrip} from '@/components/CapabilitiesStrip'
 import {TypeWriter} from '@/components/TypeWriter'
 import {DotPattern} from '@/components/DotPattern'
 import {
@@ -240,12 +243,12 @@ export default function Home() {
             </div>
           </div>
           <Magnetic strength={0.15}>
-            <button
-              onClick={signupForm.open}
+            <Link
+              href='/loadout'
               className='px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300 btn-glow'
             >
-              Deploy →
-            </button>
+              LOADOUT →
+            </Link>
           </Magnetic>
         </div>
       </nav>
@@ -347,38 +350,62 @@ export default function Home() {
           </h2>
 
           <ScrollReveal y={20} delay={0.3}>
-            <p className='text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-12 leading-8'>
+            <p className='text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-8'>
               Digital Mischief is a{' '}
               <span className='text-zinc-200 font-medium'>
-                Systems Engineering Skunkworks
+                systems skunkworks
               </span>
-              . We test volatile AI agents in the lab—breaking them so you don't
-              have to—then deploy the governed, bulletproof version into your
-              business.
+              . We turn messy AI experiments into governed, production-grade
+              workflows—then ship them as repeatable tools.
             </p>
+          </ScrollReveal>
+
+          {/* Capabilities Strip - "receipts" */}
+          <ScrollReveal y={10} delay={0.35}>
+            <CapabilitiesStrip />
+          </ScrollReveal>
+
+          <ScrollReveal y={10} delay={0.4}>
+            <HeroTicker />
           </ScrollReveal>
 
           <StaggerReveal
             stagger={0.1}
-            className='flex flex-col sm:flex-row items-center justify-center gap-4'
+            className='flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap'
           >
+            {/* Primary CTA - Revenue */}
             <Magnetic>
-              <button
-                onClick={signupForm.open}
+              <Link
+                href='/loadout'
                 className='group flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm'
               >
-                <Flame className='w-5 h-5' />
-                <span>[ INITIALIZE SYSTEM AUDIT ]</span>
+                <Zap className='w-5 h-5' />
+                <span>[ START PRO — $30/mo ]</span>
                 <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
-              </button>
+              </Link>
             </Magnetic>
+            {/* Secondary CTA - Demo */}
             <Link
-              href='#cortex'
-              className='flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all duration-300 rounded-sm glass-panel'
+              href='/brand-recon'
+              className='group flex items-center gap-2 px-8 py-4 border border-zinc-700 text-zinc-300 hover:border-orange-500/50 hover:text-white transition-all duration-300 rounded-sm glass-panel'
             >
-              <span>[ VIEW THE WEAPON ]</span>
-              <ChevronRight className='w-4 h-4' />
+              <Radar className='w-4 h-4 text-orange-500' />
+              <span>[ RUN LIVE DEMO ]</span>
+              <ChevronRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
             </Link>
+            {/* Tertiary CTA - Audit */}
+            <a
+              href={
+                process.env.NEXT_PUBLIC_CALENDLY_AUDIT_URL ||
+                'mailto:audit@digitalmischief.group?subject=System%20Audit%20Request&body=I%27d%20like%20to%20schedule%20a%20system%20audit.'
+              }
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex items-center gap-2 px-6 py-3 text-zinc-500 hover:text-orange-500 transition-colors text-sm'
+            >
+              <MessageSquare className='w-4 h-4' />
+              <span>REQUEST SYSTEM AUDIT</span>
+            </a>
           </StaggerReveal>
         </div>
 
