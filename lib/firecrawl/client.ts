@@ -192,38 +192,55 @@ class FirecrawlClient {
     }
   }
 
-  // Extract brand identity using Firecrawl's modern extract endpoint
+  // Extract brand identity using Firecrawl's scrape API with branding format
   async extractBrand(url: string): Promise<FirecrawlResponse<BrandingProfile>> {
     try {
-      // Use Firecrawl's extract endpoint with comprehensive brand schema
-      const result = await (this.app as any).extract({
-        urls: [url],
-        prompt: `Extract comprehensive brand identity and design system information from this website including:
-- Site metadata (title, description)
-- Color palette (primary, secondary, accent, background, text colors, semantic colors)
-- Typography system (font families, sizes, weights, line heights)
-- Spacing system and design tokens
-- Component patterns (buttons, inputs, cards, navigation)
-- Image assets (logo, favicon, og:image, hero images)
-- Animation patterns (transitions, durations, easings)
-- Layout patterns (max width, breakpoints, grid system)
-- Brand personality (tone, keywords, messaging themes, target audience)
-- Screenshot of the homepage
-
-Focus on extracting the actual CSS values, design tokens, and visual patterns used on the site.`,
-        schema: BrandSchema,
+      // Use Firecrawl's scrape API with branding and screenshot formats
+      const result = await this.app.scrape(url, {
+        formats: ['branding', 'screenshot'] as any,
       })
 
       if ('error' in result && result.error) {
         return { success: false, error: String(result.error) }
       }
 
-      // Extract data from response
-      const extractedData = (result as any).data || result
+      // Extract branding data from response
+      const brandingData = (result as any).branding
+      const screenshot = (result as any).screenshot
+      const metadata = (result as any).metadata
+
+      if (!brandingData) {
+        return {
+          success: false,
+          error: "No branding data returned from Firecrawl",
+        }
+      }
+
+      // Map legacy branding format to new BrandingProfile format
+      const brandingProfile: BrandingProfile = {
+        siteTitle: metadata?.title || metadata?.ogTitle,
+        siteDescription: metadata?.description || metadata?.ogDescription,
+        colorScheme: brandingData.colorScheme,
+        colors: brandingData.colors,
+        typography: brandingData.typography,
+        fonts: brandingData.fonts,
+        spacing: brandingData.spacing,
+        components: brandingData.components,
+        images: {
+          logo: brandingData.logo,
+          favicon: metadata?.favicon,
+          ogImage: metadata?.ogImage,
+          ...brandingData.images,
+        },
+        animations: brandingData.animations,
+        layout: brandingData.layout,
+        personality: brandingData.personality,
+        screenshot: screenshot,
+      }
 
       return {
         success: true,
-        data: extractedData as BrandingProfile,
+        data: brandingProfile,
       }
     } catch (error) {
       return {
