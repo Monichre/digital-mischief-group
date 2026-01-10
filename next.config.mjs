@@ -6,7 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
- 
+  transpilePackages: ['react-globe.gl', 'globe.gl'],
 }
 
 export default nextConfig
