@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
 import { generateText } from "ai"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { MODELS } from "@/lib/ai/models"
 
 const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 
@@ -16,8 +19,14 @@ function hashContent(content: string): string {
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    const [monitor] = await sql`SELECT * FROM monitors WHERE id = ${id}`
+    const [monitor] = await sql`SELECT * FROM monitors WHERE id = ${id} AND user_id = ${userId}`
 
     if (!monitor) {
       return NextResponse.json({ error: "Monitor not found" }, { status: 404 })
@@ -53,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       let aiSummary = null
       try {
         const { text } = await generateText({
-          model: "openai/gpt-4o-mini",
+          model: MODELS.openai.gpt52,
           prompt: `Summarize what changed on this webpage. Be concise (2-3 sentences).
           
 Old excerpt: ${monitor.last_excerpt || "N/A"}
@@ -67,8 +76,8 @@ New excerpt: ${excerpt}`,
 
       // Record the change
       await sql`
-        INSERT INTO monitor_changes (monitor_id, old_hash, new_hash, old_excerpt, new_excerpt, ai_summary)
-        VALUES (${id}, ${monitor.last_content_hash}, ${newHash}, ${monitor.last_excerpt || null}, ${excerpt}, ${aiSummary})
+        INSERT INTO monitor_changes (monitor_id, old_hash, new_hash, old_excerpt, new_excerpt, ai_summary, user_id)
+        VALUES (${id}, ${monitor.last_content_hash}, ${newHash}, ${monitor.last_excerpt || null}, ${excerpt}, ${aiSummary}, ${userId})
       `
     }
 

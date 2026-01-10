@@ -5,6 +5,7 @@ import { sql } from '@/lib/db/neon'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import type { ResearchStreamEvent, SourceFoundEvent } from '@/lib/research/stream-types'
+import { MODELS } from '@/lib/ai/models'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
@@ -327,7 +328,7 @@ export async function POST(req: NextRequest) {
         ].join('\n\n---\n\n')
 
         const { textStream } = streamText({
-          model: 'anthropic/claude-sonnet-4-20250514' as Parameters<typeof streamText>[0]['model'],
+          model: MODELS.anthropic.sonnet45 as Parameters<typeof streamText>[0]['model'],
           system: `You are a strategic intelligence analyst for DMG (Digital Mischief Group). 
 Your job is to synthesize research findings into actionable intelligence briefs.
 

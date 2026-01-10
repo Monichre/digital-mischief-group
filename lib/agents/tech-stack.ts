@@ -1,6 +1,9 @@
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
 import { TechStackResultSchema, TECH_STACK_EXTRACTION_SCHEMA } from "./schemas"
+import { generateObjectWithFallback } from "./llm-provider"
 import type { Agent, DiscoveryResult, EnrichmentContext, TechStackResult } from "./types"
+import { mapTool, scrapeTool } from "@/lib/firecrawl/ai-tools"
+import { z } from "zod"
 
 // Known technology patterns for classification
 const TECH_PATTERNS = {
@@ -51,7 +54,21 @@ export const techStackAgent: Agent<DiscoveryResult, TechStackResult> = {
     const mainResult = await firecrawl.extract<{ extract: Record<string, unknown> }>(
       discovery.website,
       TECH_STACK_EXTRACTION_SCHEMA,
-      "Identify all technologies, frameworks, programming languages, cloud services, and developer tools mentioned or detected on this website."
+      `You are a technical analyst identifying the technology stack used by this company. Extract:
+
+TECHNOLOGIES: All programming languages, frameworks, tools, and services mentioned (e.g., "Python", "React", "AWS", "Stripe API", "PostgreSQL", "Docker", "Kubernetes")
+INFRASTRUCTURE: Cloud providers and hosting platforms (AWS, Google Cloud, Azure, Vercel, etc.)
+ENGINEERING_BLOG: URL to tech blog or engineering blog if it exists (often /blog, /engineering, /tech)
+
+Look for tech mentions in:
+- Job postings and career pages (/careers, /jobs)
+- About/Company pages
+- Engineering or tech blog
+- Footer links
+- Meta tags and scripts in page source
+- Product descriptions that mention integrations
+
+Be comprehensive - extract all technical terms you find.`
     )
 
     if (mainResult.success && mainResult.data) {
@@ -107,6 +124,60 @@ export const techStackAgent: Agent<DiscoveryResult, TechStackResult> = {
         }
       } catch {
         // Careers page doesn't exist
+      }
+    }
+
+    // Tool-use fallback when structured extraction finds nothing
+    const techCount = languages.size + frameworks.size + infrastructure.size + tools.size
+    if (techCount === 0) {
+      try {
+        const FallbackSchema = z.object({
+          technologies: z.array(z.string()).default([]),
+          infrastructure: z.array(z.string()).default([]),
+          sources: z.array(z.string()).default([]),
+        })
+
+        const { object } = await generateObjectWithFallback({
+          schema: FallbackSchema,
+          tools: { map: mapTool, scrape: scrapeTool },
+          maxSteps: 8,
+          temperature: 0.2,
+          maxTokens: 900,
+          prompt: `Identify this company's technology stack.
+
+Website: ${discovery.website}
+
+Use Firecrawl tools:
+- Map the website to find careers/jobs pages and any developer/engineering blog.
+- Scrape the homepage + the most relevant internal page(s).
+
+Return:
+- technologies: string[] (languages, frameworks, tools, services)
+- infrastructure: string[] (cloud/hosting/CDN)
+- sources: string[] (URLs you relied on)
+
+Be conservative: only list technologies you have evidence for.`,
+        })
+
+        const fallbackSources = object.sources.length ? object.sources : [discovery.website]
+        for (const url of fallbackSources) {
+          if (!sources.includes(url)) sources.push(url)
+        }
+
+        for (const tech of object.technologies) {
+          const category = classifyTechnology(tech)
+          if (category === "languages") languages.add(tech)
+          else if (category === "frameworks") frameworks.add(tech)
+          else if (category === "infrastructure") infrastructure.add(tech)
+          else if (category === "tools") tools.add(tech)
+          else frameworks.add(tech)
+        }
+
+        for (const infra of object.infrastructure) {
+          infrastructure.add(infra)
+        }
+      } catch {
+        // optional fallback
       }
     }
 

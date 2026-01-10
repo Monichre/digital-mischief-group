@@ -25,13 +25,15 @@ export interface FirecrawlResponse<T = unknown> {
 }
 
 // Comprehensive Zod Schema for Brand Extraction using Firecrawl's Extract API
+// Based on: https://docs.firecrawl.dev/features/scrape#branding-profile-structure
 export const BrandSchema = z.object({
-  // Site metadata
-  siteTitle: z.string().optional(),
-  siteDescription: z.string().optional(),
+  // Core theme
+  colorScheme: z.enum(['light', 'dark']).optional(),
+  
+  // Logo URL
+  logo: z.string().optional(),
 
   // Color system
-  colorScheme: z.enum(['light', 'dark', 'auto']).optional(),
   colors: z.object({
     primary: z.string().optional(),
     secondary: z.string().optional(),
@@ -39,25 +41,14 @@ export const BrandSchema = z.object({
     background: z.string().optional(),
     textPrimary: z.string().optional(),
     textSecondary: z.string().optional(),
+    link: z.string().optional(),
     success: z.string().optional(),
     warning: z.string().optional(),
     error: z.string().optional(),
     info: z.string().optional(),
   }).catchall(z.string()).optional(),
 
-  // Typography system
-  typography: z.object({
-    fontFamilies: z.object({
-      primary: z.string().optional(),
-      heading: z.string().optional(),
-      monospace: z.string().optional(),
-    }).catchall(z.string()).optional(),
-    fontSizes: z.record(z.string(), z.string()).optional(),
-    fontWeights: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
-    lineHeights: z.record(z.string(), z.string()).optional(),
-  }).optional(),
-
-  // Font families as array (for compatibility)
+  // Fonts array
   fonts: z.array(z.object({
     family: z.string(),
     weights: z.array(z.union([z.string(), z.number()])).optional(),
@@ -65,19 +56,38 @@ export const BrandSchema = z.object({
     url: z.string().optional(),
   })).optional(),
 
+  // Typography system
+  typography: z.object({
+    fontFamilies: z.object({
+      primary: z.string().optional(),
+      heading: z.string().optional(),
+      code: z.string().optional(),
+      monospace: z.string().optional(),
+    }).catchall(z.string()).optional(),
+    fontSizes: z.record(z.string(), z.string()).optional(),
+    fontWeights: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    lineHeights: z.record(z.string(), z.string()).optional(),
+  }).optional(),
+
   // Spacing system
   spacing: z.object({
-    unit: z.string().optional(),
-    scale: z.record(z.string(), z.string()).optional(),
+    baseUnit: z.number().optional(),
+    borderRadius: z.string().optional(),
+    padding: z.record(z.string(), z.string()).optional(),
+    margins: z.record(z.string(), z.string()).optional(),
   }).optional(),
 
   // Component library patterns
   components: z.object({
-    buttons: z.record(z.string(), z.any()).optional(),
-    inputs: z.record(z.string(), z.any()).optional(),
+    buttonPrimary: z.record(z.string(), z.any()).optional(),
+    buttonSecondary: z.record(z.string(), z.any()).optional(),
+    input: z.record(z.string(), z.any()).optional(),
     cards: z.record(z.string(), z.any()).optional(),
     navigation: z.record(z.string(), z.any()).optional(),
-  }).optional(),
+  }).catchall(z.record(z.string(), z.any())).optional(),
+
+  // Icons
+  icons: z.record(z.string(), z.any()).optional(),
 
   // Image assets
   images: z.object({
@@ -86,33 +96,21 @@ export const BrandSchema = z.object({
     ogImage: z.string().optional(),
     heroImage: z.string().optional(),
     patterns: z.array(z.string()).optional(),
-  }).optional(),
+  }).catchall(z.any()).optional(),
 
   // Animation patterns
-  animations: z.object({
-    transitions: z.record(z.string(), z.string()).optional(),
-    durations: z.record(z.string(), z.string()).optional(),
-    easings: z.record(z.string(), z.string()).optional(),
-  }).optional(),
+  animations: z.record(z.string(), z.any()).optional(),
 
   // Layout patterns
-  layout: z.object({
-    maxWidth: z.string().optional(),
-    breakpoints: z.record(z.string(), z.string()).optional(),
-    grid: z.object({
-      columns: z.number().optional(),
-      gap: z.string().optional(),
-    }).optional(),
-  }).optional(),
+  layout: z.record(z.string(), z.any()).optional(),
 
   // Brand personality
-  personality: z.object({
-    tone: z.array(z.string()).optional(), // e.g., ['professional', 'friendly', 'technical']
-    keywords: z.array(z.string()).optional(),
-    messagingThemes: z.array(z.string()).optional(),
-    targetAudience: z.string().optional(),
-  }).optional(),
+  personality: z.record(z.string(), z.any()).optional(),
 
+  // Site metadata (enriched field, not part of core branding format but useful)
+  siteTitle: z.string().optional(),
+  siteDescription: z.string().optional(),
+  
   // Screenshot (base64 or URL)
   screenshot: z.string().optional(),
 })
@@ -147,6 +145,17 @@ export interface BrandingProfileLegacy {
   animations?: Record<string, unknown>
   layout?: Record<string, unknown>
   personality?: Record<string, unknown>
+}
+
+// Utility to validate extraction results
+function validateExtraction(data: any, context: string): void {
+  if (!data) {
+    throw new Error(`${context}: Returned data is null or undefined`)
+  }
+  
+  if (typeof data === 'object' && Object.keys(data).length === 0) {
+    throw new Error(`${context}: Returned data is an empty object`)
+  }
 }
 
 class FirecrawlClient {
@@ -209,10 +218,12 @@ class FirecrawlClient {
       const screenshot = (result as any).screenshot
       const metadata = (result as any).metadata
 
-      if (!brandingData) {
+      try {
+        validateExtraction(brandingData, "Brand Extraction")
+      } catch (validationError) {
         return {
           success: false,
-          error: "No branding data returned from Firecrawl",
+          error: validationError instanceof Error ? validationError.message : "Validation failed",
         }
       }
 
@@ -288,6 +299,9 @@ class FirecrawlClient {
     prompt?: string
   ): Promise<FirecrawlResponse<T>> {
     try {
+      console.log(`[Firecrawl Extract] URL: ${url}`)
+      console.log(`[Firecrawl Extract] Prompt: ${prompt?.substring(0, 100)}...`)
+
       const result = await this.app.scrape(url, {
         formats: [{
           type: 'json',
@@ -296,12 +310,30 @@ class FirecrawlClient {
         }] as any,
       })
 
+      console.log(`[Firecrawl Extract] Raw response:`, JSON.stringify(result, null, 2).substring(0, 500))
+
       if ('error' in result && result.error) {
+        console.error(`[Firecrawl Extract] Error: ${result.error}`)
         return { success: false, error: String(result.error) }
       }
 
-      return { success: true, data: (result as any).json as T }
+      const extractedData = (result as any).json as T
+      
+      try {
+        validateExtraction(extractedData, "Structured Extraction")
+      } catch (validationError) {
+        console.error(`[Firecrawl Extract] Validation Failed:`, validationError)
+        return {
+          success: false,
+          error: validationError instanceof Error ? validationError.message : "Extraction returned empty data",
+        }
+      }
+
+      console.log(`[Firecrawl Extract] Extracted data:`, JSON.stringify(extractedData, null, 2).substring(0, 500))
+
+      return { success: true, data: extractedData }
     } catch (error) {
+      console.error(`[Firecrawl Extract] Exception:`, error)
       return {
         success: false,
         error: error instanceof Error ? error.message : "Extraction failed",

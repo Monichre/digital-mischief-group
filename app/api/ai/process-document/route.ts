@@ -1,5 +1,6 @@
 import { generateObject } from "ai"
 import { z } from "zod"
+import { MODELS } from "@/lib/ai/models"
 
 export const maxDuration = 60
 
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
 
   try {
     const { object } = await generateObject({
-      model: "anthropic/claude-sonnet-4.5",
+      model: MODELS.anthropic.sonnet45,
       schema: documentExtractionSchema,
       messages: [
         {

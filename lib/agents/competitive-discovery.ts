@@ -1,5 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk"
+import { generateObjectWithFallback } from "./llm-provider"
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { z } from "zod"
 
 // ============================================================================
 // Types
@@ -47,20 +48,19 @@ export async function discoverCompetitors(
   input: CompetitiveInput
 ): Promise<CompetitiveDiscoveryResult> {
   try {
-    const anthropic = new Anthropic()
     const firecrawl = getFirecrawlClient()
 
     // Step 1: Use Claude to generate search queries for competitors
-    const searchQueries = await generateCompetitorSearchQueries(input, anthropic)
+    const searchQueries = await generateCompetitorSearchQueries(input)
 
     // Step 2: Search for competitors using Firecrawl
     const competitorUrls = await searchCompetitors(searchQueries, firecrawl)
 
     // Step 3: Extract competitor info from their websites
-    const competitors = await extractCompetitorInfo(competitorUrls, firecrawl, anthropic)
+    const competitors = await extractCompetitorInfo(competitorUrls, firecrawl)
 
     // Step 4: Analyze source company positioning
-    const positioning = await analyzePositioning(input, competitors, anthropic)
+    const positioning = await analyzePositioning(input, competitors)
 
     return {
       success: true,
@@ -83,8 +83,7 @@ export async function discoverCompetitors(
 // ============================================================================
 
 async function generateCompetitorSearchQueries(
-  input: CompetitiveInput,
-  anthropic: Anthropic
+  input: CompetitiveInput
 ): Promise<string[]> {
   const prompt = `You are a market research analyst. Generate 3-5 search queries to find direct competitors of this company.
 
@@ -101,20 +100,14 @@ Generate search queries that would find:
 Return ONLY a JSON array of search query strings, no explanation.
 Example: ["enterprise CRM software competitors", "best alternatives to Salesforce", "B2B sales automation tools"]`
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
-  })
-
-  const content = response.content[0]
-  if (content.type !== "text") {
-    throw new Error("Unexpected response type from Claude")
-  }
-
   try {
-    const queries = JSON.parse(content.text)
-    return Array.isArray(queries) ? queries : []
+    const { object } = await generateObjectWithFallback({
+      schema: z.array(z.string()),
+      prompt,
+      maxTokens: 600,
+      temperature: 0.3,
+    })
+    return object
   } catch {
     // Fallback: extract queries from text
     return [
@@ -133,7 +126,7 @@ async function searchCompetitors(
 
   for (const query of queries.slice(0, 3)) {
     try {
-      const result = await firecrawl.search(query, { limit: 10 })
+      const result = await firecrawl.search({ query, limit: 10 })
       if (result.success && result.data) {
         for (const item of result.data) {
           if (item.url) {
@@ -151,15 +144,23 @@ async function searchCompetitors(
 
 async function extractCompetitorInfo(
   urls: string[],
-  firecrawl: any,
-  anthropic: Anthropic
+  firecrawl: any
 ): Promise<Competitor[]> {
   const competitors: Competitor[] = []
+
+  const CompetitorExtractSchema = z.object({
+    name: z.string().nullable().optional(),
+    positioning: z.string().nullable().optional(),
+    value_props: z.array(z.string()).default([]),
+    price_tier: z.enum(["budget", "mid-market", "premium", "enterprise"]).nullable().optional(),
+    segment: z.string().nullable().optional(),
+  })
 
   for (const url of urls) {
     try {
       // Scrape competitor website
-      const scrapeResult = await firecrawl.scrapeUrl(url, {
+      const scrapeResult = await firecrawl.scrape({
+        url,
         formats: ["markdown"],
         onlyMainContent: true,
       })
@@ -186,17 +187,14 @@ Extract and return ONLY a JSON object with:
 
 If you cannot extract confident information, return null for that field.`
 
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      })
-
-      const content = response.content[0]
-      if (content.type !== "text") continue
-
       try {
-        const data = JSON.parse(content.text)
+        const { object: data } = await generateObjectWithFallback({
+          schema: CompetitorExtractSchema,
+          prompt,
+          maxTokens: 700,
+          temperature: 0.3,
+        })
+
         if (data.name && data.positioning) {
           const domain = new URL(url).hostname.replace("www.", "")
           competitors.push({
@@ -211,7 +209,7 @@ If you cannot extract confident information, return null for that field.`
           })
         }
       } catch (error) {
-        console.error(`[Extract] JSON parse error for ${url}:`, error)
+        console.error(`[Extract] LLM parse error for ${url}:`, error)
       }
 
       // Limit rate: 2 seconds between scrapes
@@ -229,8 +227,7 @@ If you cannot extract confident information, return null for that field.`
 
 async function analyzePositioning(
   input: CompetitiveInput,
-  competitors: Competitor[],
-  anthropic: Anthropic
+  competitors: Competitor[]
 ): Promise<{
   positioning_statement: string
   value_propositions: string[]
@@ -265,18 +262,23 @@ Generate a comprehensive market positioning analysis. Return ONLY a JSON object:
   "pricing_model": "freemium|subscription|usage-based|enterprise|custom"
 }`
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
+  const PositioningSchema = z.object({
+    positioning_statement: z.string(),
+    value_propositions: z.array(z.string()).default([]),
+    target_segments: z.array(z.string()).default([]),
+    differentiation_points: z.array(z.string()).default([]),
+    price_tier: z
+      .enum(["budget", "mid-market", "premium", "enterprise"])
+      .default("mid-market"),
+    pricing_model: z.string().default("subscription"),
   })
 
-  const content = response.content[0]
-  if (content.type !== "text") {
-    throw new Error("Unexpected response from Claude")
-  }
-
-  const data = JSON.parse(content.text)
+  const { object: data } = await generateObjectWithFallback({
+    schema: PositioningSchema,
+    prompt,
+    maxTokens: 1200,
+    temperature: 0.4,
+  })
 
   return {
     positioning_statement: data.positioning_statement,

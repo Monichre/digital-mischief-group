@@ -1,10 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    const [scout] = await sql`SELECT * FROM scouts WHERE id = ${id}`
+    const [scout] = await sql`SELECT * FROM scouts WHERE id = ${id} AND user_id = ${userId}`
 
     if (!scout) {
       return NextResponse.json({ error: "Scout not found" }, { status: 404 })
@@ -26,8 +34,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    await sql`DELETE FROM scouts WHERE id = ${id}`
+    const result = await sql`DELETE FROM scouts WHERE id = ${id} AND user_id = ${userId} RETURNING id`
+    
+    if (result.length === 0) {
+      return NextResponse.json({ error: "Scout not found or unauthorized" }, { status: 404 })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Failed to delete scout:", error)

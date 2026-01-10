@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
 import { generateText } from "ai"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { MODELS } from "@/lib/ai/models"
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
@@ -154,7 +157,7 @@ async function synthesizeFindings(query: string, findings: Finding[]): Promise<s
 
   try {
     const { text } = await generateText({
-      model: "anthropic/claude-sonnet-4-20250514",
+      model: MODELS.anthropic.sonnet45,
       system: `You are a strategic intelligence analyst for DMG (Digital Mischief Group). 
 Your job is to synthesize research findings into actionable intelligence briefs.
 
@@ -199,9 +202,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
 
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     // Get mission
     const [mission] = await sql`
-      SELECT * FROM research_missions WHERE id = ${id}
+      SELECT * FROM research_missions WHERE id = ${id} AND user_id = ${userId}
     `
 
     if (!mission) {

@@ -1,6 +1,9 @@
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
 import { CustomFieldsResultSchema, LEADERSHIP_EXTRACTION_SCHEMA } from "./schemas"
+import { generateObjectWithFallback } from "./llm-provider"
 import type { Agent, EnrichmentContext, CustomFieldsResult } from "./types"
+import { mapTool, scrapeTool } from "@/lib/firecrawl/ai-tools"
+import { z } from "zod"
 
 // ICP (Ideal Customer Profile) configuration - customize per business
 const ICP_CONFIG = {
@@ -13,40 +16,59 @@ const ICP_CONFIG = {
 
 // Patterns that indicate personal/portfolio sites
 const PERSONAL_SITE_INDICATORS = [
-  "personal", "portfolio", "freelance", "freelancer", "consultant", "blog",
-  "resume", "cv", "about me", "my work", "my projects", "individual"
+  "personal website", "personal site", "portfolio", "freelance", "freelancer", "consultant", "blog",
+  "resume", "cv", "about me", "my work", "my projects", "individual", "hire me", "contact me",
+  "software engineer", "developer", "designer", "writer", "author", "speaker"
 ]
 
 function isPersonalSite(context: EnrichmentContext): boolean {
   const { profile, discovery } = context
-  
-  // Check industry/description for personal site indicators
+  let score = 0
+
+  // 1. Check metadata (title/description/industry)
   const textToCheck = [
     profile?.industry,
     profile?.description,
     profile?.segment,
     discovery?.company_name
   ].filter(Boolean).join(" ").toLowerCase()
-  
+
+  // Strong explicit indicators
   if (PERSONAL_SITE_INDICATORS.some(indicator => textToCheck.includes(indicator))) {
-    return true
+    score += 3
+  }
+
+  // 2. Employee Count Signal
+  // If explicitly 1, it's a strong signal, but could be a solo founder company
+  if (profile?.employee_count === 1) {
+    score += 2
+  } else if (profile?.employee_count && profile.employee_count > 10) {
+    // Large team is strong negative signal
+    score -= 5
+  }
+
+  // 3. Company Structure Evidence (Negative Signals)
+  const hasFunding = !!(context.funding?.total_funding || context.funding?.funding_stage)
+  const hasTechStack = !!(context.techStack?.languages && context.techStack.languages.length > 0)
+  const hasCommercialIndustry = profile?.industry && !["blog", "personal", "portfolio"].includes(profile.industry.toLowerCase())
+
+  if (hasFunding) score -= 5
+  if (hasTechStack) score -= 1 // Tech stack is weak signal (devs have portfolios with stacks)
+  if (hasCommercialIndustry) score -= 1
+
+  // 4. URL/Domain Signals
+  const domain = discovery?.domain?.toLowerCase() || ""
+  if (domain.endsWith(".me") || domain.endsWith(".blog") || domain.includes("portfolio")) {
+    score += 2
   }
   
-  // No employees or employee count of 1 suggests personal
-  if (profile?.employee_count === 1 || profile?.employee_count === null) {
-    // Combined with no funding, likely personal
-    if (!context.funding?.total_funding && !context.funding?.funding_stage) {
-      return true
-    }
+  // 5. "Hire Me" / Resume language
+  if (textToCheck.includes("download resume") || textToCheck.includes("view cv") || textToCheck.includes("hire me")) {
+    score += 3
   }
-  
-  // Segment is explicitly "Individual" or similar
-  if (profile?.segment?.toLowerCase().includes("individual") || 
-      profile?.segment?.toLowerCase().includes("personal")) {
-    return true
-  }
-  
-  return false
+
+  // Threshold for classification
+  return score >= 3
 }
 
 function calculateICPFit(context: EnrichmentContext): { score: number; reasons: string[]; isPersonalSite?: boolean } {
@@ -298,6 +320,65 @@ Return structured data with ceo_name and an executives array.`,
           } catch {
             // Team page doesn't exist
           }
+        }
+      }
+
+      // Method 3: Tool-use fallback (Firecrawl AI SDK)
+      if (!ceoName && keyExecutives.length === 0) {
+        try {
+          const LeadershipSchema = z.object({
+            ceo_name: z.string().nullable(),
+            executives: z
+              .array(
+                z.object({
+                  name: z.string(),
+                  title: z.string(),
+                  linkedin: z.string().nullable().optional(),
+                })
+              )
+              .default([]),
+            sources: z.array(z.string()).default([]),
+          })
+
+          const { object } = await generateObjectWithFallback({
+            schema: LeadershipSchema,
+            tools: { map: mapTool, scrape: scrapeTool },
+            maxSteps: 10,
+            temperature: 0.2,
+            maxTokens: 900,
+            prompt: `Find the leadership/executive team for this entity.
+
+Website: ${discovery.website}
+
+Use Firecrawl tools:
+- Map the site to find the best "about", "team", "leadership", "company" pages.
+- Scrape the most relevant page(s).
+
+Return:
+- ceo_name (string | null)
+- executives: array of { name, title, linkedin? }
+- sources: array of URLs you relied on
+
+If the site is personal/portfolio and no executives exist, return null/empty.`,
+          })
+
+          if (object.ceo_name) {
+            ceoName = object.ceo_name
+            sources["ceo_name"] = object.sources.length ? object.sources : [discovery.website]
+          }
+
+          if (object.executives.length > 0) {
+            for (const exec of object.executives) {
+              keyExecutives.push({
+                name: exec.name,
+                title: exec.title,
+                linkedin: exec.linkedin ?? null,
+              })
+            }
+            sources["key_executives"] = object.sources.length ? object.sources : [discovery.website]
+          }
+        } catch {
+          // optional fallback
         }
       }
     }

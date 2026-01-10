@@ -1,12 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function GET() {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const scouts = await sql`
       SELECT s.*, 
-        (SELECT COUNT(*) FROM scout_results WHERE scout_id = s.id) as result_count
+        (SELECT COUNT(*) FROM scout_results WHERE scout_id = s.id AND user_id = ${userId}) as result_count
       FROM scouts s
+      WHERE s.user_id = ${userId}
       ORDER BY created_at DESC
     `
     return NextResponse.json({ scouts })
@@ -18,6 +27,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const body = await request.json()
     const { name, search_query, schedule, notification_email } = body
 
@@ -26,8 +41,8 @@ export async function POST(request: NextRequest) {
     }
 
     const [scout] = await sql`
-      INSERT INTO scouts (name, search_query, schedule, notification_email)
-      VALUES (${name}, ${search_query}, ${schedule || "manual"}, ${notification_email || null})
+      INSERT INTO scouts (name, search_query, schedule, notification_email, user_id)
+      VALUES (${name}, ${search_query}, ${schedule || "manual"}, ${notification_email || null}, ${userId})
       RETURNING *
     `
 

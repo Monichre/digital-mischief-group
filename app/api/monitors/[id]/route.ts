@@ -1,10 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    const [monitor] = await sql`SELECT * FROM monitors WHERE id = ${id}`
+    const [monitor] = await sql`SELECT * FROM monitors WHERE id = ${id} AND user_id = ${userId}`
 
     if (!monitor) {
       return NextResponse.json({ error: "Monitor not found" }, { status: 404 })
@@ -12,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const changes = await sql`
       SELECT * FROM monitor_changes 
-      WHERE monitor_id = ${id} 
+      WHERE monitor_id = ${id} AND user_id = ${userId}
       ORDER BY created_at DESC
       LIMIT 50
     `
@@ -26,8 +34,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    await sql`DELETE FROM monitors WHERE id = ${id}`
+    const result = await sql`DELETE FROM monitors WHERE id = ${id} AND user_id = ${userId} RETURNING id`
+
+    if (result.length === 0) {
+      return NextResponse.json({ error: "Monitor not found or unauthorized" }, { status: 404 })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Failed to delete monitor:", error)

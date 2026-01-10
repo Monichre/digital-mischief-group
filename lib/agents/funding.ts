@@ -1,6 +1,9 @@
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
 import { FundingResultSchema, FUNDING_EXTRACTION_SCHEMA } from "./schemas"
+import { generateObjectWithFallback } from "./llm-provider"
 import type { Agent, DiscoveryResult, EnrichmentContext, FundingResult } from "./types"
+import { scrapeTool, searchTool } from "@/lib/firecrawl/ai-tools"
+import { z } from "zod"
 
 export const fundingAgent: Agent<DiscoveryResult, FundingResult> = {
   name: "funding",
@@ -23,7 +26,24 @@ export const fundingAgent: Agent<DiscoveryResult, FundingResult> = {
     const mainResult = await firecrawl.extract<{ extract: Record<string, unknown> }>(
       discovery.website,
       FUNDING_EXTRACTION_SCHEMA,
-      "Extract any funding information, investment rounds, or investor details mentioned on this page."
+      `You are analyzing company funding and investment history. Extract:
+
+FUNDING_STAGE: Current funding stage (Pre-Seed, Seed, Series A, Series B, Series C, etc., IPO, or "Public" if publicly traded)
+TOTAL_FUNDING: Total amount raised across all rounds (e.g., "$50M", "$1.2B")
+LAST_ROUND_DATE: Date of most recent funding round (month/year)
+LAST_ROUND_AMOUNT: Amount raised in most recent round
+INVESTORS: List of investor names (VCs, angel investors, firms)
+VALUATION: Company valuation if mentioned (e.g., "$500M")
+IS_PUBLIC: true if this is a publicly traded company (look for stock ticker symbols)
+
+Look for funding info in:
+- About/Company pages
+- Press releases and news sections
+- Investor relations pages
+- Footer mentions of investors or "Backed by X"
+- Homepage hero sections often mention recent funding
+
+If no funding information is found, leave fields null. For private companies with no disclosed funding, that's normal.`
     )
 
     if (mainResult.success && mainResult.data) {
@@ -85,6 +105,70 @@ export const fundingAgent: Agent<DiscoveryResult, FundingResult> = {
         } catch {
           // Press page doesn't exist
         }
+      }
+    }
+
+    // Tool-use fallback when structured extraction yields nothing
+    const hasFundingSignals = Boolean(
+      extractedData.funding_stage ||
+        extractedData.total_funding ||
+        extractedData.last_round_amount ||
+        (Array.isArray(extractedData.investors) && extractedData.investors.length > 0) ||
+        extractedData.is_public === true
+    )
+
+    if (!hasFundingSignals) {
+      try {
+        const FundingFallbackSchema = z.object({
+          funding_stage: z.string().nullable(),
+          total_funding: z.string().nullable(),
+          last_round_date: z.string().nullable(),
+          last_round_amount: z.string().nullable(),
+          investors: z.array(z.string()).default([]),
+          valuation: z.string().nullable(),
+          is_public: z.boolean().default(false),
+          sources: z.array(z.string()).default([]),
+        })
+
+        const { object } = await generateObjectWithFallback({
+          schema: FundingFallbackSchema,
+          tools: { search: searchTool, scrape: scrapeTool },
+          maxSteps: 8,
+          temperature: 0.2,
+          maxTokens: 900,
+          prompt: `Find funding/investment information for this company.
+
+Company: ${discovery.company_name}
+Website: ${discovery.website}
+Domain: ${discovery.domain}
+
+Use Firecrawl tools:
+- Search for funding announcements, Crunchbase-like summaries, investor pages, press releases.
+- Scrape 1-3 high-confidence results.
+
+Return:
+- funding_stage (string | null)
+- total_funding (string | null)
+- last_round_date (string | null)
+- last_round_amount (string | null)
+- investors (string[])
+- valuation (string | null)
+- is_public (boolean)
+- sources (array of URLs you relied on)
+
+If nothing is found, return null/empty fields.`,
+        })
+
+        const fallbackSources = object.sources.length ? object.sources : [discovery.website]
+        for (const [key, value] of Object.entries(object)) {
+          if (key === "sources") continue
+          if (value != null && value !== "" && !extractedData[key]) {
+            extractedData[key] = value
+            sources[key] = fallbackSources
+          }
+        }
+      } catch {
+        // optional fallback
       }
     }
 

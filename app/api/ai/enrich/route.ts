@@ -1,5 +1,6 @@
 import { streamObject } from "ai"
 import { z } from "zod"
+import { MODELS } from "@/lib/ai/models"
 
 export const maxDuration = 60
 
@@ -57,7 +58,7 @@ Analyze this input and provide detailed company intelligence. If it's an email, 
 Be thorough but accurate. If you don't have information for a field, omit it rather than guessing. Estimate the enrichmentScore based on how complete and confident your data is.`
 
   const result = streamObject({
-    model: "openai/gpt-4o-mini",
+    model: MODELS.openai.gpt52,
     prompt,
     schema: companyEnrichmentSchema,
   })

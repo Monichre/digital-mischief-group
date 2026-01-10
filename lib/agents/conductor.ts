@@ -1,9 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk"
+import { generateObjectWithFallback, generateWithFallback, isLLMCreditError } from "./llm-provider"
 import { runDiscoveryAgent } from "./discovery"
 import { runCompanyProfileAgent } from "./company-profile"
 import { runFundingAgent } from "./funding"
 import { runTechStackAgent } from "./tech-stack"
 import { runCustomFieldsAgent } from "./custom-fields"
+import { z } from "zod"
 import type {
   EnrichmentInput,
   EnrichmentContext,
@@ -38,7 +39,68 @@ export interface ConductorOptions {
   abortSignal?: AbortSignal
 }
 
-const anthropic = new Anthropic()
+const ConductorPlanSchema = z.object({
+  analysis: z.string(),
+  decisions: z.array(
+    z.object({
+      phase: z.enum(["company_profile", "funding", "tech_stack", "custom_fields"]),
+      action: z.enum(["run", "skip", "modify"]),
+      reason: z.string(),
+    })
+  ),
+})
+
+function isLikelyPersonalSite(discovery: NonNullable<EnrichmentContext["discovery"]>): boolean {
+  const domain = discovery.domain.toLowerCase()
+  const companyName = discovery.company_name.toLowerCase()
+  const personalDomains = [
+    "github.io",
+    "notion.site",
+    "substack.com",
+    "medium.com",
+    "read.cv",
+    "carrd.co",
+  ]
+
+  if (domain.endsWith(".me")) return true
+  if (personalDomains.some((d) => domain.endsWith(d))) return true
+  if (companyName.includes("portfolio") || companyName.includes("personal")) return true
+
+  return false
+}
+
+function defaultPlan(
+  discovery: EnrichmentContext["discovery"],
+  _input: EnrichmentInput
+): ConductorDecision[] {
+  if (!discovery) {
+    return [
+      { phase: "company_profile", action: "run", reason: "Default behavior" },
+      { phase: "funding", action: "run", reason: "Default behavior" },
+      { phase: "tech_stack", action: "run", reason: "Default behavior" },
+      { phase: "custom_fields", action: "run", reason: "Default behavior" },
+    ]
+  }
+
+  const lowConfidence = discovery.confidence < 0.6
+  const likelyPersonal = isLikelyPersonalSite(discovery)
+
+  if (lowConfidence || likelyPersonal) {
+    return [
+      { phase: "company_profile", action: "run", reason: "Need basic firmographics" },
+      { phase: "funding", action: "skip", reason: "Low-confidence or likely personal site" },
+      { phase: "tech_stack", action: "skip", reason: "Low-confidence or likely personal site" },
+      { phase: "custom_fields", action: "run", reason: "Confirm entity type + compute ICP fit" },
+    ]
+  }
+
+  return [
+    { phase: "company_profile", action: "run", reason: "Standard enrichment" },
+    { phase: "funding", action: "run", reason: "Standard enrichment" },
+    { phase: "tech_stack", action: "run", reason: "Standard enrichment" },
+    { phase: "custom_fields", action: "run", reason: "Standard enrichment" },
+  ]
+}
 
 // Conductor analyzes discovery results and decides next steps
 async function analyzeDiscoveryAndPlan(
@@ -100,62 +162,36 @@ Respond in JSON format:
 }`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      messages: [{ role: "user", content: prompt }],
+    const { object } = await generateObjectWithFallback({
+      schema: ConductorPlanSchema,
+      prompt,
+      maxTokens: 800,
+      temperature: 0.5,
     })
 
-    const text = response.content[0]
-    if (text.type !== "text") {
-      throw new Error("Unexpected response type")
-    }
-
-    // Parse JSON from response
-    const jsonMatch = text.text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error("No JSON found in response")
-    }
-
-    const result = JSON.parse(jsonMatch[0])
-
-    // Emit analysis as thought
     onThought({
       type: "observation",
-      content: result.analysis,
+      content: object.analysis,
       timestamp: Date.now(),
     })
 
-    // Convert to ConductorDecisions
-    return result.decisions.map((d: { phase: AgentPhase; action: string; reason: string }) => ({
+    return object.decisions.map((d) => ({
       phase: d.phase,
-      action: d.action as "run" | "skip" | "modify",
+      action: d.action,
       reason: d.reason,
     }))
   } catch (error) {
     console.error("[Conductor] Analysis failed:", error)
 
-    // Check if it's a credit balance error
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const isCreditsError = errorMessage.includes("credit balance") ||
-                          errorMessage.includes("insufficient_quota") ||
-                          (error && typeof error === 'object' && 'status' in error && error.status === 400)
-
-    if (isCreditsError) {
+    if (isLLMCreditError(error)) {
       onThought({
         type: "reasoning",
-        content: "⚠️ AI planning unavailable (API credits low). Using default strategy: running all enrichment agents.",
+        content: "⚠️ AI planning unavailable (provider error / credits). Using heuristic planning.",
         timestamp: Date.now(),
       })
     }
 
-    // Default: run all agents
-    return [
-      { phase: "company_profile", action: "run" as const, reason: "Default behavior" },
-      { phase: "funding", action: "run" as const, reason: "Default behavior" },
-      { phase: "tech_stack", action: "run" as const, reason: "Default behavior" },
-      { phase: "custom_fields", action: "run" as const, reason: "Default behavior" },
-    ]
+    return defaultPlan(discovery, input)
   }
 }
 
@@ -190,20 +226,19 @@ Website: ${context.discovery?.website}
 Respond with just the insight sentence, no explanation.`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 100,
-      messages: [{ role: "user", content: prompt }],
+    const response = await generateWithFallback({
+      prompt,
+      maxTokens: 100,
+      temperature: 0.7,
     })
 
-    const text = response.content[0]
-    if (text.type === "text" && text.text.trim()) {
+    if (response.text.trim()) {
       onThought({
         type: "insight",
-        content: text.text.trim(),
+        content: response.text.trim(),
         timestamp: Date.now(),
       })
-      return text.text.trim()
+      return response.text.trim()
     }
   } catch {
     // Reflection is optional, don't fail
@@ -237,26 +272,17 @@ Write a brief that:
 Keep it under 75 words. Be direct.`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 150,
-      messages: [{ role: "user", content: prompt }],
+    const response = await generateWithFallback({
+      prompt,
+      maxTokens: 150,
+      temperature: 0.7,
     })
 
-    const text = response.content[0]
-    if (text.type === "text") {
-      return text.text.trim()
-    }
+    return response.text.trim()
   } catch (error) {
     console.error("[Conductor] Synthesis failed:", error)
 
-    // Check if it's a credit balance error
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const isCreditsError = errorMessage.includes("credit balance") ||
-                          errorMessage.includes("insufficient_quota") ||
-                          (error && typeof error === 'object' && 'status' in error && error.status === 400)
-
-    if (isCreditsError) {
+    if (isLLMCreditError(error)) {
       // Emit a thought about the issue
       onThought({
         type: "reasoning",

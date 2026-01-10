@@ -1,11 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 // GET all research missions
 export async function GET() {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const missions = await sql`
       SELECT * FROM research_missions 
+      WHERE user_id = ${userId}
       ORDER BY created_at DESC 
       LIMIT 50
     `
@@ -19,6 +28,12 @@ export async function GET() {
 // POST create new research mission
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { name, query, depth = "standard", sources = ["perplexity", "exa"] } = await req.json()
 
     if (!name || !query) {
@@ -26,8 +41,8 @@ export async function POST(req: NextRequest) {
     }
 
     const [mission] = await sql`
-      INSERT INTO research_missions (name, query, depth, sources, status)
-      VALUES (${name}, ${query}, ${depth}, ${sources}, 'pending')
+      INSERT INTO research_missions (name, query, depth, sources, status, user_id)
+      VALUES (${name}, ${query}, ${depth}, ${sources}, 'pending', ${userId})
       RETURNING *
     `
 

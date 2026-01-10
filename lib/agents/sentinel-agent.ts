@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk"
+import { generateObjectWithFallback } from "./llm-provider"
 import type { Scout, ScoutResult } from "../scouts/types"
 import type {
   SentinelAnalysis,
@@ -8,8 +8,58 @@ import type {
   TrendSignal,
   OpportunityScore,
 } from "../scouts/stream-types"
+import { z } from "zod"
 
-const anthropic = new Anthropic()
+const ExtractedItemSchema = z.object({
+  url: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  entities: z.array(z.string()).default([]),
+  details: z.array(z.string()).default([]),
+  relevance_score: z.number().min(0).max(100),
+})
+
+type ExtractedItem = z.infer<typeof ExtractedItemSchema>
+
+const CompetitiveIntelSchema = z.array(
+  z.object({
+    competitor_name: z.string().optional(),
+    action_type: z.enum([
+      "product_launch",
+      "pricing_change",
+      "feature_release",
+      "partnership",
+      "funding",
+      "other",
+    ]),
+    summary: z.string(),
+    impact: z.enum(["high", "medium", "low"]),
+    url: z.string(),
+  })
+)
+
+const TrendSignalSchema = z.array(
+  z.object({
+    trend_name: z.string(),
+    strength: z.number().min(0).max(100),
+    evidence: z.array(z.string()),
+    emerging: z.boolean(),
+  })
+)
+
+const SynthesisSchema = z.object({
+  insights: z.array(
+    z.object({
+      type: z.enum(["competitive", "trend", "opportunity", "threat"]),
+      title: z.string(),
+      description: z.string(),
+      confidence: z.number().min(0).max(100),
+      priority: z.enum(["high", "medium", "low"]),
+      actionable: z.boolean(),
+    })
+  ),
+  synthesis: z.string(),
+})
 
 export interface SentinelAgentOptions {
   onThought?: (thought: ConductorThought) => void
@@ -41,7 +91,7 @@ async function extractRelevantContent(
   results: ScoutResult[],
   scoutContext: Scout,
   onThought?: (thought: ConductorThought) => void
-): Promise<{ url: string; title: string; content: string; metadata?: any }[]> {
+): Promise<ExtractedItem[]> {
   emitThought('action', `Analyzing ${results.length} search results...`, onThought, 'extraction')
 
   const prompt = `You are analyzing search results for competitive intelligence. Extract the most relevant and important information from these results.
@@ -84,18 +134,20 @@ Return JSON array of extracted content:
 Only include results with relevance_score > 30.`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }],
+    const { object } = await generateObjectWithFallback({
+      schema: z.array(ExtractedItemSchema),
+      prompt,
+      maxTokens: 2000,
+      temperature: 0.3,
     })
 
-    const content = response.content[0]
-    if (content.type === "text") {
-      const extracted = JSON.parse(content.text)
-      emitThought('observation', `Extracted ${extracted.length} relevant items from search results`, onThought, 'extraction')
-      return extracted
-    }
+    emitThought(
+      'observation',
+      `Extracted ${object.length} relevant items from search results`,
+      onThought,
+      'extraction'
+    )
+    return object
   } catch (error) {
     emitThought('observation', `Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`, onThought, 'extraction')
   }
@@ -105,7 +157,7 @@ Only include results with relevance_score > 30.`
 
 // Phase 2: Analyze competitive signals
 async function analyzeCompetitiveSignals(
-  extracted: any[],
+  extracted: ExtractedItem[],
   scoutContext: Scout,
   onThought?: (thought: ConductorThought) => void,
   onCompetitiveIntel?: (intel: CompetitiveIntel) => void
@@ -143,26 +195,22 @@ Return JSON array:
 Only include significant, actionable competitive intelligence.`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 3000,
-      messages: [{ role: "user", content: prompt }],
+    const { object: intel } = await generateObjectWithFallback({
+      schema: CompetitiveIntelSchema,
+      prompt,
+      maxTokens: 1500,
+      temperature: 0.3,
     })
 
-    const content = response.content[0]
-    if (content.type === "text") {
-      const intel: CompetitiveIntel[] = JSON.parse(content.text)
+    emitThought('reasoning', `Found ${intel.length} competitive signals`, onThought, 'competitive')
 
-      emitThought('reasoning', `Found ${intel.length} competitive signals`, onThought, 'competitive')
+    // Emit each intel finding
+    intel.forEach(item => {
+      if (onCompetitiveIntel) onCompetitiveIntel(item)
+      emitThought('insight', `${item.competitor_name}: ${item.summary}`, onThought, 'competitive')
+    })
 
-      // Emit each intel finding
-      intel.forEach(item => {
-        if (onCompetitiveIntel) onCompetitiveIntel(item)
-        emitThought('insight', `${item.competitor_name}: ${item.summary}`, onThought, 'competitive')
-      })
-
-      return intel
-    }
+    return intel
   } catch (error) {
     emitThought('observation', `Competitive analysis failed: ${error instanceof Error ? error.message : 'Unknown'}`, onThought, 'competitive')
   }
@@ -172,7 +220,7 @@ Only include significant, actionable competitive intelligence.`
 
 // Phase 3: Detect trends
 async function detectTrends(
-  extracted: any[],
+  extracted: ExtractedItem[],
   onThought?: (thought: ConductorThought) => void,
   onTrend?: (trend: TrendSignal) => void
 ): Promise<TrendSignal[]> {
@@ -203,25 +251,21 @@ Return JSON array:
 Only include trends with strength > 40.`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2000,
-      messages: [{ role: "user", content: prompt }],
+    const { object: trends } = await generateObjectWithFallback({
+      schema: TrendSignalSchema,
+      prompt,
+      maxTokens: 1200,
+      temperature: 0.3,
     })
 
-    const content = response.content[0]
-    if (content.type === "text") {
-      const trends: TrendSignal[] = JSON.parse(content.text)
+    emitThought('reasoning', `Detected ${trends.length} market trends`, onThought, 'trends')
 
-      emitThought('reasoning', `Detected ${trends.length} market trends`, onThought, 'trends')
+    trends.forEach(trend => {
+      if (onTrend) onTrend(trend)
+      emitThought('insight', `Trend: ${trend.trend_name} (strength: ${trend.strength})`, onThought, 'trends')
+    })
 
-      trends.forEach(trend => {
-        if (onTrend) onTrend(trend)
-        emitThought('insight', `Trend: ${trend.trend_name} (strength: ${trend.strength})`, onThought, 'trends')
-      })
-
-      return trends
-    }
+    return trends
   } catch (error) {
     emitThought('observation', `Trend detection failed: ${error instanceof Error ? error.message : 'Unknown'}`, onThought, 'trends')
   }
@@ -231,7 +275,7 @@ Only include trends with strength > 40.`
 
 // Phase 4: Score opportunities
 async function scoreOpportunities(
-  extracted: any[],
+  extracted: ExtractedItem[],
   scoutContext: Scout,
   onThought?: (thought: ConductorThought) => void
 ): Promise<OpportunityScore[]> {
@@ -253,7 +297,7 @@ async function scoreOpportunities(
   return opportunities.slice(0, 10) // Top 10
 }
 
-function determineOpportunityType(item: any): string {
+function determineOpportunityType(item: ExtractedItem): string {
   const summary = (item.summary || '').toLowerCase()
 
   if (summary.includes('partnership') || summary.includes('integration')) return 'partnership'
@@ -311,26 +355,22 @@ Return JSON:
 }`
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2000,
-      messages: [{ role: "user", content: prompt }],
+    const { object: result } = await generateObjectWithFallback({
+      schema: SynthesisSchema,
+      prompt,
+      maxTokens: 1200,
+      temperature: 0.4,
     })
 
-    const content = response.content[0]
-    if (content.type === "text") {
-      const result = JSON.parse(content.text)
+    emitThought('insight', `Generated ${result.insights.length} actionable insights`, onThought, 'synthesis')
 
-      emitThought('insight', `Generated ${result.insights.length} actionable insights`, onThought, 'synthesis')
+    // Emit each insight
+    result.insights.forEach((insight: AIInsight) => {
+      if (onInsight) onInsight(insight)
+      emitThought('insight', `${insight.title}: ${insight.description}`, onThought, 'synthesis')
+    })
 
-      // Emit each insight
-      result.insights.forEach((insight: AIInsight) => {
-        if (onInsight) onInsight(insight)
-        emitThought('insight', `${insight.title}: ${insight.description}`, onThought, 'synthesis')
-      })
-
-      return result
-    }
+    return result
   } catch (error) {
     emitThought('observation', `Synthesis failed: ${error instanceof Error ? error.message : 'Unknown'}`, onThought, 'synthesis')
   }

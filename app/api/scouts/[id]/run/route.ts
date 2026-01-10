@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
@@ -85,8 +87,14 @@ async function searchFirecrawl(query: string) {
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const { id } = await params
-    const [scout] = await sql`SELECT * FROM scouts WHERE id = ${id}`
+    const [scout] = await sql`SELECT * FROM scouts WHERE id = ${id} AND user_id = ${userId}`
 
     if (!scout) {
       return NextResponse.json({ error: "Scout not found" }, { status: 404 })
@@ -107,8 +115,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     let insertedCount = 0
     for (const result of newResults) {
       await sql`
-        INSERT INTO scout_results (scout_id, url, title, snippet, source, metadata)
-        VALUES (${id}, ${result.url}, ${result.title}, ${result.snippet}, ${result.source}, ${JSON.stringify(result)})
+        INSERT INTO scout_results (scout_id, url, title, snippet, source, metadata, user_id)
+        VALUES (${id}, ${result.url}, ${result.title}, ${result.snippet}, ${result.source}, ${JSON.stringify(result)}, ${userId})
       `
       insertedCount++
     }

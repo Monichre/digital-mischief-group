@@ -3,7 +3,8 @@ import { sql } from "@/lib/db/neon"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { orchestrateEnrichment, type EnrichmentInput } from "@/lib/agents"
-import Anthropic from "@anthropic-ai/sdk"
+import { generateWithFallback } from "@/lib/agents/llm-provider"
+import { z } from "zod"
 
 export const maxDuration = 300
 
@@ -17,32 +18,97 @@ interface BatchStreamInput {
   generateSynthesis?: boolean
 }
 
-interface EnrichedResult {
-  company_name: string | null
-  company_description: string | null
-  industry: string | null
-  segment: string | null
-  employee_count: number | null
-  headquarters: string | null
-  website: string | null
-  funding_stage: string | null
-  funding_total: string | null
-  investors: string[]
-  technologies: string[]
-  tech_signals: { ai_adoption: boolean; modern_stack: boolean; cloud_native: boolean }
-  leadership: Array<{ name: string; title: string; linkedin: string | null }>
-  ceo_name: string | null
-  icp_fit_score: number
-  icp_fit_reasons: string[]
-  buying_signals: Array<{ signal: string; confidence: number }>
-  sources: string[]
-  synthesis?: string
+// Robust Zod Schema for Enriched Result
+const EnrichedResultSchema = z.object({
+  company_name: z.string().nullable(),
+  company_description: z.string().nullable(),
+  industry: z.string().nullable(),
+  segment: z.string().nullable(),
+  employee_count: z.string().nullable().or(z.number().nullable().transform(String)),
+  headquarters: z.string().nullable(),
+  website: z.string().nullable(),
+  funding_stage: z.string().nullable(),
+  funding_total: z.string().nullable(),
+  investors: z.array(z.string()),
+  technologies: z.array(z.string()),
+  tech_signals: z.object({
+    ai_adoption: z.boolean(),
+    modern_stack: z.boolean(),
+    cloud_native: z.boolean(),
+  }),
+  leadership: z.array(z.object({
+    name: z.string(),
+    title: z.string(),
+    linkedin: z.string().nullable(),
+  })),
+  ceo_name: z.string().nullable(),
+  icp_fit_score: z.number(),
+  icp_fit_reasons: z.array(z.string()),
+  buying_signals: z.array(z.object({
+    signal: z.string(),
+    confidence: z.number(),
+  })),
+  sources: z.array(z.string()),
+  synthesis: z.string().optional(),
+})
+
+type EnrichedResult = z.infer<typeof EnrichedResultSchema>
+
+// Helper to safely map raw/cached data to EnrichedResult
+function mapToEnrichedResult(source: any, source_type: 'cache' | 'fresh'): EnrichedResult {
+  // Normalize source structure based on type
+  const discovery = source_type === 'cache' ? source.discovery_data : source.discovery
+  const profile = source_type === 'cache' ? source.profile_data : source.profile
+  const funding = source_type === 'cache' ? source.funding_data : source.funding
+  const techStack = source_type === 'cache' ? source.tech_stack_data : source.techStack
+  const customFields = source_type === 'cache' ? source.custom_fields_data : source.customFields
+  
+  // Safe extraction with explicit nulls
+  const result = {
+    company_name: discovery?.company_name || source.company_name || null,
+    company_description: profile?.description || source.company_description || null,
+    industry: profile?.industry || source.industry || null,
+    segment: profile?.segment || null,
+    employee_count: profile?.employee_count || source.employee_count || null,
+    headquarters: profile?.headquarters || source.headquarters || null,
+    website: discovery?.website || source.website || null,
+    
+    funding_stage: funding?.funding_stage || null,
+    funding_total: funding?.total_funding || source.funding_total || null,
+    investors: Array.isArray(funding?.investors) ? funding.investors : [],
+    
+    technologies: Array.isArray(source.technologies) ? source.technologies : 
+                 (Array.isArray(techStack?.languages) ? [
+                   ...techStack.languages, 
+                   ...techStack.frameworks, 
+                   ...techStack.tools
+                 ] : []),
+                 
+    tech_signals: {
+      ai_adoption: Boolean(techStack?.signals?.ai_adoption),
+      modern_stack: Boolean(techStack?.signals?.modern_stack),
+      cloud_native: Boolean(techStack?.signals?.cloud_native),
+    },
+    
+    leadership: Array.isArray(customFields?.key_executives) ? customFields.key_executives : 
+               (Array.isArray(source.leadership) ? source.leadership : []),
+               
+    ceo_name: customFields?.ceo_name || null,
+    
+    icp_fit_score: Number(customFields?.icp_fit_score || source.icp_fit_score || 0),
+    icp_fit_reasons: Array.isArray(customFields?.icp_fit_reasons) ? customFields.icp_fit_reasons : [],
+    
+    buying_signals: Array.isArray(customFields?.buying_signals) ? customFields.buying_signals : [],
+    
+    sources: Array.isArray(source.sources) ? source.sources : [],
+  }
+
+  // Validate and return (strips unknown fields, coerces types where specified)
+  return EnrichedResultSchema.parse(result)
 }
 
 async function generateSynthesis(result: EnrichedResult): Promise<string | null> {
   try {
-    const anthropic = new Anthropic()
-    
     const prompt = `You are an intelligence analyst at a strategic sales consultancy. Based on the enrichment data below, write a concise 2-3 sentence "Why This Company Matters" brief for a sales team.
 
 Company: ${result.company_name}
@@ -66,20 +132,17 @@ Write a brief that:
 
 Keep it under 100 words. Be direct and actionable.`
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 200,
-      messages: [{ role: "user", content: prompt }],
+    const response = await generateWithFallback({
+      prompt,
+      maxTokens: 200,
+      temperature: 0.7,
     })
 
-    const text = response.content[0]
-    if (text.type === "text") {
-      return text.text
-    }
-    return null
+    return response.text
   } catch (error) {
     console.error("[Synthesis] Error:", error)
-    return null
+    // Return a simple data-based fallback instead of null
+    return `${result.company_name} - ${result.industry || 'Company'} with ICP fit score ${result.icp_fit_score}/100. ${result.employee_count ? `${result.employee_count} employees.` : ''} ${result.funding_total ? `Raised ${result.funding_total}.` : ''}`
   }
 }
 
@@ -171,26 +234,7 @@ export async function POST(request: NextRequest) {
             `
 
             if (cached.length > 0 && cached[0].discovery_data) {
-              result = {
-                company_name: cached[0].company_name,
-                company_description: cached[0].company_description,
-                industry: cached[0].industry,
-                segment: cached[0].profile_data?.segment || null,
-                employee_count: cached[0].employee_count,
-                headquarters: cached[0].headquarters,
-                website: cached[0].website,
-                funding_stage: cached[0].funding_data?.funding_stage || null,
-                funding_total: cached[0].funding_total,
-                investors: cached[0].funding_data?.investors || [],
-                technologies: cached[0].technologies || [],
-                tech_signals: cached[0].tech_stack_data?.signals || { ai_adoption: false, modern_stack: false, cloud_native: false },
-                leadership: cached[0].leadership || [],
-                ceo_name: cached[0].custom_fields_data?.ceo_name || null,
-                icp_fit_score: cached[0].icp_fit_score || 0,
-                icp_fit_reasons: cached[0].icp_fit_reasons || [],
-                buying_signals: cached[0].buying_signals || [],
-                sources: cached[0].sources || [],
-              }
+              result = mapToEnrichedResult(cached[0], 'cache')
 
               send("row_progress", {
                 rowId: row.id,
@@ -233,28 +277,11 @@ export async function POST(request: NextRequest) {
               continue
             }
 
+            // Map using safe helper
+            result = mapToEnrichedResult(enrichResult.data, 'fresh')
+            
+            // Destructure for DB save (still needed for separate columns)
             const { discovery, profile, funding, techStack, customFields, sources } = enrichResult.data
-
-            result = {
-              company_name: discovery.company_name,
-              company_description: profile.description,
-              industry: profile.industry,
-              segment: profile.segment,
-              employee_count: profile.employee_count,
-              headquarters: profile.headquarters,
-              website: discovery.website,
-              funding_stage: funding.funding_stage,
-              funding_total: funding.total_funding,
-              investors: funding.investors,
-              technologies: [...techStack.languages, ...techStack.frameworks, ...techStack.tools],
-              tech_signals: techStack.signals,
-              leadership: customFields.key_executives,
-              ceo_name: customFields.ceo_name,
-              icp_fit_score: customFields.icp_fit_score,
-              icp_fit_reasons: customFields.icp_fit_reasons,
-              buying_signals: customFields.buying_signals,
-              sources,
-            }
 
             // Save to DB
             try {

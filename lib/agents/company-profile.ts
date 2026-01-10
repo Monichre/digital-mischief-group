@@ -1,6 +1,9 @@
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
 import { CompanyProfileResultSchema, COMPANY_PROFILE_EXTRACTION_SCHEMA } from "./schemas"
+import { generateObjectWithFallback } from "./llm-provider"
 import type { Agent, DiscoveryResult, EnrichmentContext, CompanyProfileResult } from "./types"
+import { extractTool, mapTool, scrapeTool } from "@/lib/firecrawl/ai-tools"
+import { z } from "zod"
 
 function classifySegment(employeeCount: number | null): "SMB" | "Mid-Market" | "Enterprise" | "Unknown" {
   if (!employeeCount) return "Unknown"
@@ -40,7 +43,16 @@ export const companyProfileAgent: Agent<DiscoveryResult, CompanyProfileResult> =
     const mainResult = await firecrawl.extract<{ extract: Record<string, unknown> }>(
       discovery.website,
       COMPANY_PROFILE_EXTRACTION_SCHEMA,
-      "Extract company firmographic information including industry, headquarters location, employee count, founding year, and business model (B2B/B2C)."
+      `You are extracting key company information for B2B sales intelligence. Look for:
+
+INDUSTRY: What sector/vertical is this company in? (e.g., "Financial Services", "SaaS", "E-commerce", "Healthcare Technology")
+HEADQUARTERS: Where is the company based? (City, State/Country)
+EMPLOYEES: How many people work here? Look for "About Us", company pages, or footer mentions. If range like "50-200", use the lower number.
+FOUNDED: What year was the company established?
+BUSINESS MODEL: Who are their customers? (B2B = businesses, B2C = consumers, B2B2C = both)
+DESCRIPTION: What does this company do? Brief 1-2 sentence summary.
+
+Extract from any visible text including headers, footers, About pages, and metadata. Be thorough.`
     )
 
     if (mainResult.success && mainResult.data) {
@@ -77,6 +89,68 @@ export const companyProfileAgent: Agent<DiscoveryResult, CompanyProfileResult> =
         } catch {
           // About page doesn't exist, continue
         }
+      }
+    }
+
+    // Tool-use fallback (Firecrawl AI SDK) when structured extraction is empty/unreliable
+    const hasAnyCoreField = Boolean(
+      extractedData.industry ||
+        extractedData.headquarters ||
+        extractedData.employee_count ||
+        extractedData.year_founded ||
+        extractedData.description
+    )
+
+    if (!hasAnyCoreField) {
+      try {
+        const FallbackSchema = z.object({
+          industry: z.string().nullable(),
+          headquarters: z.string().nullable(),
+          employee_count: z.union([z.number(), z.string()]).nullable(),
+          employee_range: z.string().nullable(),
+          year_founded: z.number().nullable(),
+          business_type: z.string().nullable(),
+          description: z.string().nullable(),
+          sources: z.array(z.string()).default([]),
+        })
+
+        const { object } = await generateObjectWithFallback({
+          schema: FallbackSchema,
+          tools: { map: mapTool, scrape: scrapeTool, extract: extractTool },
+          maxSteps: 8,
+          temperature: 0.2,
+          maxTokens: 900,
+          prompt: `Extract firmographic data for this company.
+
+Website: ${discovery.website}
+
+Use Firecrawl tools to gather evidence:
+- Use map to find the best "about", "company", "team", "careers", or "press" pages.
+- Use scrape on the homepage + 1-2 relevant internal pages.
+
+Return:
+- industry (string | null)
+- headquarters (string | null)
+- employee_count (number | string | null)
+- employee_range (string | null)
+- year_founded (number | null)
+- business_type (string | null)
+- description (string | null)
+- sources (array of URLs you relied on)
+
+If you cannot find a field, return null for it.`,
+        })
+
+        const fallbackSources = object.sources.length ? object.sources : [discovery.website]
+        for (const [key, value] of Object.entries(object)) {
+          if (key === "sources") continue
+          if (value != null && value !== "" && !extractedData[key]) {
+            extractedData[key] = value
+            sources[key] = fallbackSources
+          }
+        }
+      } catch {
+        // optional fallback
       }
     }
 

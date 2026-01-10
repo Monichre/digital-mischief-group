@@ -1,12 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db/neon"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function GET() {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const monitors = await sql`
       SELECT m.*, 
-        (SELECT COUNT(*) FROM monitor_changes WHERE monitor_id = m.id) as change_count
+        (SELECT COUNT(*) FROM monitor_changes WHERE monitor_id = m.id AND user_id = ${userId}) as change_count
       FROM monitors m
+      WHERE m.user_id = ${userId}
       ORDER BY created_at DESC
     `
     return NextResponse.json({ monitors })
@@ -18,6 +27,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = session.user.id
+
     const body = await request.json()
     const { name, url, check_interval_seconds, notification_email } = body
 
@@ -26,8 +41,8 @@ export async function POST(request: NextRequest) {
     }
 
     const [monitor] = await sql`
-      INSERT INTO monitors (name, url, check_interval_seconds, notification_email)
-      VALUES (${name}, ${url}, ${check_interval_seconds || 86400}, ${notification_email || null})
+      INSERT INTO monitors (name, url, check_interval_seconds, notification_email, user_id)
+      VALUES (${name}, ${url}, ${check_interval_seconds || 86400}, ${notification_email || null}, ${userId})
       RETURNING *
     `
 

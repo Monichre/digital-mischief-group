@@ -1,6 +1,7 @@
 import { generateObject } from "ai"
 import { z } from "zod"
 import * as cheerio from "cheerio"
+import { MODELS } from "@/lib/ai/models"
 
 export const maxDuration = 30
 
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
     if (content.length > 100) {
       try {
         const { object } = await generateObject({
-          model: "openai/gpt-4o-mini",
+          model: MODELS.openai.gpt52,
           schema: structuredContentSchema,
           prompt: `Analyze this web page content and extract structured information:
 
