@@ -3,11 +3,19 @@
 import {useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Loader2, Zap} from 'lucide-react'
+import {authClient} from '@/lib/auth-client'
 
 export function UpgradeButton({className}: {className?: string}) {
   const [loading, setLoading] = useState(false)
+  const {data: session} = authClient.useSession()
 
   const handleUpgrade = async () => {
+    // Check if user is authenticated before calling checkout
+    if (!session?.user) {
+      window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(window.location.pathname)}`
+      return
+    }
+
     setLoading(true)
     try {
       const res = await fetch('/api/stripe/checkout', {
@@ -21,6 +29,8 @@ export function UpgradeButton({className}: {className?: string}) {
       })
 
       if (!res.ok) {
+        const data = await res.json()
+        console.error('Checkout error:', data)
         throw new Error('Failed to create checkout session')
       }
 

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "claude-mem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/claude-mem"],
+      "env": {
+        "CLAUDE_MEM_PROJECT": "digital-mischief-group"
+      }
+    }
+  }
+}

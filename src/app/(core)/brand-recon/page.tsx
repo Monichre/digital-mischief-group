@@ -117,7 +117,8 @@ export default function BrandReconPage() {
           </div>
 
           {/* Input Form */}
-          <ProGate>
+          {/* TODO: Re-enable ProGate after testing */}
+          {/* <ProGate> */}
             <form onSubmit={handleSubmit} className='max-w-2xl mx-auto mb-16'>
               <div className='relative'>
                 {/* Corner Accents */}
@@ -259,7 +260,7 @@ export default function BrandReconPage() {
                 </details>
               </div>
             )}
-          </ProGate>
+          {/* </ProGate> */}
         </div>
       </main>
     </div>

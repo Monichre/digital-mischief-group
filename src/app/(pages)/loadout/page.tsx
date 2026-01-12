@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import {useState} from 'react'
 import {cn} from '@/lib/utils'
+import {authClient} from '@/lib/auth-client'
 
 // =============================================================================
 // CONSTANTS
@@ -101,6 +102,7 @@ const TIERS = [
 
 export default function LoadoutPage() {
   const [hoveredTier, setHoveredTier] = useState<string | null>(null)
+  const {data: session} = authClient.useSession()
 
   const handleProClick = async (tier: (typeof TIERS)[0]) => {
     // If it's the operator tier and we don't have a payment link, use the checkout API
@@ -108,6 +110,13 @@ export default function LoadoutPage() {
       tier.id === 'operator' &&
       !process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
     ) {
+      // Check if user is authenticated before calling checkout
+      if (!session?.user) {
+        // Redirect to sign-in with callback to return here
+        window.location.href = `/sign-in?callbackUrl=${encodeURIComponent('/loadout')}`
+        return
+      }
+
       try {
         const res = await fetch('/api/stripe/checkout', {
           method: 'POST',
@@ -116,8 +125,12 @@ export default function LoadoutPage() {
             priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
           }),
         })
-        const {url} = await res.json()
-        if (url) window.location.href = url
+        const data = await res.json()
+        if (!res.ok) {
+          console.error('Checkout error:', data)
+          return
+        }
+        if (data.url) window.location.href = data.url
       } catch (error) {
         console.error('Checkout error:', error)
       }
