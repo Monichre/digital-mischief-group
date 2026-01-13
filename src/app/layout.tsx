@@ -9,7 +9,6 @@ import {MenuToggle} from '@/components/MenuToggle'
 import {CommandMenuProvider} from '@/components/CommandMenu'
 import {GoogleAnalytics} from '@/components/analytics/GoogleAnalytics'
 import {AnalyticsProvider} from '@/components/analytics/AnalyticsProvider'
-import {CookieConsent} from '@/components/analytics/CookieConsent'
 
 const shareTechMono = Share_Tech_Mono({
   weight: '400',
@@ -59,7 +58,6 @@ export default function RootLayout({
               </div>
             </CommandMenuProvider>
           </MenuProvider>
-          <CookieConsent />
         </AnalyticsProvider>
       </body>
     </html>

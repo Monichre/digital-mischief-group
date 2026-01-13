@@ -163,10 +163,10 @@ export async function GET(req: Request) {
 
 // Client-side auth hook (components)
 'use client'
-import { useSession } from '@/lib/auth-client'
+import { authClient } from '@/lib/auth-client'
 
 export function Component() {
-  const { data: session, isPending } = useSession()
+  const { data: session, isPending } = authClient.useSession()
   if (isPending) return <LoadingSpinner />
   if (!session) return <SignInPrompt />
   // Render authenticated UI

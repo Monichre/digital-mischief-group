@@ -420,6 +420,54 @@ src/
 
 ---
 
+#### Ticket #28: Bolster Resend Integration & User Sign Up + Engagement Layer
+**Priority:** P1 | **Effort:** TBD | **Module:** Auth/Engagement
+
+- [ ] TBD
+
+---
+
+#### Ticket #29: War Games - AI Sandbox Arsenal
+**Priority:** P1 | **Effort:** 2-3 weeks | **Module:** Arsenal/Conversion
+
+Transform `/arsenal` into an interactive "AI War Games" sandbox for pre-signup experimentation.
+
+**Full Planning Docs:** `docs/features/war-games/`
+
+- [ ] **Week 1: Foundation**
+  - [ ] Create migration `011-sandbox-tables.sql` (sessions, executions, conversions)
+  - [ ] Implement session management `/api/sandbox/session/route.ts`
+  - [ ] Create `lib/sandbox/rate-limiter.ts` (daily limits, cooldowns, token limits)
+  - [ ] Build first workflow: Agent Routing (`lib/sandbox/workflows/agent-routing.ts`)
+  - [ ] Create basic UI shell (`SituationRoom`, `MissionSelector`, `UsageIndicator`)
+
+- [ ] **Week 2: Workflows + UI**
+  - [ ] Parallel Processing workflow
+  - [ ] Web Search workflow (Firecrawl integration)
+  - [ ] PDF Ingest workflow
+  - [ ] Form Enrichment workflow
+  - [ ] Prompt Evaluation workflow
+  - [ ] Complete `WorkflowExecutor` streaming UI
+  - [ ] Build side panels (`SystemStatus`, `ActivityFeed`, `GlobalNetwork`)
+
+- [ ] **Week 3: Conversion + Polish**
+  - [ ] Create `ConversionGate.tsx` with trigger detection
+  - [ ] Analytics integration (PostHog or similar)
+  - [ ] Error handling + retry logic
+  - [ ] Performance optimization
+  - [ ] Accessibility audit
+  - [ ] Mobile optimization
+
+**Acceptance Criteria:**
+- 6 AI workflows functional in sandbox
+- Rate limiting enforces daily/cooldown limits
+- Conversion gate triggers at appropriate moments
+- Analytics tracks full funnel (session → execution → conversion)
+- <2s p95 response time
+- 15%+ conversion rate target
+
+---
+
 ## 🟢 Medium-Term Tickets (1-2 Months)
 
 ### 🟢 P2: Platform Features

@@ -11,10 +11,12 @@ export async function GET() {
 
   try {
     const users = await sql`
-      SELECT 
-        id, name, email, image, 
+      SELECT
+        id, name, email, image,
         stripe_customer_id, subscription_status, credits,
-        created_at
+        created_at,
+        city, region, country, country_code,
+        latitude, longitude, timezone, geolocation_updated_at
       FROM "user"
       WHERE id = ${session.user.id}
     `
@@ -60,6 +62,16 @@ export async function GET() {
         credits: user.credits || 0,
         createdAt: user.created_at,
         hasStripeCustomer: !!user.stripe_customer_id,
+      },
+      geolocation: {
+        city: user.city,
+        region: user.region,
+        country: user.country,
+        countryCode: user.country_code,
+        latitude: user.latitude ? parseFloat( user.latitude ) : null,
+        longitude: user.longitude ? parseFloat( user.longitude ) : null,
+        timezone: user.timezone,
+        updatedAt: user.geolocation_updated_at,
       },
       usage: {
         enrichments: {

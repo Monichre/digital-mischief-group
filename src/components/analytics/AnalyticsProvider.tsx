@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSession } from '@/lib/auth-client'
-import { identifyUser, setUserProperties, trackSessionStart } from '@/lib/analytics/events'
+import { authClient } from '@/lib/auth-client'
+import { identifyUser, setUserProperties, trackEvent } from '@/lib/analytics/events'
 import { usePageTracking, useTimeOnPage, useScrollTracking } from '@/lib/analytics/hooks'
 
 /**
@@ -15,7 +15,7 @@ import { usePageTracking, useTimeOnPage, useScrollTracking } from '@/lib/analyti
  * - Automatically tracks page views, time on page, scroll depth
  */
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, isPending } = useSession()
+  const { data: session, isPending } = authClient.useSession()
 
   // Enable automatic tracking hooks
   usePageTracking()
@@ -31,7 +31,13 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     if (!sessionId) {
       sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       sessionStorage.setItem('analytics_session_id', sessionId)
-      trackSessionStart()
+
+      // Track session start
+      trackEvent('session_start', {
+        session_id: sessionId,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent,
+      })
     }
   }, [])
 
