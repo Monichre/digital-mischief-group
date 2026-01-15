@@ -192,6 +192,70 @@ This log tracks all major decisions made during the War Games feature developmen
 
 ---
 
+### Decision #6: Route Naming and Navigation
+**Date**: 2026-01-XX
+**Phase**: Implementation
+**Status**: ✅ Decided
+
+**Context**: Need to update all navigation links from `/arsenal` to new route structure
+
+**Options Considered**:
+1. Keep `/arsenal` route name
+2. Change to `/field-report` (as originally planned)
+3. Use `/war-games` for actual page, `/field-report` for navigation
+
+**Decision**: Use `/war-games` for the actual page route, update all navigation to `/field-report`
+
+**Rationale**:
+- `/war-games` is more descriptive of the feature
+- `/field-report` maintains brand consistency in navigation
+- Clear separation between internal route and user-facing navigation
+- All existing lab components already reference `/war-games`
+
+**Impact**:
+- Updated all navigation components (FullscreenMenu, CommandMenu, CapabilitiesStrip, page.tsx)
+- Updated middleware protected routes
+- Updated documentation references
+- Page route remains at `/war-games` for lab integration
+
+---
+
+### Decision #7: Lab Component Integration Strategy
+**Date**: 2026-01-XX
+**Phase**: Implementation
+**Status**: ✅ Decided
+
+**Context**: Need to integrate existing lab components (AgentSandbox, PromptLab, DocumentLab) into war-games page
+
+**Options Considered**:
+1. Create separate routes for each lab
+2. Embed labs directly in war-games page with conditional rendering
+3. Use modal/overlay pattern for labs
+
+**Decision**: Embed labs directly in war-games page with conditional rendering based on selected mission
+
+**Rationale**:
+- Maintains Situation Room aesthetic
+- Keeps users in context
+- Simpler routing structure
+- Better UX flow (no page navigation)
+- Labs already exist and are functional
+
+**Impact**:
+- War-games page imports and conditionally renders lab components
+- Mission selection triggers appropriate lab display
+- Labs wrapped in consistent dark tactical theme containers
+- Maintains all existing lab functionality
+
+**Lab Integration Status**:
+- ✅ AgentSandbox - Integrated
+- ✅ PromptLab - Integrated
+- ✅ DocumentLab - Integrated
+- ⏳ Document Pipeline - Needs lab component creation
+- ⏳ Enrich Profile - Needs lab component creation
+
+---
+
 ## 🔮 Pending Decisions
 
 The following decisions are awaiting input from Phase 3 Clarifying Questions:

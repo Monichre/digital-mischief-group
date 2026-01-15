@@ -2,7 +2,7 @@
 
 **Phase**: Architecture Design
 **Date**: 2026-01-10
-**Status**: ⏳ Pending (Awaiting Phase 3 decisions)
+**Status**: ✅ Approved & Partially Implemented
 
 ---
 
@@ -68,11 +68,12 @@ This document will present 2-3 implementation approaches with different trade-of
 **Philosophy**: Hybrid approach - custom where it matters, Cult UI where it helps
 
 ### Key Decisions
-- Database for tracking (future-proof analytics)
+- **Upstash Redis** for session tracking (10-20x faster than SQL, auto-cleanup)
 - Custom Situation Room shell (brand alignment)
-- Cult UI workflow components (speed + quality)
+- Lab component integration (AgentSandbox, PromptLab, DocumentLab)
 - Single primary LLM, easy to add others later
 - Basic analytics, A/B testing deferred
+- **Zero SQL tables** - lightweight, edge-optimized approach
 
 ### Trade-offs
 - ✅ Balanced speed and quality (2-3 weeks)
@@ -83,9 +84,9 @@ This document will present 2-3 implementation approaches with different trade-of
 - ❌ Not as fast as Approach 1
 
 ### Timeline
-- Week 1: Database + sessions + agent routing workflow
-- Week 2: Remaining workflows + basic Situation Room UI
-- Week 3: Polish + conversion gate + analytics
+- Week 1: ✅ Upstash sessions + rate limiting + Situation Room UI
+- Week 2: 🔄 Workflow integration + conversion gate
+- Week 3: Polish + analytics
 
 ---
 
@@ -119,10 +120,11 @@ _This section will be expanded based on Phase 3 decisions_
                       ▼
 ┌─────────────────────────────────────────────────────┐
 │  Data Layer                                          │
-│  PostgreSQL (Neon) + Kysely ORM                     │
-│  - sandbox_sessions                                  │
-│  - sandbox_executions                                │
-│  - sandbox_conversions                               │
+│  Upstash Redis (Edge-optimized)                     │
+│  - sandbox:session:{id}       → Session metadata    │
+│  - sandbox:executions:{id}:{date} → Daily counter   │
+│  - sandbox:cooldown:{id}      → 30s cooldown lock   │
+│  - sandbox:history:{id}       → Last 10 executions  │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -135,8 +137,8 @@ _This section will be expanded based on Phase 3 decisions_
 
 **Backend**:
 - Next.js App Router API routes
-- Kysely for type-safe queries
-- Better Auth for session detection
+- Upstash Redis for session management
+- Better Auth for authenticated users (separate)
 - Stripe for PRO conversions
 
 **AI/Data**:
@@ -216,5 +218,105 @@ These architectural decisions depend on answers from Phase 3:
 ---
 
 **Architecture Drafted**: 2026-01-10
-**Recommendation**: Approach 3 (Pragmatic Balance)
-**Awaiting**: Phase 3 decisions + user approval
+**Recommendation**: Approach 3 (Pragmatic Balance) ✅ **APPROVED**
+**Implementation Status**: UI Foundation Complete, Backend Pending
+
+### Implementation Progress
+
+**✅ Completed**:
+- Custom Situation Room shell (UI foundation)
+- Mission selector with 5 mission types
+- System status panels (Threat Level, System Health, Core Modules)
+- Activity Feed component
+- Global Network visualization
+- Lab component integration (AgentSandbox, PromptLab, DocumentLab)
+- Dark tactical theme implementation
+- Navigation updates (all `/arsenal` → `/field-report`)
+- **Upstash Redis session management** (session-manager.ts)
+- **Rate limiting service** (rate-limiter.ts with atomic operations)
+- **Session API routes** (/api/sandbox/session)
+- **Shared TypeScript types** (types.ts)
+
+**⏳ In Progress**:
+- Backend workflow execution APIs (agent-routing, prompt-eval, pdf, etc.)
+- Lab component integration with session/rate limiting
+
+**📋 Pending**:
+- Conversion gate modal (trigger on rate limit)
+- Analytics integration (PostHog recommended)
+- Remaining lab components (Document Pipeline, Enrich Profile)
+- Error handling and loading states
+
+---
+
+## 🚀 Upstash Redis Implementation (2026-01-14)
+
+### Architecture Decision: Redis Over SQL
+
+**Decision**: Use Upstash Redis for sandbox session tracking instead of PostgreSQL tables.
+
+**Rationale**:
+- **Performance**: 10-20x faster (<10ms vs 50-200ms latency)
+- **Simplicity**: Zero SQL migrations, no foreign keys, no cleanup jobs
+- **Isolation**: Anonymous sessions never touch user accounts
+- **Cost**: Pay-per-request, edge-optimized, scales effortlessly
+- **Developer Experience**: Already in stack, minimal code (~150 lines total)
+
+### Implementation Files
+
+```
+src/lib/sandbox/
+├── session-manager.ts    # Session lifecycle (create, get, validate, delete)
+├── rate-limiter.ts       # Rate limiting with atomic Redis operations
+└── types.ts              # Shared TypeScript interfaces
+
+src/app/api/sandbox/
+└── session/
+    └── route.ts          # Session API (POST, GET, DELETE)
+```
+
+### Redis Data Structure
+
+| Key Pattern | Value | TTL | Purpose |
+|-------------|-------|-----|---------|
+| `sandbox:session:{id}` | JSON metadata | 24h | Session tracking |
+| `sandbox:executions:{id}:{date}` | Counter | 24h | Daily limit enforcement |
+| `sandbox:cooldown:{id}` | Timestamp | 30s | Cooldown between runs |
+| `sandbox:history:{id}` | List (last 10) | 24h | Execution history |
+
+### Rate Limiting Rules
+
+- **Daily Limit**: 10 executions per 24h (resets midnight UTC)
+- **Cooldown**: 30 seconds between executions
+- **Token Limits**: 1K input / 2K output tokens per execution
+- **Enforcement**: Atomic Redis `INCR` operations (race-condition safe)
+
+### Data Isolation
+
+```
+Anonymous Sandbox (Redis)          Authenticated Users (PostgreSQL)
+─────────────────────────          ────────────────────────────────
+session:abc123 → metadata          users → Better Auth accounts
+executions:abc123:2026-01-14 → 7  subscriptions → Stripe data
+cooldown:abc123 → timestamp        modules → Enrich/Brand/etc.
+NO user_id, NO email               NO sandbox session reference
+```
+
+**Zero Coupling**: Sandbox sessions expire after 24h, never linked to user accounts.
+
+### Documentation
+
+**Comprehensive Guide**: `docs/features/war-games/UPSTASH_IMPLEMENTATION.md`
+
+Contains:
+- Complete architecture diagrams
+- API usage examples
+- Performance benchmarks
+- Security & privacy considerations
+- Testing strategies
+- Migration notes from SQL approach
+
+---
+
+**Last Updated**: 2026-01-14
+**Status**: Session infrastructure complete, ready for workflow integration

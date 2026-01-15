@@ -55,13 +55,14 @@ This plan follows **Approach 3: Pragmatic Balance** from the Architecture phase.
 - [ ] Test end-to-end execution
 
 **Day 5: Basic UI Shell**
-- [ ] Replace `/app/arsenal/page.tsx`
-- [ ] Create `components/sandbox/SituationRoom.tsx`
-- [ ] Create `components/sandbox/MissionSelector.tsx`
-- [ ] Create `components/sandbox/UsageIndicator.tsx`
-- [ ] Test agent routing in UI
+- [x] Replace `/app/arsenal/page.tsx` → Created `/app/(pages)/war-games/page.tsx`
+- [x] Create `components/sandbox/SituationRoom.tsx` → Integrated in page
+- [x] Create `components/sandbox/MissionSelector.tsx` → MissionCard component created
+- [x] Create `components/sandbox/UsageIndicator.tsx` → UsageIndicator component created
+- [x] Lab component integration → AgentSandbox, PromptLab, DocumentLab integrated
+- [ ] Test agent routing in UI → **PENDING**: Backend API connection needed
 
-**Deliverable**: Users can execute agent routing with rate limits via web UI
+**Deliverable**: ✅ UI foundation complete, ⏳ Backend integration pending
 
 ---
 
