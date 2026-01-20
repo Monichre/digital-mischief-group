@@ -14,6 +14,9 @@ interface BatchStreamInput {
     domain?: string
     email?: string
     company_name?: string
+    first_name?: string
+    last_name?: string
+    title?: string
   }>
   generateSynthesis?: boolean
 }
@@ -50,6 +53,13 @@ const EnrichedResultSchema = z.object( {
   } ) ),
   sources: z.array( z.string() ),
   synthesis: z.string().optional(),
+  contact: z.object( {
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable(),
+    full_name: z.string().nullable(),
+    title: z.string().nullable(),
+    email: z.string().nullable(),
+  } ).nullable().optional(),
 } )
 
 type EnrichedResult = z.infer<typeof EnrichedResultSchema>
@@ -62,6 +72,9 @@ function mapToEnrichedResult( source: any, source_type: 'cache' | 'fresh' ): Enr
   const funding = source_type === 'cache' ? source.funding_data : source.funding
   const techStack = source_type === 'cache' ? source.tech_stack_data : source.techStack
   const customFields = source_type === 'cache' ? source.custom_fields_data : source.customFields
+  const contactData = source_type === 'cache'
+    ? source.custom_fields_data?.contact
+    : source.contact || source.customFields?.contact
 
   // Safe extraction with explicit nulls
   const result = {
@@ -101,10 +114,45 @@ function mapToEnrichedResult( source: any, source_type: 'cache' | 'fresh' ): Enr
     buying_signals: Array.isArray( customFields?.buying_signals ) ? customFields.buying_signals : [],
 
     sources: Array.isArray( source.sources ) ? source.sources : [],
+
+    contact: contactData ? {
+      first_name: contactData.first_name ?? null,
+      last_name: contactData.last_name ?? null,
+      full_name: contactData.full_name ?? null,
+      title: contactData.title ?? null,
+      email: contactData.email ?? null,
+    } : null,
   }
 
   // Validate and return (strips unknown fields, coerces types where specified)
   return EnrichedResultSchema.parse( result )
+}
+
+function buildContactFromRow( row: BatchStreamInput['rows'][number] ) {
+  const first_name = row.first_name?.trim() || null
+  const last_name = row.last_name?.trim() || null
+  const title = row.title?.trim() || null
+  const email = row.email?.trim() || null
+  const full_name = [first_name, last_name].filter( Boolean ).join( " " ) || null
+
+  if ( !first_name && !last_name && !title && !email ) return null
+
+  return { first_name, last_name, full_name, title, email }
+}
+
+function mergeContact( source?: EnrichedResult['contact'], fallback?: ReturnType<typeof buildContactFromRow> ) {
+  if ( !source && !fallback ) return null
+
+  const candidate = source || fallback || null
+  if ( !candidate ) return null
+
+  return {
+    first_name: candidate.first_name ?? fallback?.first_name ?? null,
+    last_name: candidate.last_name ?? fallback?.last_name ?? null,
+    full_name: candidate.full_name ?? fallback?.full_name ?? null,
+    title: candidate.title ?? fallback?.title ?? null,
+    email: candidate.email ?? fallback?.email ?? null,
+  }
 }
 
 async function generateSynthesis( result: EnrichedResult ): Promise<string | null> {
@@ -194,6 +242,7 @@ export async function POST( request: NextRequest ) {
 
       for ( let i = 0; i < rows.length; i++ ) {
         const row = rows[i]
+        const contactFromRow = buildContactFromRow( row )
 
         // Send row_started event with optimistic placeholder
         send( "row_started", {
@@ -234,7 +283,9 @@ export async function POST( request: NextRequest ) {
             `
 
             if ( cached.length > 0 && cached[0].discovery_data ) {
-              result = mapToEnrichedResult( cached[0], 'cache' )
+              const cachedRow = cached[0]
+              result = mapToEnrichedResult( cachedRow, 'cache' )
+              result = { ...result, contact: mergeContact( result.contact, contactFromRow ) }
 
               send( "row_progress", {
                 rowId: row.id,
@@ -242,6 +293,83 @@ export async function POST( request: NextRequest ) {
                 phase: "cache_hit",
                 message: "Found in cache",
               } )
+
+              if ( shouldGenerateSynthesis && result ) {
+                send( "row_progress", {
+                  rowId: row.id,
+                  rowIndex: i,
+                  phase: "synthesis",
+                  status: "running",
+                  message: "Generating intelligence brief...",
+                } )
+
+                const synthesis = await generateSynthesis( result )
+                if ( synthesis ) {
+                  result.synthesis = synthesis
+                }
+              }
+
+              try {
+                await sql`
+                  INSERT INTO enrichment_jobs (
+                    input_type, input_value, normalized_url, domain,
+                    company_name, company_description, industry,
+                    employee_count, founded_year, headquarters, website,
+                    funding_total, technologies, leadership,
+                    discovery_data, profile_data, funding_data,
+                    tech_stack_data, custom_fields_data, sources,
+                    icp_fit_score, icp_fit_reasons, buying_signals,
+                    synthesis, completed_phases, status, batch_id, user_id
+                  ) VALUES (
+                    ${cachedRow.input_type || Object.keys( enrichmentInput )[0] || "domain"},
+                    ${row.email || row.domain || row.company_name},
+                    ${cachedRow.normalized_url || cachedRow.discovery_data?.website || null},
+                    ${cachedRow.domain || cacheKey},
+                    ${cachedRow.company_name || result.company_name},
+                    ${cachedRow.company_description || result.company_description},
+                    ${cachedRow.industry || result.industry},
+                    ${cachedRow.employee_count || result.employee_count || null},
+                    ${cachedRow.founded_year || cachedRow.profile_data?.year_founded || null},
+                    ${cachedRow.headquarters || result.headquarters},
+                    ${cachedRow.website || result.website},
+                    ${cachedRow.funding_total || result.funding_total},
+                    ${JSON.stringify( result.technologies )},
+                    ${JSON.stringify( result.leadership )},
+                    ${JSON.stringify( cachedRow.discovery_data )},
+                    ${JSON.stringify( cachedRow.profile_data )},
+                    ${JSON.stringify( cachedRow.funding_data )},
+                    ${JSON.stringify( cachedRow.tech_stack_data )},
+                    ${JSON.stringify( { ...( cachedRow.custom_fields_data || {} ), contact: result.contact } )},
+                    ${JSON.stringify( cachedRow.sources || result.sources )},
+                    ${cachedRow.icp_fit_score || result.icp_fit_score},
+                    ${cachedRow.icp_fit_reasons || result.icp_fit_reasons},
+                    ${JSON.stringify( cachedRow.buying_signals || result.buying_signals )},
+                    ${result.synthesis || cachedRow.synthesis || null},
+                    ${cachedRow.completed_phases || ['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
+                    'completed',
+                    ${batchId},
+                    ${userId}
+                  )
+                `
+
+                await sql`
+                  UPDATE enrichment_batches 
+                  SET completed_rows = completed_rows + 1, updated_at = NOW()
+                  WHERE id = ${batchId}
+                `
+              } catch ( cacheInsertError ) {
+                console.error( "[Batch Stream] Cache persistence error:", cacheInsertError )
+              }
+
+              send( "row_completed", {
+                rowId: row.id,
+                rowIndex: i,
+                enriched: result,
+                contact: result?.contact,
+              } )
+
+              completedCount++
+              continue
             }
           }
 
@@ -279,9 +407,26 @@ export async function POST( request: NextRequest ) {
 
             // Map using safe helper
             result = mapToEnrichedResult( enrichResult.data, 'fresh' )
+            result = { ...result, contact: mergeContact( result.contact, contactFromRow ) }
 
             // Destructure for DB save (still needed for separate columns)
             const { discovery, profile, funding, techStack, customFields, sources } = enrichResult.data
+            const customFieldsWithContact = { ...customFields, contact: result.contact }
+
+            if ( shouldGenerateSynthesis && result ) {
+              send( "row_progress", {
+                rowId: row.id,
+                rowIndex: i,
+                phase: "synthesis",
+                status: "running",
+                message: "Generating intelligence brief...",
+              } )
+
+              const synthesis = await generateSynthesis( result )
+              if ( synthesis ) {
+                result.synthesis = synthesis
+              }
+            }
 
             // Save to DB
             try {
@@ -294,7 +439,7 @@ export async function POST( request: NextRequest ) {
                   discovery_data, profile_data, funding_data, 
                   tech_stack_data, custom_fields_data, sources,
                   icp_fit_score, icp_fit_reasons, buying_signals,
-                  completed_phases, status, batch_id, user_id
+                  synthesis, completed_phases, status, batch_id, user_id
                 ) VALUES (
                   ${Object.keys( enrichmentInput )[0]},
                   ${row.email || row.domain || row.company_name},
@@ -314,11 +459,12 @@ export async function POST( request: NextRequest ) {
                   ${JSON.stringify( profile )},
                   ${JSON.stringify( funding )},
                   ${JSON.stringify( techStack )},
-                  ${JSON.stringify( customFields )},
+                  ${JSON.stringify( customFieldsWithContact )},
                   ${JSON.stringify( sources )},
                   ${customFields.icp_fit_score},
                   ${customFields.icp_fit_reasons},
                   ${JSON.stringify( customFields.buying_signals )},
+                  ${result.synthesis || null},
                   ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
                   'completed',
                   ${batchId},
@@ -327,22 +473,6 @@ export async function POST( request: NextRequest ) {
               `
             } catch ( dbError ) {
               console.error( "[Batch Stream] DB save error:", dbError )
-            }
-          }
-
-          // Generate synthesis if requested
-          if ( shouldGenerateSynthesis && result ) {
-            send( "row_progress", {
-              rowId: row.id,
-              rowIndex: i,
-              phase: "synthesis",
-              status: "running",
-              message: "Generating intelligence brief...",
-            } )
-
-            const synthesis = await generateSynthesis( result )
-            if ( synthesis ) {
-              result.synthesis = synthesis
             }
           }
 
@@ -358,6 +488,7 @@ export async function POST( request: NextRequest ) {
             rowId: row.id,
             rowIndex: i,
             enriched: result,
+            contact: result?.contact,
           } )
 
         } catch ( error ) {

@@ -34,8 +34,8 @@ export async function POST( request: NextRequest ) {
       return NextResponse.json( { success: false, error: "No rows provided" }, { status: 400 } )
     }
 
-    if ( rows.length > 500 ) {
-      return NextResponse.json( { success: false, error: "Maximum 500 rows per batch" }, { status: 400 } )
+    if ( rows.length > 100 ) {
+      return NextResponse.json( { success: false, error: "Maximum 100 rows per batch" }, { status: 400 } )
     }
 
     // Create batch job in DB
@@ -85,7 +85,7 @@ export async function PUT( request: NextRequest ) {
     }
     const userId = session.user.id
 
-    const { rowId, batchId, domain, email, company_name } = await request.json()
+    const { rowId, batchId, domain, email, company_name, first_name, last_name, title } = await request.json()
 
     // Build enrichment input
     const enrichmentInput: EnrichmentInput = {}
@@ -106,6 +106,14 @@ export async function PUT( request: NextRequest ) {
 
     // Check cache first (by domain if available)
     const cacheKey = domain || ( email ? email.split( "@" )[1] : null )
+    const contact = {
+      first_name: first_name || null,
+      last_name: last_name || null,
+      full_name: [first_name, last_name].filter( Boolean ).join( " " ) || null,
+      title: title || null,
+      email: email || null,
+    }
+
     if ( cacheKey ) {
       const cached = await sql`
         SELECT * FROM enrichment_jobs 
@@ -136,6 +144,7 @@ export async function PUT( request: NextRequest ) {
               icp_fit_score: cached[0].icp_fit_score,
               icp_fit_reasons: cached[0].icp_fit_reasons,
               buying_signals: cached[0].buying_signals,
+              contact,
             },
             cached: true,
           },
@@ -202,7 +211,7 @@ export async function PUT( request: NextRequest ) {
           ${JSON.stringify( profile )},
           ${JSON.stringify( funding )},
           ${JSON.stringify( techStack )},
-          ${JSON.stringify( customFields )},
+          ${JSON.stringify( { ...customFields, contact } )},
           ${JSON.stringify( sources )},
           ${customFields.icp_fit_score},
           ${customFields.icp_fit_reasons},
@@ -248,6 +257,7 @@ export async function PUT( request: NextRequest ) {
           icp_fit_score: customFields.icp_fit_score,
           icp_fit_reasons: customFields.icp_fit_reasons,
           buying_signals: customFields.buying_signals,
+          contact,
           sources,
           synthesis,
         },
@@ -315,10 +325,19 @@ function formatArray( arr: any[] | null | undefined ): string {
 }
 
 function transformToCSVRow( job: EnrichmentJobRow ): Record<string, any> {
+  const contact = job.custom_fields_data?.contact || {}
+
   return {
     // Input data
     "Input Type": job.input_type,
     "Input Value": job.input_value,
+
+    // Contact info
+    "Contact First Name": contact.first_name || "",
+    "Contact Last Name": contact.last_name || "",
+    "Contact Full Name": contact.full_name || "",
+    "Contact Title": contact.title || "",
+    "Contact Email": contact.email || "",
 
     // Discovery data
     "Company Name": job.company_name,
@@ -507,6 +526,7 @@ export async function GET( request: NextRequest ) {
             technologies: job.technologies,
             leadership: job.leadership,
             icp_fit_score: job.icp_fit_score,
+            contact: job.custom_fields_data?.contact,
             sources: job.sources,
           } : null,
           error: job.error_message,

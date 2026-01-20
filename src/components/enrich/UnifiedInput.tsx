@@ -62,8 +62,8 @@ export function UnifiedInput({ onTextSubmit, onCsvUpload, isLoading = false, isD
             return
           }
 
-          if (data.length > 500) {
-            setError("Maximum 500 rows allowed per batch")
+          if (data.length > 100) {
+            setError("Maximum 100 rows allowed per batch")
             return
           }
 
@@ -259,7 +259,7 @@ export function UnifiedInput({ onTextSubmit, onCsvUpload, isLoading = false, isD
             </div>
 
             {/* Hint */}
-            <p className="text-xs text-zinc-600 text-center mt-3">Maximum 500 rows per batch • Supports .csv files</p>
+            <p className="text-xs text-zinc-600 text-center mt-3">Maximum 100 rows per batch • Supports .csv files</p>
           </div>
         )}
       </div>

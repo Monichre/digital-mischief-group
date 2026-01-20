@@ -46,7 +46,7 @@ export function CsvUploader({ onUpload, isDisabled }: CsvUploaderProps) {
       }
 
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const text = e.target?.result as string
           const { data, headers } = parseCSV(text)
@@ -56,8 +56,8 @@ export function CsvUploader({ onUpload, isDisabled }: CsvUploaderProps) {
             return
           }
 
-          if (data.length > 500) {
-            setError("Maximum 500 rows allowed per batch")
+          if (data.length > 100) {
+            setError("Maximum 100 rows allowed per batch")
             return
           }
 
@@ -156,7 +156,7 @@ export function CsvUploader({ onUpload, isDisabled }: CsvUploaderProps) {
               <p className="text-sm text-zinc-400 mb-1">
                 <span className="text-orange-500 font-medium">Drop CSV here</span> or click to upload
               </p>
-              <p className="text-xs text-zinc-600">Maximum 500 rows per batch</p>
+              <p className="text-xs text-zinc-600">Maximum 100 rows per batch</p>
             </>
           )}
         </div>

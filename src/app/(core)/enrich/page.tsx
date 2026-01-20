@@ -146,7 +146,7 @@ interface EnrichedRow {
     company_description?: string
     industry?: string
     segment?: string
-    employee_count?: number
+    employee_count?: number | string
     headquarters?: string
     website?: string
     funding_stage?: string
@@ -163,6 +163,13 @@ interface EnrichedRow {
     icp_fit_score?: number
     icp_fit_reasons?: string[]
     buying_signals?: Array<{signal: string; confidence: number}>
+    contact?: {
+      first_name?: string | null
+      last_name?: string | null
+      full_name?: string | null
+      title?: string | null
+      email?: string | null
+    }
     sources?: string[]
   }
   error?: string
@@ -298,6 +305,11 @@ export default function EnrichPage() {
         const company_name = mapping.company_name
           ? row[mapping.company_name]
           : undefined
+        const first_name = mapping.first_name
+          ? row[mapping.first_name]
+          : undefined
+        const last_name = mapping.last_name ? row[mapping.last_name] : undefined
+        const title = mapping.title ? row[mapping.title] : undefined
         const input =
           domain ||
           email ||
@@ -311,6 +323,9 @@ export default function EnrichPage() {
           domain,
           email,
           company_name,
+          first_name,
+          last_name,
+          title,
           original: row,
         }
       })
@@ -444,11 +459,6 @@ export default function EnrichPage() {
       </div>
     )
   }
-
-  const completedCount = enrichedRows.filter(
-    (r) => r.status === 'completed'
-  ).length
-  const failedCount = enrichedRows.filter((r) => r.status === 'failed').length
 
   return (
     <div className='min-h-screen bg-zinc-950 text-zinc-200 font-mono'>
@@ -886,7 +896,46 @@ export default function EnrichPage() {
                 rows={bulkRows}
                 csvHeaders={csvHeaders}
                 generateSynthesis={true}
-                onComplete={() => setBulkStep('complete')}
+                onComplete={(results) => {
+                  const mapped: EnrichedRow[] = results.map(({row, state}) => ({
+                    id: row.id,
+                    status: state.status,
+                    original: row.original,
+                    enriched: state.enriched
+                      ? {
+                          company_name: state.enriched.company_name || row.company_name,
+                          industry: state.enriched.industry || undefined,
+                          segment: state.enriched.segment || undefined,
+                          employee_count: state.enriched.employee_count || undefined,
+                          headquarters: state.enriched.headquarters || undefined,
+                          website: state.enriched.website || undefined,
+                          funding_stage: state.enriched.funding_stage || undefined,
+                          funding_total: state.enriched.funding_total || undefined,
+                          technologies: state.enriched.technologies || undefined,
+                          tech_signals: state.enriched.tech_signals || undefined,
+                          leadership: state.enriched.leadership || undefined,
+                          ceo_name: state.enriched.ceo_name || undefined,
+                          icp_fit_score: state.enriched.icp_fit_score || undefined,
+                          icp_fit_reasons: state.enriched.icp_fit_reasons || undefined,
+                          buying_signals: state.enriched.buying_signals || undefined,
+                          contact: state.enriched.contact || {
+                            first_name: row.first_name ?? null,
+                            last_name: row.last_name ?? null,
+                            full_name:
+                              row.first_name || row.last_name
+                                ? `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim()
+                                : null,
+                            title: row.title ?? null,
+                            email: row.email ?? null,
+                          },
+                          sources: state.enriched.sources || undefined,
+                        }
+                      : undefined,
+                    error: state.error,
+                  }))
+
+                  setEnrichedRows(mapped)
+                }}
               />
             </div>
           )}

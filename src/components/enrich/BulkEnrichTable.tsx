@@ -27,7 +27,7 @@ interface EnrichedResult {
   company_description: string | null
   industry: string | null
   segment: string | null
-  employee_count: number | null
+  employee_count: number | string | null
   headquarters: string | null
   website: string | null
   funding_stage: string | null
@@ -42,6 +42,13 @@ interface EnrichedResult {
   buying_signals: Array<{ signal: string; confidence: number }>
   sources: string[]
   synthesis?: string
+  contact?: {
+    first_name: string | null
+    last_name: string | null
+    full_name: string | null
+    title: string | null
+    email: string | null
+  } | null
 }
 
 interface BulkRow {
@@ -50,6 +57,9 @@ interface BulkRow {
   domain?: string
   email?: string
   company_name?: string
+  first_name?: string
+  last_name?: string
+  title?: string
   original: Record<string, string>
 }
 
@@ -117,6 +127,9 @@ export function BulkEnrichTable({
             domain: r.domain,
             email: r.email,
             company_name: r.company_name,
+            first_name: r.first_name,
+            last_name: r.last_name,
+            title: r.title,
           })),
           generateSynthesis,
         }),
@@ -334,6 +347,9 @@ export function BulkEnrichTable({
                 <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider w-[200px]">
                   Company
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider w-[200px]">
+                  Contact
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Industry
                 </th>
@@ -398,6 +414,27 @@ export function BulkEnrichTable({
                           <div className="text-red-400">{row.input}</div>
                         ) : (
                           <div className="text-zinc-600">{row.input}</div>
+                        )}
+                      </td>
+
+                      {/* Contact */}
+                      <td className="px-4 py-3">
+                        {state.status === "completed" && state.enriched?.contact ? (
+                          <div className="space-y-0.5">
+                            <p className="text-zinc-200 text-sm font-medium">
+                              {state.enriched.contact.full_name || row.first_name || row.last_name || "-"}
+                            </p>
+                            <p className="text-xs text-zinc-500 truncate">
+                              {state.enriched.contact.title || row.title || ""}
+                            </p>
+                            {state.enriched.contact.email && (
+                              <p className="text-[11px] text-zinc-500 truncate">{state.enriched.contact.email}</p>
+                            )}
+                          </div>
+                        ) : state.status === "processing" ? (
+                          <div className="h-10 w-32 bg-zinc-800 rounded animate-pulse" />
+                        ) : (
+                          <div className="text-zinc-700 text-sm">{row.first_name || row.last_name || row.title || "-"}</div>
                         )}
                       </td>
 
@@ -485,8 +522,8 @@ export function BulkEnrichTable({
                     {/* Expanded Details Row */}
                     {isExpanded && state.enriched && (
                       <tr key={`${row.id}-details`}>
-                        <td colSpan={7} className="px-0 py-0">
-                          <ExpandedRowDetails enriched={state.enriched} />
+                        <td colSpan={8} className="px-0 py-0">
+                          <ExpandedRowDetails enriched={state.enriched} row={row} />
                         </td>
                       </tr>
                     )}
@@ -540,12 +577,33 @@ function getPhaseLabel(phase: string): string {
   return labels[phase] || phase
 }
 
-function ExpandedRowDetails({ enriched }: { enriched: EnrichedResult }) {
+function ExpandedRowDetails({ enriched, row }: { enriched: EnrichedResult; row: BulkRow }) {
   const formatSource = (value: string) => normalizeUrl(value)
+  const contact = enriched.contact || {
+    first_name: row.first_name || null,
+    last_name: row.last_name || null,
+    full_name: row.first_name || row.last_name ? `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() : null,
+    title: row.title || null,
+    email: row.email || null,
+  }
+  const contactName = contact?.full_name || [contact?.first_name, contact?.last_name].filter(Boolean).join(" ") || "-"
 
   return (
     <div className="bg-zinc-900/50 border-t border-zinc-800 p-6">
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-5 gap-6">
+        {/* Contact & Role */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 uppercase tracking-wider">
+            <Users className="w-3 h-3" />
+            Contact
+          </div>
+          <div className="space-y-2 text-sm">
+            <p className="text-zinc-300 font-medium">{contactName}</p>
+            {contact?.title && <p className="text-zinc-500">{contact.title}</p>}
+            {contact?.email && <p className="text-zinc-500 text-xs">{contact.email}</p>}
+          </div>
+        </div>
+
         {/* Company Details */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-xs text-zinc-500 uppercase tracking-wider">
