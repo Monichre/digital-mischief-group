@@ -1,6 +1,6 @@
 'use client'
 
-import type {BrandSpacing} from '@/lib/brand-recon/types'
+import type {BrandSpacing} from '@/daedalus/extract/brand/types'
 
 interface SpacingCardProps {
   spacing?: BrandSpacing

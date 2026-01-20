@@ -3,7 +3,7 @@
 import {useState} from 'react'
 import {Button} from '@/components/ui/button'
 import {Loader2, Zap} from 'lucide-react'
-import {authClient} from '@/lib/auth-client'
+import {authClient} from '@/platform/auth/client'
 
 export function UpgradeButton({className}: {className?: string}) {
   const [loading, setLoading] = useState(false)

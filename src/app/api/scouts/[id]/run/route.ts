@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
+import { sql } from "@/platform/db/neon"
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
-import { auth } from "@/lib/auth"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY

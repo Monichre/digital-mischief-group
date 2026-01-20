@@ -1,12 +1,15 @@
 # DMG Repo - Customer Zero Integration Rules
 
 ## Overview
+
 This document defines patterns and best practices for integrating features from source repositories into the **Digital Mischief Group** unified suite. This repository serves as the "customer zero" implementation, combining patterns from multiple source repos into a single cohesive platform.
 
-**Repository**: https://github.com/Monichre/digital-mischief-group
+**Repository**: <https://github.com/Monichre/digital-mischief-group>
 
 ## Core Concept
+
 The DMG repository integrates:
+
 - **Unified authentication** (Better Auth) across all modules
 - **Shared database** (PostgreSQL/Neon) with user-scoped tables
 - **Common UI components** with DMG brand system
@@ -416,30 +419,35 @@ export function ModuleCard({ module, userPlan, usage }: ModuleCardProps) {
 ## Best Practices
 
 ### Module Isolation
+
 1. **Separate API routes**: Each module has its own `/api/[module]` route
 2. **Isolated logic**: Module-specific logic in `lib/[module]/` directory
 3. **Shared utilities**: Common patterns in `lib/` (auth, db, firecrawl, usage)
 4. **Component sharing**: UI components in `components/ui/` and `components/[module]/`
 
 ### User Scoping
+
 1. **Always filter by user_id**: All database queries must include `user_id` filter
 2. **RLS policies**: Enable Row Level Security on all tables
 3. **Auth checks**: Verify authentication in every API route
 4. **Usage tracking**: Log all operations to `usage_events` table
 
 ### Error Handling
+
 1. **Graceful degradation**: Modules should fail independently
 2. **User-friendly errors**: Return meaningful error messages
 3. **Error logging**: Log errors with context for debugging
 4. **Usage tracking**: Record failed operations for analytics
 
 ### Performance
+
 1. **Parallel operations**: Use `Promise.all()` where possible
 2. **Streaming responses**: Use SSE for long-running operations
 3. **Caching**: Cache expensive operations when appropriate
 4. **Rate limiting**: Implement rate limits per user/module
 
 ## File Structure
+
 ```
 app/
   api/
@@ -538,6 +546,7 @@ export const MODULES = {
 ```
 
 ## Environment Variables
+
 ```bash
 # Database
 DATABASE_URL=postgresql://...
@@ -568,6 +577,7 @@ EMAIL_FROM=noreply@digitalmischiefgroup.com
 ```
 
 ## References
+
 - [DMG Repository](https://github.com/Monichre/digital-mischief-group)
 - [PRD.md](./PRD.md) - Complete module mappings and requirements
 - [PLAN.md](./PLAN.md) - Implementation guidance

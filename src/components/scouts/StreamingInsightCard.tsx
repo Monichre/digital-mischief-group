@@ -7,7 +7,7 @@ import {
   Lightbulb,
   CheckCircle,
 } from 'lucide-react'
-import type {AIInsight} from '@/lib/scouts/stream-types'
+import type {AIInsight} from '@/daedalus/scout/stream-types'
 
 interface StreamingInsightCardProps {
   insight: AIInsight

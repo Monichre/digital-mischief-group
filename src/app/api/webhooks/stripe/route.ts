@@ -1,7 +1,7 @@
-import { stripe } from "@/lib/stripe/stripe"
+import { stripe } from "@/platform/billing/stripe"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
+import { sql } from "@/platform/db/neon"
 import Stripe from "stripe"
 
 export async function POST( req: Request ) {

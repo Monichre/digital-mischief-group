@@ -13,6 +13,9 @@ import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
 
 import {cn} from '@/lib/utils'
+import {useFileDrop} from '@/hooks/use-file-drop'
+import {LoadingDots} from './loading-dots'
+import {MarkdownRenderer} from './markdown'
 
 import {analyzePdf} from '../lib/actions'
 

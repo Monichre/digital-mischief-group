@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
-import { auth } from "@/lib/auth"
+import { sql } from "@/platform/db/neon"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
-import { discoverCompetitors, type CompetitiveInput } from "@/lib/agents/competitive-discovery"
+import { discoverCompetitors, type CompetitiveInput } from "@/ai/agents/competitive.agent"
 
 export const maxDuration = 60
 

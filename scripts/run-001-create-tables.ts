@@ -18,7 +18,7 @@ async function main() {
   console.log('Running migration: 001-create-tables.sql')
 
   // Read the migration file
-  const migrationPath = path.join(process.cwd(), 'scripts', '001-create-tables.sql')
+  const migrationPath = path.join(process.cwd(), 'scripts', 'migrations', '001-create-tables.sql')
   const migrationSQL = fs.readFileSync(migrationPath, 'utf8')
 
   // Split into individual statements (handle -- comments, newlines, and semicolons)

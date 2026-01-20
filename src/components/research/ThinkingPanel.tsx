@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react'
-import type {ResearchStreamEvent} from '@/lib/research/stream-types'
+import type {ResearchStreamEvent} from '@/daedalus/agent/research/stream-types'
 
 interface ThinkingPanelProps {
   events: ResearchStreamEvent[]

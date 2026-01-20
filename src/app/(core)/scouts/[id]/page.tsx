@@ -4,7 +4,7 @@ import {useState, useEffect, use} from 'react'
 import Link from 'next/link'
 import {ArrowLeft, Clock, Shield} from 'lucide-react'
 import {LiveSentinelRunner} from '@/components/scouts/LiveSentinelRunner'
-import type {Scout} from '@/lib/scouts/types'
+import type {Scout} from '@/daedalus/scout/types'
 
 export default function ScoutDetailPage({
   params,

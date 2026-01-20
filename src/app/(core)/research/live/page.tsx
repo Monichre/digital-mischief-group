@@ -9,7 +9,7 @@ import {SynthesisPanel} from '@/components/research/SynthesisPanel'
 import type {
   ResearchStreamEvent,
   SourceFoundEvent,
-} from '@/lib/research/stream-types'
+} from '@/daedalus/agent/research/stream-types'
 
 export default function LiveResearchPage() {
   const [query, setQuery] = useState('')

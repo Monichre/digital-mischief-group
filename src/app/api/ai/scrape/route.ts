@@ -1,7 +1,7 @@
 import { generateObject } from "ai"
 import { z } from "zod"
 import * as cheerio from "cheerio"
-import { MODELS } from "@/lib/ai/models"
+import { MODELS } from "@/ai/models"
 
 export const maxDuration = 30
 

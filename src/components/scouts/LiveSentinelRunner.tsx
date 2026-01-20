@@ -15,7 +15,7 @@ import type {
   AIInsight,
   CompetitiveIntel,
   TrendSignal,
-} from '@/lib/scouts/stream-types'
+} from '@/daedalus/scout/stream-types'
 import {SearchProgressIndicator} from './SearchProgressIndicator'
 import {AIThinkingStream} from './AIThinkingStream'
 import {StreamingInsightCard} from './StreamingInsightCard'

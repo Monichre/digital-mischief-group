@@ -148,10 +148,10 @@ export function GlowEffect({
   const BASE_TRANSITION = {
     repeat: Number.POSITIVE_INFINITY,
     duration,
-    ease: "linear",
+    ease: "linear" as const,
   };
 
-  const animations = {
+  const animations: Record<GlowEffectProps["mode"] & string, TargetAndTransition> = {
     rotate: {
       background: [
         `conic-gradient(from 0deg at 50% 50%, ${colors.join(", ")})`,
@@ -171,7 +171,7 @@ export function GlowEffect({
       transition: {
         ...(transition ?? {
           ...BASE_TRANSITION,
-          repeatType: "mirror",
+          repeatType: "mirror" as const,
         }),
       },
     },
@@ -186,7 +186,7 @@ export function GlowEffect({
       transition: {
         ...(transition ?? {
           ...BASE_TRANSITION,
-          repeatType: "mirror",
+          repeatType: "mirror" as const,
         }),
       },
     },
@@ -198,7 +198,7 @@ export function GlowEffect({
       transition: {
         ...(transition ?? {
           ...BASE_TRANSITION,
-          repeatType: "mirror",
+          repeatType: "mirror" as const,
         }),
       },
     },
@@ -210,7 +210,7 @@ export function GlowEffect({
       transition: {
         ...(transition ?? {
           ...BASE_TRANSITION,
-          repeatType: "mirror",
+          repeatType: "mirror" as const,
         }),
       },
     },

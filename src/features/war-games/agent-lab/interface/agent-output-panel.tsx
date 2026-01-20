@@ -183,7 +183,8 @@ export function OutputPanel({
   }, [loading]);
 
   const renderCustomOutput = () => {
-    const AgentOutput = AgentOutputCards[selectedAgent.id]?.renderOutput;
+    const agentId = selectedAgent.id as keyof typeof AgentOutputCards;
+    const AgentOutput = AgentOutputCards[agentId]?.renderOutput;
     if (AgentOutput && parsedOutput) {
       return (
         <div className="max-w-full space-y-4">

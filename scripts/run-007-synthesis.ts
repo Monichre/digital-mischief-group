@@ -17,7 +17,7 @@ const sql = neon(DATABASE_URL)
 async function runMigration() {
   console.log("Running migration: 007-add-synthesis-field.sql")
 
-  const migrationPath = path.join(process.cwd(), "scripts", "007-add-synthesis-field.sql")
+  const migrationPath = path.join(process.cwd(), "scripts", "migrations", "007-add-synthesis-field.sql")
   const migrationSQL = fs.readFileSync(migrationPath, "utf8")
 
   // Split by semicolons and filter out comments

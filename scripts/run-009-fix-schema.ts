@@ -16,7 +16,7 @@ async function main() {
 
   console.log('Running migration: 009-fix-brand-schema-mismatch.sql')
 
-  const migrationPath = path.join(process.cwd(), 'scripts', '009-fix-brand-schema-mismatch.sql')
+  const migrationPath = path.join(process.cwd(), 'scripts', 'migrations', '009-fix-brand-schema-mismatch.sql')
   const migrationSQL = fs.readFileSync(migrationPath, 'utf8')
 
   // Split SQL by semicolons, handling comments

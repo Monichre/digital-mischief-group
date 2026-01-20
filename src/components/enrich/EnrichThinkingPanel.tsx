@@ -19,7 +19,7 @@ import {
   Play,
   SkipForward,
 } from 'lucide-react'
-import type {EnrichStreamEvent} from '@/lib/enrich/stream-types'
+import type {EnrichStreamEvent} from '@/daedalus/enrich/stream-types'
 import type {
   PhaseState,
   ConductorThought,

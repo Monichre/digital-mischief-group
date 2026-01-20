@@ -1,6 +1,7 @@
 // Convert this block to a simple few shot prompt editor + evaluator
 'use server'
 
+import {openai} from '@ai-sdk/openai'
 import {streamObject} from 'ai'
 import {z} from 'zod'
 
@@ -14,7 +15,7 @@ type Message = {
 export async function evaluatePrompt(data: z.infer<typeof promptFormSchema>) {
   if (data.evaluation && data.output) {
     const {partialObjectStream} = streamObject({
-      model: 'openai/gpt-4.1-mini',
+      model: openai('gpt-4o-mini'),
       schema: evaluationResultSchema,
       system: `You are an expert AI prompt evaluator. You must respond in JSON format. Analyze both the prompt configuration and the generated output for:
 1. Consistency: How well does the output match the format and style shown in the examples? (0-100)
@@ -77,7 +78,7 @@ Analyze the consistency, relevance, and quality. Provide specific feedback on wh
   ]
 
   const {partialObjectStream} = streamObject({
-    model: 'openai/gpt-4.1-mini',
+    model: openai('gpt-4o-mini'),
     output: 'no-schema',
     messages,
   })
@@ -92,7 +93,7 @@ Analyze the consistency, relevance, and quality. Provide specific feedback on wh
 export async function improveExamples(data: z.infer<typeof promptFormSchema>) {
   try {
     const {partialObjectStream} = streamObject({
-      model: 'openai/gpt-4.1-mini',
+      model: openai('gpt-4o-mini'),
       output: 'object',
       schema: z.object({
         examples: z.array(

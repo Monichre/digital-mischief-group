@@ -1,4 +1,4 @@
-import type { Variants } from "motion/react";
+import type { Variants, Easing } from "motion/react";
 
 // Core animation constants
 const SPRING_STIFF = 150;
@@ -6,8 +6,8 @@ const SPRING_DAMP = 15;
 const SPRING_MASS = 1;
 
 // Custom easing curves for consistent motion
-export const EASE_CUSTOM_IN_OUT = [0.32, 0.72, 0, 1];
-export const EASE_CUSTOM_OUT = [0, 0, 0.38, 1];
+export const EASE_CUSTOM_IN_OUT: Easing = [0.32, 0.72, 0, 1];
+export const EASE_CUSTOM_OUT: Easing = [0, 0, 0.38, 1];
 
 // Enhanced spring configuration with better physics
 export const springTransition = {
@@ -171,7 +171,7 @@ export const iconSpinVariants = {
 };
 
 // Enhanced stagger container animation
-export const staggerContainerVariants = {
+export const staggerContainerVariants: Variants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,

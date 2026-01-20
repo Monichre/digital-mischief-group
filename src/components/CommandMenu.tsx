@@ -98,11 +98,11 @@ export function CommandMenu({
         group: 'actions',
       },
       {
-        id: 'arsenal',
-        label: 'Arsenal',
+        id: 'field-report',
+        label: 'Field Reports',
         shortcut: '⌘A',
         icon: Shield,
-        action: () => router.push('/arsenal'),
+        action: () => router.push('/field-report'),
         group: 'actions',
       },
       {

@@ -1,6 +1,6 @@
 'use client'
 
-import type {BrandTypography, BrandFont} from '@/lib/brand-recon/types'
+import type {BrandTypography, BrandFont} from '@/daedalus/extract/brand/types'
 
 interface TypographyCardProps {
   typography?: BrandTypography

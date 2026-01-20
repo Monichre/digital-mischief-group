@@ -8,8 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createSession, getSession, deleteSession, validateSession } from '@/lib/sandbox/session-manager'
-import { getUsageStats } from '@/lib/sandbox/rate-limiter'
+import { createSession, getSession, deleteSession, validateSession } from '@/platform/sandbox/session-manager'
+import { getUsageStats } from '@/platform/sandbox/rate-limiter'
 
 const COOKIE_NAME = 'sandbox_session'
 const COOKIE_MAX_AGE = 60 * 60 * 24 // 24 hours

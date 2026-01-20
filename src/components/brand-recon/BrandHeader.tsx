@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import type {BrandingProfile} from '@/lib/brand-recon/types'
+import type {BrandingProfile} from '@/daedalus/extract/brand/types'
 
 interface BrandHeaderProps {
   branding: BrandingProfile

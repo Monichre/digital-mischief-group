@@ -1,9 +1,9 @@
 import { type NextRequest } from "next/server"
-import { sql } from "@/lib/db/neon"
-import { auth } from "@/lib/auth"
+import { sql } from "@/platform/db/neon"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
-import { orchestrateEnrichment, type EnrichmentInput } from "@/lib/agents"
-import { generateWithFallback } from "@/lib/agents/llm-provider"
+import { runEnrichment, type EnrichmentInput } from "@/daedalus/enrich/api"
+import { generateWithFallback } from "@/ai/tools/llm.tool"
 import { z } from "zod"
 
 export const maxDuration = 300
@@ -258,7 +258,7 @@ export async function POST( request: NextRequest ) {
               } )
             }
 
-            const enrichResult = await orchestrateEnrichment( enrichmentInput, {
+            const enrichResult = await runEnrichment( enrichmentInput, {
               onProgress: phaseHandler,
             } )
 

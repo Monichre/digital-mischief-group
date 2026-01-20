@@ -25,7 +25,7 @@ import {
   Zap,
   Crown,
 } from 'lucide-react'
-import {authClient} from '@/lib/auth-client'
+import {authClient} from '@/platform/auth/client'
 
 interface UserProfile {
   id: string

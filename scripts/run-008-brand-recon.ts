@@ -17,7 +17,7 @@ const sql = neon(DATABASE_URL)
 async function runMigration() {
   console.log("Running migration: 008-add-brand-recon-schema.sql")
 
-  const migrationPath = path.join(process.cwd(), "scripts", "008-add-brand-recon-schema.sql")
+  const migrationPath = path.join(process.cwd(), "scripts", "migrations", "008-add-brand-recon-schema.sql")
   const migrationSQL = fs.readFileSync(migrationPath, "utf8")
 
   // Remove line comments first

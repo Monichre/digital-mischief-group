@@ -4,7 +4,7 @@ import {useState, useEffect} from 'react'
 import Link from 'next/link'
 import {ArrowLeft, Crosshair, RefreshCw, Clock, ArrowRight} from 'lucide-react'
 import {Button} from '@/components/ui/button'
-import type {Monitor, MonitorChange} from '@/lib/scouts/types'
+import type {Monitor, MonitorChange} from '@/daedalus/scout/types'
 
 export default function MonitorDetailClient({id}: {id: string}) {
   const [monitor, setMonitor] = useState<Monitor | null>(null)

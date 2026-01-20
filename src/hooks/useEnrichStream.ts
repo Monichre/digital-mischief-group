@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { EnrichStreamEvent } from '@/lib/enrich/stream-types'
+import type { EnrichStreamEvent } from '@/daedalus/enrich/stream-types'
 
 export type PhaseStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped'
 

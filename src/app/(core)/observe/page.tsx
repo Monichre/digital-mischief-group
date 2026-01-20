@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import type {Monitor} from '@/lib/scouts/types'
+import type {Monitor} from '@/daedalus/scout/types'
 import {BotProtection} from '@/components/effects'
 
 export default function ObservePage() {

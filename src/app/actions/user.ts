@@ -1,8 +1,8 @@
 
 "use server"
 
-import { auth } from "@/lib/auth"
-import { isProMember } from "@/lib/stripe/permissions"
+import { auth } from "@/platform/auth/server"
+import { isProMember } from "@/platform/billing/permissions"
 import { headers } from "next/headers"
 
 export async function getUserProStatus() {

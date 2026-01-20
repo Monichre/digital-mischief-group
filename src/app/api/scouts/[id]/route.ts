@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
-import { auth } from "@/lib/auth"
+import { sql } from "@/platform/db/neon"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 
 export async function GET( request: NextRequest, { params }: { params: Promise<{ id: string }> } ) {

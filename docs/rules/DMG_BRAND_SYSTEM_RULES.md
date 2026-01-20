@@ -266,7 +266,7 @@ export const DMG_VOICE_PATTERNS = {
 ```typescript
 // components/navigation/dmg-nav.tsx
 const NAVIGATION = [
-  { name: "ARSENAL", href: "/arsenal", description: "Templates + Blueprints" },
+  { name: "FIELD REPORT", href: "/field-report", description: "Templates + Blueprints" },
   { name: "INTEL", href: "/intel", description: "Field Reports" },
   { name: "SUITE", href: "/enrich", description: "Live Recon Tools" },
   { name: "PROTOCOLS", href: "/loadout", description: "Audits + Playbooks" }

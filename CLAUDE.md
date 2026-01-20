@@ -1,56 +1,82 @@
-# Digital Mischief Group - Claude Code Configuration
+# Daedalus - Claude Code Configuration
 
 ## Project Identity
 
-**Name**: Digital Mischief Group - Firecrawl Intelligence Suite
-**Type**: Next.js 16 Full-Stack SaaS Platform
-**Domain**: AI-powered web intelligence, brand analysis, lead enrichment
+**Name**: Daedalus
+**Type**: Next.js 16 Full-Stack AI Intelligence Platform
+**Domain**: Web intelligence collection and synthesis through clear primitives
 **Stack**: TypeScript, Next.js App Router, PostgreSQL, Firecrawl API, Multi-LLM
+
+---
+
+## Core Design Principles
+
+**🔴 CRITICAL FOR ALL AI AGENTS**: This project is built on **stable primitives**, not marketing terms.
+
+### 1. Metal Names in Code, Domain Names in UI
+- **Codebase**: Stable, boring names (`extract`, `observe`, `scout`, `enrich`, `agent`)
+- **Database**: Tables use primitive names (`scouts`, `monitors`, `enrichment_jobs`)
+- **APIs**: Routes stay fixed (`/api/extract`, `/api/observe`, `/api/scouts`)
+- **UI**: Can display friendly terminology via translation layer
+
+### 2. No Big-Bang Refactors
+- Existing routes, tables, APIs remain intact
+- New work adheres to canonical structure
+- Old modules migrate only when touched
+
+### 3. Explicit Intent Over Implicit Expansion
+- Each workflow does one thing clearly
+- No automatic feature expansion (e.g., profile enrichment ≠ competitive analysis)
+
+### 4. Shared Primitives, Separate Workflows
+- Firecrawl and LLM integrations are centralized
+- Business logic lives in domain-specific workflows
+
+---
+
+## The Five Primitives
+
+Daedalus defines **five core primitives**. All functionality maps onto one of these:
+
+| Primitive | Purpose | Key Characteristics |
+|-----------|---------|---------------------|
+| **Extract** | One-off snapshot of a URL | Stateless, immediate output (brand colors, fonts, copy) |
+| **Observe** | Monitor a URL for changes over time | Stateful, scheduled runs, produces diffs and summaries |
+| **Scout** | Scheduled web search with deduplication | Query-based, deduplicates via `seen_urls`, emits new findings |
+| **Enrich** | Generate structured dossier for person/company | Multi-step workflow, outputs consolidated JSON |
+| **Agent** | Interactive, tool-using sessions | Session-based, orchestrates tools, logs actions for research |
+
+**Important**: Agents are infrastructure for orchestration, not a product category.
 
 ---
 
 ## Source Repositories - Canonical Behavior Patterns
 
-**🔴 CRITICAL FOR ALL AI AGENTS**: This project is NOT a greenfield build. It's a unified suite integrating patterns from **source-of-truth repositories**. These repos define the canonical behavior and implementation patterns for each module:
+**Reference implementations** that define how each primitive should behave:
 
-### Firecrawl / Core Apps (Primary Sources)
+### Firecrawl / Core Apps
 
-| Repository | Module | What to Learn |
-|------------|--------|---------------|
-| [fire-enrich](https://github.com/firecrawl/fire-enrich) | **Enrich** | Multi-phase agent orchestration, discovery → profile → funding → tech stack patterns, source attribution per field |
-| [open-scouts](https://github.com/Monichre/open-scouts) | **Scouts** | Scheduled Firecrawl search, URL deduplication via `seen_urls`, email notification patterns |
-| [firecrawl-observer](https://github.com/firecrawl/firecrawl-observer) | **Observe** | Content hash comparison, diff generation, AI change summarization, webhook patterns |
-| [firegeo](https://github.com/firecrawl/firegeo) | **Auth/Billing** | Better Auth setup, Stripe + Autumn integration, usage tracking, plan gating |
-| [open-researcher](https://github.com/firecrawl/open-researcher) | **Research** | Split-view UI (thinking/answer/sources), streaming reasoning, Firecrawl search integration |
-| [Firecrawl Docs](https://docs.firecrawl.dev/features/scrape#extract-brand-identity) | **Brand** | Brand identity extraction API, formats, schema definitions |
-
-### Digital Mischief Group (Design Reference)
-
-| Repository | Purpose | What to Learn |
-|------------|---------|---------------|
-| [DMG Marketing Site](https://www.digitalmischiefgroup.com/) | **Design System** | Brand archetypes, tone, visual language, content patterns |
-| [DMG Repo](https://github.com/Monichre/digital-mischief-group) | **Integration** | This repository - customer zero implementation |
+| Repository | Maps to Primitive | What to Learn |
+|------------|-------------------|---------------|
+| [fire-enrich](https://github.com/firecrawl/fire-enrich) | **Enrich** | Multi-phase orchestration, discovery → profile → funding → tech stack, source attribution |
+| [open-scouts](https://github.com/Monichre/open-scouts) | **Scout** | Scheduled Firecrawl search, URL deduplication via `seen_urls`, email notifications |
+| [firecrawl-observer](https://github.com/firecrawl/firecrawl-observer) | **Observe** | Content hash comparison, diff generation, AI change summarization |
+| [firegeo](https://github.com/firecrawl/firegeo) | **Platform** | Better Auth, Stripe + Autumn integration, usage tracking, plan gating |
+| [open-researcher](https://github.com/firecrawl/open-researcher) | **Agent** | Split-view UI (thinking/answer/sources), streaming reasoning, tool orchestration |
+| [Firecrawl Docs](https://docs.firecrawl.dev/features/scrape#extract-brand-identity) | **Extract** | Brand identity extraction API, formats, schema definitions |
 
 ### Implementation Principles
 
-1. **DO NOT REINVENT**: When implementing a feature, FIRST review the source repository for existing patterns
-2. **ADAPT, DON'T COPY**: Integrate patterns into the unified architecture (shared auth, DB, UI)
-3. **PRESERVE BEHAVIOR**: Core functionality should match source repo behavior unless explicitly changing
-4. **DOCUMENT DEVIATIONS**: If you must deviate from source patterns, document why in code comments or ADRs
+1. **DO NOT REINVENT**: Review source repository for existing patterns first
+2. **ADAPT, DON'T COPY**: Integrate patterns into unified architecture (shared auth, DB, UI)
+3. **PRESERVE BEHAVIOR**: Core functionality matches source repo unless explicitly changing
+4. **DOCUMENT DEVIATIONS**: Comment or create ADRs for any deviations from source patterns
 
-**Reference**: See [PRD.md](./PRD.md) Section 0 for complete source repository list and [PLAN.md](./PLAN.md) for implementation guidance.
+**Reference**: See [PRD.md](./PRD.md) for complete primitive definitions and architecture.
 
 ---
 
 ## Architecture Overview
-
-### Core Modules (5 Main Products in One)
-
-1. **Enrich** - CSV lead enrichment with multi-phase AI agents
-2. **Brand Recon** - Brand identity extraction + competitive intelligence + market positioning
-3. **Scouts** - AI-powered web monitoring with scheduled searches
-4. **Observe** - URL change detection and content diffing
-5. **Research** - Visual AI research assistant with streaming reasoning
 
 ### Technology Stack
 
@@ -68,33 +94,45 @@ Notifications: Resend
 Deployment: Vercel
 ```
 
-### Key Directories
+### Canonical Folder Structure
 
 ```
-/app                    → Next.js App Router (routes, API endpoints, UI)
-  /api                  → API routes (auth, billing, AI, scraping)
-    /ai                 → AI-powered endpoints (scrape, enrich, research)
-    /brand-recon        → Brand analysis endpoints
-    /enrich             → Lead enrichment endpoints
-    /monitors           → URL monitoring endpoints
-    /research           → Research assistant endpoints
-    /scouts             → Web scout endpoints
-  /(authenticated)      → Protected dashboard routes
-  /(marketing)          → Public marketing pages
+src/
+  app/           # Next.js routes (thin controllers)
+    /api         # Stable API endpoints
+      /extract   # POST /api/extract
+      /observe   # POST /api/observe
+      /scouts    # POST /api/scouts
+      /enrich    # POST /api/enrich, /api/enrich/stream
+      /agent     # POST /api/agent
 
-/lib                    → Core business logic and utilities
-  /agents               → Multi-phase AI enrichment agents
-  /db                   → Database client and utilities
-  /firecrawl            → Firecrawl API client wrapper
-  /utils                → Shared utilities
+  daedalus/      # Domain workflows (business logic)
+    /extract/    # Brand extraction, market analysis workflows
+    /observe/    # URL monitoring, change detection workflows
+    /scout/      # Scheduled search, deduplication workflows
+    /enrich/     # Profile enrichment, company enrichment workflows
+    /agent/      # Research sessions, tool orchestration workflows
 
-/components             → React components
-  /ui                   → Radix + shadcn/ui primitives
-  /dashboard            → Dashboard-specific components
+  ai/            # LLM provider, tools, schemas
+    /providers/  # Unified LLM abstraction (OpenAI, Anthropic, Groq)
+    /tools/      # Agent tool definitions
+    /schemas/    # Zod schemas for AI outputs
 
-/scripts                → Database migrations and utilities
-/docs                   → Project documentation and analysis
+  platform/      # Auth, DB, billing, jobs, telemetry
+    /auth/       # Better Auth configuration
+    /db/         # Kysely client, migrations
+    /billing/    # Stripe integration, usage tracking
+    /jobs/       # Background job processing
+
+  components/    # Shared UI primitives only
+    /ui/         # Radix + shadcn/ui components
 ```
+
+**Key Points**:
+- `app/api/*` = thin adapters (auth, validation, dispatch)
+- `daedalus/*` = business logic for each primitive
+- `platform/*` = shared infrastructure (no business logic)
+- Database tables use primitive names (e.g., `scouts`, `monitors`, not marketing terms)
 
 ---
 
@@ -104,12 +142,12 @@ Deployment: Vercel
 
 ```typescript
 // Always use Kysely for type-safe queries
-import { db } from '@/lib/db/kysely'
+import { db } from '@/platform/db/kysely'
 
 // Prefer prepared statements and proper error handling
 try {
   const result = await db
-    .selectFrom('table_name')
+    .selectFrom('scouts')
     .where('user_id', '=', userId)
     .execute()
 } catch (error) {
@@ -121,8 +159,8 @@ try {
 ### AI Provider Pattern
 
 ```typescript
-// Use unified LLM provider abstraction from lib/agents/llm-provider.ts
-import { createLLMProvider } from '@/lib/agents/llm-provider'
+// Use unified LLM provider from ai/providers
+import { createLLMProvider } from '@/ai/providers/llm-provider'
 
 const provider = createLLMProvider({
   provider: 'anthropic', // or 'openai', 'groq', 'perplexity'
@@ -136,11 +174,11 @@ const response = await provider.generateText(prompt, schema)
 ### Firecrawl Integration
 
 ```typescript
-// Use centralized Firecrawl client from lib/firecrawl/client.ts
-import { firecrawlClient } from '@/lib/firecrawl/client'
+// Use centralized Firecrawl service from platform/firecrawl
+import { firecrawlService } from '@/platform/firecrawl/service'
 
 // Scraping with brand extraction
-const brandData = await firecrawlClient.scrape(url, {
+const brandData = await firecrawlService.scrape(url, {
   formats: ['markdown', 'html'],
   actions: [{ type: 'screenshot' }],
   onlyMainContent: true
@@ -151,7 +189,7 @@ const brandData = await firecrawlClient.scrape(url, {
 
 ```typescript
 // Server-side auth check (API routes)
-import { auth } from '@/lib/auth'
+import { auth } from '@/platform/auth'
 
 export async function GET(req: Request) {
   const session = await auth.api.getSession({ headers: req.headers })
@@ -163,7 +201,7 @@ export async function GET(req: Request) {
 
 // Client-side auth hook (components)
 'use client'
-import { authClient } from '@/lib/auth-client'
+import { authClient } from '@/platform/auth/client'
 
 export function Component() {
   const { data: session, isPending } = authClient.useSession()
@@ -173,39 +211,201 @@ export function Component() {
 }
 ```
 
-### API Route Patterns
+### API Route Pattern (Thin Adapter)
 
 ```typescript
-// Streaming responses for AI operations
-import { streamText } from 'ai'
+// app/api/enrich/route.ts - Thin controller
+import { enrichWorkflow } from '@/daedalus/enrich/workflow'
+import { auth } from '@/platform/auth'
+import { checkUsageLimits } from '@/platform/billing/limits'
+import { enrichInputSchema } from '@/ai/schemas/enrich'
 
 export async function POST(req: Request) {
-  const { prompt } = await req.json()
+  // 1. Authenticate
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session?.user) {
+    return new Response('Unauthorized', { status: 401 })
+  }
 
-  const result = streamText({
-    model: anthropic('claude-3-5-sonnet-20241022'),
-    prompt,
-    system: 'You are a helpful assistant...'
-  })
+  // 2. Validate input
+  const body = await req.json()
+  const input = enrichInputSchema.parse(body)
 
-  return result.toDataStreamResponse()
+  // 3. Enforce usage limits
+  await checkUsageLimits(session.user.id, 'enrich')
+
+  // 4. Dispatch to business logic
+  const result = await enrichWorkflow(input, session.user.id)
+
+  // 5. Return response
+  return Response.json(result)
 }
+```
 
-// Standard JSON responses with error handling
-export async function POST(req: Request) {
-  try {
-    const data = await req.json()
-    const result = await processData(data)
-    return Response.json({ success: true, data: result })
-  } catch (error) {
-    console.error('API error:', error)
-    return Response.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+---
+
+## Primitive-Specific Guidance
+
+### Extract Primitive
+
+**Location**: `/daedalus/extract/*`, `/app/api/extract`
+
+**Purpose**: One-off snapshot extraction from URLs (brand identity, structured assets)
+
+**Core Pattern**:
+```typescript
+// Single-run extraction, stateless
+export async function extractBrand(url: string) {
+  const scraped = await firecrawlService.scrape(url, { formats: ['markdown'] })
+  const brandData = await llmProvider.generateText(brandPrompt, brandSchema)
+  return { ...brandData, source: url }
+}
+```
+
+**Key Features**:
+- Brand identity (logo, colors, fonts, voice)
+- Market segmentation (optional, explicit)
+- Competitive analysis (optional, explicit)
+- No state, no scheduling, immediate output
+
+### Observe Primitive
+
+**Location**: `/daedalus/observe/*`, `/app/api/observe`
+
+**Purpose**: Monitor URLs for changes over time with diff generation
+
+**Core Pattern**:
+```typescript
+// Stateful monitoring with content hashing
+export async function checkMonitor(monitorId: string) {
+  const monitor = await db.selectFrom('monitors').where('id', '=', monitorId).executeTakeFirst()
+  const currentContent = await firecrawlService.scrape(monitor.url)
+  const currentHash = hashContent(currentContent.markdown)
+
+  if (currentHash !== monitor.last_hash) {
+    const diff = generateDiff(monitor.last_content, currentContent.markdown)
+    const summary = await llmProvider.generateText(summaryPrompt, summarySchema)
+    await notifyChange(monitor.user_id, { diff, summary })
   }
 }
 ```
+
+**Key Features**:
+- Content hash comparison
+- Diff generation (before/after)
+- AI-powered change summarization
+- Webhook + email notifications
+
+### Scout Primitive
+
+**Location**: `/daedalus/scout/*`, `/app/api/scouts`
+
+**Purpose**: Scheduled web searches with URL deduplication
+
+**Core Pattern**:
+```typescript
+// Query-based search with deduplication
+export async function runScout(scoutId: string) {
+  const scout = await db.selectFrom('scouts').where('id', '=', scoutId).executeTakeFirst()
+  const searchResults = await firecrawlService.search(scout.query)
+
+  // Deduplicate against seen_urls
+  const newUrls = searchResults.filter(url => !scout.seen_urls.includes(url))
+
+  if (newUrls.length > 0) {
+    await db.updateTable('scouts')
+      .set({ seen_urls: [...scout.seen_urls, ...newUrls] })
+      .where('id', '=', scoutId)
+      .execute()
+
+    await notifyNewFindings(scout.user_id, newUrls)
+  }
+}
+```
+
+**Key Features**:
+- Scheduled Firecrawl searches
+- URL deduplication via `seen_urls` array
+- Email notifications for new findings
+- Dashboard feed integration
+
+### Enrich Primitive
+
+**Location**: `/daedalus/enrich/*`, `/app/api/enrich`
+
+**Purpose**: Multi-step workflow to generate structured person/company dossiers
+
+**Two Entry Points** (not interchangeable):
+
+1. **Profile Enrichment**
+   - Input: Email, name, or LinkedIn URL
+   - Output: Individual's role + basic company info
+   - Explicitly NOT included: Competitive analysis, deep firmographics
+
+2. **Company Enrichment**
+   - Input: Company domain or name
+   - Process: Sequential agents (discovery → firmographics → funding → tech stack)
+   - Output: Structured company dossier (JSON)
+   - Competitive analysis: Optional, must be explicitly toggled
+
+**Core Pattern**:
+```typescript
+// Multi-phase orchestration
+export async function enrichCompany(domain: string, options: EnrichOptions) {
+  const discovery = await discoveryAgent(domain)
+  const profile = await companyProfileAgent(discovery)
+  const funding = await fundingAgent(profile.name)
+  const techStack = await techStackAgent(domain)
+
+  let competitive = null
+  if (options.includeCompetitive) {
+    competitive = await competitiveAnalysisAgent(profile)
+  }
+
+  return {
+    company: profile,
+    funding,
+    techStack,
+    competitive,
+    sources: [...discovery.sources, ...profile.sources]
+  }
+}
+```
+
+### Agent Primitive
+
+**Location**: `/daedalus/agent/*`, `/app/api/agent`
+
+**Purpose**: Interactive sessions that orchestrate tools for research and synthesis
+
+**Core Pattern**:
+```typescript
+// Session-based tool orchestration
+export async function agentSession(sessionId: string, userPrompt: string) {
+  const tools = [firecrawlSearchTool, extractTool, llmTool]
+
+  const response = await llmProvider.generateText(userPrompt, {
+    tools,
+    onToolCall: async (toolName, args) => {
+      // Log tool usage for transparency
+      await logToolCall(sessionId, toolName, args)
+      return await executeTool(toolName, args)
+    }
+  })
+
+  return {
+    thinking: response.reasoning,
+    answer: response.content,
+    sources: response.citations
+  }
+}
+```
+
+**Key Features**:
+- Split-view UI (thinking, answer, sources)
+- Streaming reasoning with citations
+- Tool orchestration (Firecrawl, Extract, Observe)
+- Session persistence for multi-turn research
 
 ---
 
@@ -215,38 +415,44 @@ export async function POST(req: Request) {
 
 - **Strict Mode**: Enabled - all type checks enforced
 - **Naming**:
-  - Components: PascalCase (`BrandReconCard.tsx`)
-  - Functions/variables: camelCase (`getUserProfile`)
+  - Components: PascalCase (`ExtractView.tsx`)
+  - Functions/variables: camelCase (`enrichCompany`)
   - Constants: SCREAMING_SNAKE_CASE (`API_BASE_URL`)
-  - Database: snake_case (`user_id`, `created_at`)
+  - Database: snake_case (`user_id`, `created_at`, `seen_urls`)
+  - Primitives: lowercase (`extract`, `observe`, `scout`, `enrich`, `agent`)
 - **Imports**: Absolute imports with `@/` alias
-- **Types**: Define inline for simple types, separate `.types.ts` files for complex schemas
+- **Types**: Inline for simple types, separate `.types.ts` files for complex schemas
 
 ### Component Architecture
 
 ```typescript
 // Server Components (default)
-import { ComponentProps } from './types'
-
-export default async function ServerComponent({ id }: ComponentProps) {
-  const data = await fetchData(id)
-  return <div>{data.title}</div>
+export default async function ExtractPage({ params }: { params: { id: string } }) {
+  const extraction = await db.selectFrom('extractions').where('id', '=', params.id).executeTakeFirst()
+  return <ExtractView data={extraction} />
 }
 
 // Client Components (with 'use client')
 'use client'
 import { useState } from 'react'
 
-export function ClientComponent() {
-  const [state, setState] = useState()
-  return <button onClick={() => setState(prev => !prev)}>Toggle</button>
+export function ScoutRunner({ scoutId }: { scoutId: string }) {
+  const [running, setRunning] = useState(false)
+
+  const runScout = async () => {
+    setRunning(true)
+    await fetch(`/api/scouts/${scoutId}/run`, { method: 'POST' })
+    setRunning(false)
+  }
+
+  return <button onClick={runScout} disabled={running}>Run Scout</button>
 }
 ```
 
 ### Error Handling
 
 - Always wrap async operations in try-catch
-- Log errors with context: `console.error('Operation failed:', error)`
+- Log errors with context: `console.error('Enrich workflow failed:', error)`
 - Return user-friendly error messages
 - Use Zod for input validation at API boundaries
 
@@ -257,97 +463,6 @@ export function ClientComponent() {
 - Use parameterized queries (Kysely handles this)
 - Implement rate limiting on expensive operations
 - Sanitize all user-generated content before display
-
----
-
-## Module-Specific Guidance
-
-### Enrich Module
-
-**Location**: `/app/api/enrich/*`, `/lib/agents/*`
-
-**Core Pattern**: Multi-phase agent orchestration
-1. Discovery Agent (web search for company info)
-2. Company Profile Agent (firmographics)
-3. Funding Agent (investment data)
-4. Tech Stack Agent (technical infrastructure)
-5. Custom Fields Agent (user-defined enrichment)
-
-**Key Files**:
-- `lib/agents/conductor.ts` - Agent orchestration logic
-- `lib/agents/company-profile.ts` - Company data extraction
-- `lib/agents/funding.ts` - Funding/investment data
-- `lib/agents/tech-stack.ts` - Technology detection
-
-**Pattern**:
-```typescript
-// Each agent follows this structure
-export async function agentName(input: InputType): Promise<OutputType> {
-  const searchResults = await firecrawlClient.search(query)
-  const analysis = await llmProvider.generateText(prompt, schema)
-  return { ...analysis, sources: searchResults.urls }
-}
-```
-
-### Brand Recon Module
-
-**Location**: `/app/api/brand-recon/*`
-
-**Core Pattern**: Brand extraction + competitive analysis + positioning
-
-**Key Features**:
-- Firecrawl brand identity extraction (logo, colors, fonts, voice)
-- Competitive neighborhood discovery
-- Market segmentation analysis
-- Opportunity mapping (white space identification)
-- Automated asset generation (emails, landing pages, social posts)
-
-**Pattern**:
-```typescript
-// Brand analysis workflow
-1. Extract brand identity via Firecrawl
-2. Discover competitors via search
-3. Analyze positioning and opportunities
-4. Generate branded assets (optional)
-```
-
-### Scouts Module
-
-**Location**: `/app/api/scouts/*`
-
-**Core Pattern**: Scheduled web monitoring with deduplication
-
-**Key Features**:
-- Create scouts with search queries and schedule
-- Run Firecrawl search on intervals
-- Deduplicate via `seen_urls` tracking
-- Email notifications via Resend
-- Dashboard feed integration
-
-### Observe Module
-
-**Location**: `/app/api/monitors/*`
-
-**Core Pattern**: URL content change detection
-
-**Key Features**:
-- Monitor specific URLs for changes
-- Content hash comparison + diff generation
-- AI-powered change summarization
-- Webhook + email notifications
-- Integration with brand/scout modules
-
-### Research Module
-
-**Location**: `/app/api/research/*`
-
-**Core Pattern**: Visual research assistant with streaming
-
-**Key Features**:
-- Split-view UI (thinking, answer, sources)
-- Streaming AI reasoning with citations
-- Firecrawl search integration for live web data
-- Pre-seeded queries from other modules
 
 ---
 
@@ -380,19 +495,19 @@ bun run build
 
 ### Adding a New API Endpoint
 
-1. Create route file in `/app/api/[module]/route.ts`
-2. Implement GET/POST handlers with auth check
-3. Validate inputs with Zod
-4. Use try-catch for error handling
+1. Create route file in `/app/api/[primitive]/route.ts`
+2. Implement thin adapter (auth → validate → enforce limits → dispatch → return)
+3. Validate inputs with Zod schemas from `/ai/schemas/`
+4. Business logic goes in `/daedalus/[primitive]/`
 5. Return JSON responses with proper status codes
 
-### Adding a New Agent
+### Adding a New Workflow
 
-1. Create agent file in `/lib/agents/[agent-name].ts`
-2. Define input/output Zod schemas
-3. Implement search → analysis → synthesis pattern
-4. Add to conductor orchestration if multi-phase
-5. Include source URLs in responses
+1. Create workflow file in `/daedalus/[primitive]/[workflow-name].ts`
+2. Define input/output Zod schemas in `/ai/schemas/`
+3. Implement business logic using platform services
+4. Include source URLs in responses
+5. Add to corresponding API route adapter
 
 ### Adding a New Dashboard Page
 
@@ -404,9 +519,9 @@ bun run build
 
 ### Database Migrations
 
-1. Create SQL file in `/scripts/[number]-[description].sql`
+1. Create SQL file in `/scripts/migrations/[timestamp]-[description].sql`
 2. Test locally against dev database
-3. Apply with: `psql $DATABASE_URL -f scripts/[file].sql`
+3. Apply with: `psql $DATABASE_URL -f scripts/migrations/[file].sql`
 4. Document in migration history
 
 ---
@@ -455,20 +570,6 @@ SENTRY_DSN=...
 
 ---
 
-## Source Repositories (Reference Only)
-
-This project integrates patterns from:
-
-- **fire-enrich** - Lead enrichment agents
-- **open-scouts** - Web monitoring scouts
-- **firecrawl-observer** - URL change detection
-- **firegeo** - Auth, billing, brand monitoring
-- **open-researcher** - Visual research assistant
-
-**Important**: These are reference implementations. All code is unified in this repository.
-
----
-
 ## Troubleshooting
 
 ### Database Connection Issues
@@ -511,8 +612,7 @@ bun run build
 
 ## Additional Resources
 
-- [Implementation Status](./docs/IMPLEMENTATION_STATUS.md) - Module completion tracking
-- [PRD](./PRD.md) - Canonical product requirements
+- [PRD](./PRD.md) - Canonical product requirements and primitive definitions
 - [Firecrawl Docs](https://docs.firecrawl.dev) - API reference
 - [Better Auth Docs](https://www.better-auth.com/docs) - Authentication guide
 - [Next.js Docs](https://nextjs.org/docs) - Framework documentation
@@ -523,12 +623,13 @@ bun run build
 
 ### Starting a New Feature
 
-1. Review relevant module documentation above
-2. Check existing patterns in codebase
-3. Create database migrations if needed
-4. Implement API routes with proper auth
-5. Add UI components following existing conventions
-6. Test locally before committing
+1. Identify which primitive(s) the feature belongs to
+2. Check source repository for canonical patterns
+3. Create database migrations if needed (use primitive names)
+4. Implement workflow in `/daedalus/[primitive]/`
+5. Create thin API adapter in `/app/api/[primitive]/`
+6. Add UI components following existing conventions
+7. Test locally before committing
 
 ### Debugging Issues
 
@@ -545,6 +646,8 @@ bun run build
 - [ ] Auth checks are in place
 - [ ] Input validation with Zod
 - [ ] Database queries are type-safe (Kysely)
+- [ ] Database tables use primitive names
+- [ ] Business logic in `/daedalus/`, not `/app/api/`
 - [ ] UI is accessible (ARIA, keyboard nav)
 - [ ] No secrets in code or commits
 - [ ] Code follows project conventions
@@ -553,11 +656,10 @@ bun run build
 
 ## Notes for Claude Code
 
-- **Prefer existing patterns** over creating new abstractions
-- **Reuse agents** from `lib/agents/*` for enrichment logic
-- **Follow module boundaries** - keep concerns separated
-- **Use streaming** for AI responses in user-facing features
-- **Implement proper loading states** - never leave users waiting without feedback
-- **Document complex logic** - especially multi-phase agents
-- **Test database changes** locally before applying to production
-- **Security first** - always validate inputs, check auth, sanitize outputs
+- **Metal names everywhere**: Code, DB, APIs use `extract`, `observe`, `scout`, `enrich`, `agent`
+- **No marketing terms in code**: "Brand Recon" is UI-only, code uses `extract` + `enrich`
+- **Thin API routes**: Auth → validate → dispatch → return. Business logic goes in `/daedalus/`
+- **Preserve source patterns**: Reference source repos for canonical behavior
+- **Explicit workflows**: Profile enrichment ≠ company enrichment. No automatic expansions.
+- **Security first**: Always validate inputs, check auth, sanitize outputs
+- **No big refactors**: Migrate old code only when touched

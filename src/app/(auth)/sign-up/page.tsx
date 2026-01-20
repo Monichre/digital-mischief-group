@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import {useRouter} from 'next/navigation'
-import {authClient} from '@/lib/auth-client'
+import {authClient} from '@/platform/auth/client'
 
 export default function SignUpPage() {
   const router = useRouter()

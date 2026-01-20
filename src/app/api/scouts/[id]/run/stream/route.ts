@@ -1,9 +1,9 @@
 import { type NextRequest } from "next/server"
-import { sql } from "@/lib/db/neon"
+import { sql } from "@/platform/db/neon"
 import { getFirecrawlClient } from "@/lib/firecrawl/client"
-import { runSentinelAgent } from "@/lib/agents/sentinel-agent"
-import type { Scout, ScoutResult } from "@/lib/scouts/types"
-import type { SentinelStreamEvent, SearchProgress } from "@/lib/scouts/stream-types"
+import { runSentinelAgent } from "@/ai/agents/sentinel.agent"
+import type { Scout, ScoutResult } from "@/daedalus/scout/types"
+import type { SentinelStreamEvent, SearchProgress } from "@/daedalus/scout/stream-types"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY

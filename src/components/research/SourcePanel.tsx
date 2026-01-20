@@ -9,7 +9,7 @@ import {
   Globe,
   Loader2,
 } from 'lucide-react'
-import type {SourceFoundEvent} from '@/lib/research/stream-types'
+import type {SourceFoundEvent} from '@/daedalus/agent/research/stream-types'
 
 interface SourcePanelProps {
   sources: SourceFoundEvent['data'][]

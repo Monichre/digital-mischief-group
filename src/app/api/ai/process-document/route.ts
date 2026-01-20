@@ -1,6 +1,6 @@
 import { generateObject } from "ai"
 import { z } from "zod"
-import { MODELS } from "@/lib/ai/models"
+import { MODELS } from "@/ai/models"
 
 export const maxDuration = 60
 

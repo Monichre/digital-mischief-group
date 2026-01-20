@@ -1,11 +1,11 @@
 import { type NextRequest } from 'next/server'
-import { sql } from '@/lib/db/neon'
+import { sql } from '@/platform/db/neon'
 import { getFirecrawlClient } from '@/lib/firecrawl/client'
-import { conductEnrichment } from '@/lib/agents/conductor'
-import type { EnrichmentInput } from '@/lib/agents'
-import { auth } from '@/lib/auth'
+import { runEnrichmentStream } from '@/daedalus/enrich/api'
+import type { EnrichmentInput } from '@/daedalus/enrich/api'
+import { auth } from '@/platform/auth/server'
 import { headers } from 'next/headers'
-import type { EnrichStreamEvent } from '@/lib/enrich/stream-types'
+import type { EnrichStreamEvent } from '@/daedalus/enrich/stream-types'
 
 function formatSSE( event: EnrichStreamEvent ): string {
   return `data: ${JSON.stringify( { ...event, timestamp: Date.now() } )}\n\n`
@@ -56,7 +56,7 @@ export async function POST( request: NextRequest ) {
 
       try {
         // Run conductor-orchestrated enrichment with thought streaming
-        const result = await conductEnrichment( enrichmentInput, {
+        const result = await runEnrichmentStream( enrichmentInput, {
           onThought: ( thought ) => {
             send( {
               type: 'conductor_thought',

@@ -8,7 +8,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
-    <ReactMarkdown
+    <div
       className={cn(
         "prose prose-neutral max-w-none text-xs leading-relaxed prose-headings:font-normal prose-headings:tracking-tight",
         "prose-h1:text-base prose-h1:font-medium prose-h2:text-sm prose-h2:font-medium prose-h3:text-xs prose-h3:font-medium prose-h4:text-xs",
@@ -26,7 +26,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         className,
       )}
     >
-      {content}
-    </ReactMarkdown>
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
   )
 }

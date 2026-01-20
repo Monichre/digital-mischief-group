@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import type {Scout} from '@/lib/scouts/types'
+import type {Scout} from '@/daedalus/scout/types'
 import {ProGate} from '@/components/pro-gate'
 
 export default function ScoutsPage() {

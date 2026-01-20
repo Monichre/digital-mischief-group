@@ -5,7 +5,7 @@ import {motion} from 'framer-motion'
 import {Flame, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff} from 'lucide-react'
 import Link from 'next/link'
 import {useRouter} from 'next/navigation'
-import {authClient} from '@/lib/auth-client'
+import {authClient} from '@/platform/auth/client'
 
 export default function SignInPage() {
   const router = useRouter()

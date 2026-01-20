@@ -1,11 +1,11 @@
 import { type NextRequest } from 'next/server'
 import { streamText } from 'ai'
 import { getFirecrawlClient } from '@/lib/firecrawl/client'
-import { sql } from '@/lib/db/neon'
-import { auth } from '@/lib/auth'
+import { sql } from '@/platform/db/neon'
+import { auth } from '@/platform/auth/server'
 import { headers } from 'next/headers'
-import type { ResearchStreamEvent, SourceFoundEvent } from '@/lib/research/stream-types'
-import { MODELS } from '@/lib/ai/models'
+import type { ResearchStreamEvent, SourceFoundEvent } from '@/daedalus/agent/research/stream-types'
+import { MODELS } from '@/ai/models'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 

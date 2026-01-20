@@ -1,6 +1,6 @@
 'use client'
 
-import type {BrandComponents, BrandColors} from '@/lib/brand-recon/types'
+import type {BrandComponents, BrandColors} from '@/daedalus/extract/brand/types'
 
 interface ComponentPreviewProps {
   components?: BrandComponents

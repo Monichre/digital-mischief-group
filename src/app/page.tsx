@@ -122,10 +122,10 @@ export default function Home() {
               <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <Link
-              href='/arsenal'
+              href='/field-reports'
               className='hover:text-white transition-colors relative group'
             >
-              Arsenal
+              Field Reports
               <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
             <div className='relative' ref={dropdownRef}>

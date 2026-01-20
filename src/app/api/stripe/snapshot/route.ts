@@ -1,6 +1,6 @@
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
+import { sql } from "@/platform/db/neon"
 import Stripe from "stripe"
 
 // Snapshot webhooks contain full object data - no API calls needed

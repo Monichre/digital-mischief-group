@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import type { BrandReconResponse } from "@/lib/brand-recon/types"
-import { sql } from "@/lib/db/neon"
+import type { BrandReconResponse } from "@/daedalus/extract/brand/types"
+import { sql } from "@/platform/db/neon"
 import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
-import { auth } from "@/lib/auth"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 
 export async function POST( request: NextRequest ): Promise<NextResponse<BrandReconResponse>> {

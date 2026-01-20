@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { authClient } from '@/lib/auth-client'
-import { identifyUser, setUserProperties, trackEvent } from '@/lib/analytics/events'
-import { usePageTracking, useTimeOnPage, useScrollTracking } from '@/lib/analytics/hooks'
+import { authClient } from '@/platform/auth/client'
+import { identifyUser, setUserProperties, trackEvent } from '@/platform/telemetry/events'
+import { usePageTracking, useTimeOnPage, useScrollTracking } from '@/platform/telemetry/hooks'
 
 /**
  * AnalyticsProvider - Integrates Better Auth with Google Analytics

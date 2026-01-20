@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button'
 import {Lock, Zap} from 'lucide-react'
 import Link from 'next/link'
 import {Skeleton} from '@/components/ui/skeleton'
-import {authClient} from '@/lib/auth-client'
+import {authClient} from '@/platform/auth/client'
 
 export function ProGate({
   children,

@@ -25,7 +25,7 @@ import {Input} from '@/components/ui/input'
 import {Textarea} from '@/components/ui/textarea'
 import {Badge} from '@/components/ui/badge'
 import {ScrollReveal} from '@/components/scroll-animations'
-import type {ResearchMission, ResearchDepth} from '@/lib/research/types'
+import type {ResearchMission, ResearchDepth} from '@/daedalus/agent/research/types'
 import {ProGate} from '@/components/pro-gate'
 
 const DEPTH_OPTIONS: {

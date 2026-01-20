@@ -24,7 +24,7 @@ const CAPABILITIES: Capability[] = [
     tag: 'ARSENAL',
     label: 'Templates + Blueprints',
     description: 'deploy today',
-    href: '/arsenal',
+  href: '/field-report',
     icon: Cog,
   },
   {

@@ -12,7 +12,7 @@ import {
   Crosshair,
   Radar,
 } from 'lucide-react'
-import type {BrandingProfile, ReconStatus} from '@/lib/brand-recon/types'
+import type {BrandingProfile, ReconStatus} from '@/daedalus/extract/brand/types'
 import {ColorSwatch} from '@/components/brand-recon/ColorSwatch'
 import {TypographyCard} from '@/components/brand-recon/TypographyCard'
 import {ComponentPreview} from '@/components/brand-recon/ComponentPreview'

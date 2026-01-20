@@ -797,7 +797,7 @@ function ImprovedExamples({
   )
 }
 
-export function VercelIcon(props) {
+export function VercelIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       height='222'

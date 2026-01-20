@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
+import { sql } from "@/platform/db/neon"
 import { generateText } from "ai"
-import { auth } from "@/lib/auth"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
-import { MODELS } from "@/lib/ai/models"
+import { MODELS } from "@/ai/models"
 
 const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 

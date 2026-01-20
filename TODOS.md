@@ -1,10 +1,10 @@
-# Project Tickets - Firecrawl Intelligence Suite
+# Project Tickets - Daedalus Platform
 
-**Last Updated:** 2026-01-10
+**Last Updated:** 2026-01-20
 
 This is the canonical ticket backlog for Digital Mischief Group. All active work is tracked here with checkboxes for manual progress tracking.
 
-**Total Tickets:** 27
+**Total Tickets:** 18
 
 **Legend:**
 - `🔴 P0` = Critical / Immediate
@@ -14,617 +14,250 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-## 📋 Active Sprint - Data Quality & Reliability
+## 📋 Active Sprint — Stabilize Core Primitives
 
-### 🔴 P0: LLM Integration & Validation
+### 🔴 P0: Platform Foundations
 
-#### Ticket #1: LLM Response Validation
-**Priority:** P0 | **Effort:** 3 days | **Module:** Core/Agents
+#### Ticket #1: Firecrawl Adapter Consolidation
+**Priority:** P0 | **Effort:** 3 days | **Module:** platform/firecrawl
 
-- [ ] Add strict JSON schema validation in `lib/agents/llm-provider.ts`
-- [ ] Implement markdown fence stripping with error handling
-- [ ] Add retry logic for malformed JSON responses with guardrails
-- [ ] Update conductor to handle validation failures gracefully
+- [ ] Move all Firecrawl calls into `platform/firecrawl-service` with centralized logging, retries, and rate limiting
+- [ ] Add fallback URL attempts (primary → /about → /team → /company) with exponential backoff
+- [ ] Reject empty/erroneous extractions with structured error reporting
+- [ ] Add unit tests for success/empty/error paths
 
 **Acceptance Criteria:**
-- All LLM responses validated against Zod schemas
-- Malformed responses retry up to 3 times
-- Clear error messages logged for debugging
+- All routes/workflows call the shared adapter only
+- Empty responses are treated as failures and logged with context
+- Backoff and fallback order verified in tests
 
 ---
 
-#### Ticket #2: Multi-LLM Compatibility Testing
-**Priority:** P0 | **Effort:** 2 days | **Module:** Core/Agents
+#### Ticket #2: Unified LLM Provider
+**Priority:** P0 | **Effort:** 3 days | **Module:** platform/llm-service
 
-- [ ] Create `scripts/test-llm-compatibility.ts` test harness
-- [ ] Run identical prompts through Anthropic (Claude 3.5 Sonnet)
-- [ ] Run identical prompts through OpenRouter (GPT-4)
-- [ ] Validate both responses against `DiscoveryResultSchema`
-- [ ] Document expected JSON shape and edge cases
+- [ ] Centralize provider creation with Anthropic/OpenAI/Groq support and streaming
+- [ ] Add schema validation + markdown fence stripping for all model outputs
+- [ ] Implement retry and Safe Mode fallbacks on validation failure
+- [ ] Add harness comparing providers against shared schemas
 
 **Acceptance Criteria:**
-- Test harness covers all agent types (discovery, profile, funding, tech)
-- Both providers return valid, schema-compliant responses
-- Edge cases documented in `/docs/code/llm-compatibility.md`
+- All LLM calls use the unified provider
+- Responses validated against Zod schemas with retries
+- Safe Mode path exercised in tests
 
 ---
 
-### 🔴 P0: Firecrawl Robustness
+#### Ticket #3: Enrich Workflow Guardrails
+**Priority:** P0 | **Effort:** 3 days | **Module:** daedalus/enrich
 
-#### Ticket #3: Firecrawl Extraction Validation
-**Priority:** P0 | **Effort:** 2 days | **Module:** Firecrawl Client
-
-- [ ] Add extraction validation in `lib/firecrawl/client.ts`
-- [ ] Reject empty or null extractions as errors
-- [ ] Log extraction failures with context (domain, job ID)
-- [ ] Add structured logging for success/empty/error cases
+- [ ] Enforce distinct entry points for profile vs company enrichment with explicit competitive toggle
+- [ ] Add Safe Mode plan (discovery + profile only) on planning failure
+- [ ] Validate all API inputs/outputs via schemas before DB writes
+- [ ] Add CSV path checks: job state, row-level errors, export parity
 
 **Acceptance Criteria:**
-- Empty extractions never treated as success
-- All failures logged with structured data
-- Metrics available for monitoring extraction success rate
+- Default company enrichment excludes competitive analysis unless flagged
+- Safe Mode never crashes and logs degraded runs
+- Stored rows are schema-validated; CSV exports match dashboard
 
 ---
 
-#### Ticket #4: URL Fallback Strategy
-**Priority:** P0 | **Effort:** 3 days | **Module:** Firecrawl Client
+#### Ticket #4: API Thin Adapter Audit
+**Priority:** P0 | **Effort:** 2 days | **Module:** app/api
 
-- [ ] Implement fallback URL attempts when primary fails
-- [ ] Try `{url}/about` on primary failure
-- [ ] Try `{url}/team` if about fails
-- [ ] Try `{url}/company` as final fallback
-- [ ] Add retry mechanism with exponential backoff
+- [ ] Verify `/api/enrich`, `/api/enrich/stream`, `/api/extract`, `/api/observe`, `/api/scouts`, `/api/agent` use auth + Zod + usage gating
+- [ ] Remove or redirect any prototype/legacy endpoints outside the canonical surface
+- [ ] Add consistent error responses and logging
 
 **Acceptance Criteria:**
-- Up to 4 URLs attempted per domain (primary + 3 fallbacks)
-- Exponential backoff: 1s, 2s, 4s between retries
-- First successful extraction returned immediately
-- All attempts logged for analysis
+- All canonical routes follow auth → validate → enforce limits → dispatch pattern
+- No dead prototype endpoints reachable
+- Error formats consistent across primitives
 
 ---
 
-#### Ticket #5: Firecrawl Monitoring & Alerts
-**Priority:** P0 | **Effort:** 2 days | **Module:** Monitoring
+#### Ticket #5: Observe Reliability
+**Priority:** P0 | **Effort:** 2 days | **Module:** daedalus/observe
 
-- [ ] Define extraction success rate threshold (target: >70%)
-- [ ] Define field population rate threshold (target: >75%)
-- [ ] Implement threshold-based alerts
-- [ ] Create dashboard for real-time extraction metrics
-- [ ] Set up alert channels (Slack/email)
+- [ ] Persist content hashes and before/after snapshots for monitors
+- [ ] Generate diffs and AI summaries on change
+- [ ] Deliver notifications (email/webhook) with guardrails for noise
 
 **Acceptance Criteria:**
-- Alerts trigger when success rate drops below 70% over 1-hour window
-- Dashboard shows extraction metrics by domain and agent
-- Alert fatigue minimized with proper thresholds
+- Monitor runs store hash + content per execution
+- Diffs and summaries generated for changes only
+- Notifications fire once per detected change with suppression controls
 
 ---
 
-### 🔴 P0: Enrich Data Quality
+#### Ticket #6: Scout Dedup & Scheduling
+**Priority:** P0 | **Effort:** 2 days | **Module:** daedalus/scout
 
-#### Ticket #6: Batch Data Mapping Refactor
-**Priority:** P0 | **Effort:** 3 days | **Module:** Enrich
-
-- [ ] Remove `|| {}` pattern from `app/api/enrich/batch/stream/route.ts`
-- [ ] Create `EnrichedResultSchema` Zod schema
-- [ ] Validate all payloads before database writes
-- [ ] Define null vs undefined strategy in docs
-- [ ] Add unit tests for mapping function
+- [ ] Enforce `seen_urls` deduplication per user
+- [ ] Ensure scheduled runs persist findings and emit only new results
+- [ ] Add tests for query variants and pagination
 
 **Acceptance Criteria:**
-- No unexpected null/undefined in stored rows
-- All writes validated against schema
-- Backwards compatible with existing CSV exports
-- >95% test coverage for mapping logic
+- No duplicate URLs emitted across runs for the same scout
+- Scheduled jobs produce stored findings and notifications
+- Tests cover dedup and pagination edge cases
 
 ---
 
-#### Ticket #7: Personal Site Detection Enhancement
-**Priority:** P0 | **Effort:** 3 days | **Module:** Agents/Custom Fields
+#### Ticket #7: Data Quality Metrics & Alerts
+**Priority:** P0 | **Effort:** 2 days | **Module:** monitoring
 
-- [ ] Implement multi-signal detection in `lib/agents/custom-fields.ts`
-- [ ] Add employee count heuristic (1-2 = likely personal)
-- [ ] Add URL pattern matching (portfolio, hire-me, etc.)
-- [ ] Add content keyword detection
-- [ ] Add social/profile link analysis
-- [ ] Create test fixtures in `tests/fixtures/personal-sites.ts`
-- [ ] Add `tests/personal-site-detection.test.ts`
+- [ ] Track extraction success rate, enrichment field population, and LLM fallback usage
+- [ ] Define thresholds and alert channels (Slack/email)
+- [ ] Build lightweight dashboard for real-time metrics
 
 **Acceptance Criteria:**
-- False positive rate <5%
-- Personal site detection accuracy ≥90%
-- 20+ test cases covering edge cases
+- Metrics emitted per primitive with 1h rolling windows
+- Alerts trigger below thresholds with low false positives
+- Dashboard shows per-domain/per-user breakdowns
 
 ---
 
-#### Ticket #8: Conductor Planning Fallbacks
-**Priority:** P0 | **Effort:** 2 days | **Module:** Conductor
+### 🟡 P1: Experience & Conversion
 
-- [ ] Add fallback logic when LLM planning fails in `lib/agents/conductor.ts`
-- [ ] Define "Safe Mode" plan (discovery + profile only)
-- [ ] Skip expensive/non-critical agents in Safe Mode
-- [ ] Add unit tests for planning error paths
-- [ ] Document fallback behavior
+#### Ticket #8: CSV Enrichment Flow
+**Priority:** P1 | **Effort:** 3 days | **Module:** enrich
+
+- [ ] Improve CSV upload → job status → export UX
+- [ ] Validate row-level errors and surface them in UI
+- [ ] Ensure exports match stored enrichment results
 
 **Acceptance Criteria:**
-- Never crashes on planning failure
-- Safe Mode runs essential agents only
-- Clear logs when fallback triggered
-- User notified of degraded enrichment
+- Users can upload, monitor progress, and export in one session
+- Row errors visible with actionable messages
+- Export fidelity ≥ dashboard display
 
 ---
 
-### 🔴 P0: Testing & Verification
+#### Ticket #9: Cross-Primitive CTAs
+**Priority:** P1 | **Effort:** 2 days | **Module:** integration
 
-#### Ticket #9: Comprehensive Regression Tests
-**Priority:** P0 | **Effort:** 4 days | **Module:** Testing
-
-- [ ] Add response validation guards for all conductor LLM calls
-- [ ] Test both Anthropic and OpenRouter providers
-- [ ] Add unit tests for data mapping (enrichment -> DB)
-- [ ] Add unit tests for Firecrawl client (success/empty/error)
-- [ ] Add unit tests for multi-phase orchestration
-- [ ] Run test suite on staging before production deploy
+- [ ] Add "Create Scout" and "Create Monitor" from Enrich and Brand views with prefilled context
+- [ ] Add "Generate Asset Pack" from brand/enrich outputs
 
 **Acceptance Criteria:**
-- >80% code coverage for critical paths
-- All tests pass on both LLM providers
-- Staging validation completes successfully
+- One-click CTA opens prefilled forms; user can edit before save
+- Scout/monitor creations persist and schedule correctly
+- Asset pack generation respects brand identity inputs
 
 ---
 
-#### Ticket #10: Enrich Smoke Tests
-**Priority:** P0 | **Effort:** 1 day | **Module:** Enrich
+#### Ticket #10: Brand Asset Generation
+**Priority:** P1 | **Effort:** 4 days | **Module:** brand (extract + enrich)
 
-- [ ] Run enrichment on Stripe, Shopify, 5 other known companies
-- [ ] Verify expected fields populated correctly
-- [ ] Implement CSV export from dashboard
-- [ ] Test export with 10, 100, 1000 row datasets
+- [ ] Use extracted brand identity (colors, fonts, voice) to generate email, landing, and social templates
+- [ ] Provide preview + export (HTML/Markdown/text)
 
 **Acceptance Criteria:**
-- Known companies return >75% field population
-- CSV export works for all dataset sizes
-- Exported data matches dashboard display
+- 3+ asset types generated with brand-consistent styling
+- Exports downloadable and match previews
 
 ---
 
-#### Ticket #11: Security Audit
-**Priority:** P0 | **Effort:** 1 day | **Module:** Security
+#### Ticket #11: Research Split-View Reliability
+**Priority:** P1 | **Effort:** 3 days | **Module:** agent/research
 
-- [ ] Rotate any compromised API keys (xAI, Stripe test, etc.)
-- [ ] Verify `.env*` excluded in `.gitignore`
-- [ ] Add pre-commit hook for secret scanning
-- [ ] Create auth/billing test checklist or Playwright test
-
-**Test Coverage:**
-- [ ] Sign-up flow
-- [ ] Upgrade to Pro
-- [ ] Verify DB and Stripe state sync
-- [ ] Downgrade/cancellation flow
+- [ ] Ensure streaming "thinking/answer/sources" stays in sync across providers
+- [ ] Add citation tracking and fallback when a tool fails
 
 **Acceptance Criteria:**
-- No secrets in git history
-- Pre-commit hook catches common secret patterns
-- Auth/billing E2E test passes
+- Streams remain aligned; no orphaned tool results
+- Sources list maps to cited text; fallback path logged
 
 ---
 
-## 🟡 Short-Term Tickets (2-4 Weeks)
+#### Ticket #12: Settings & Billing (GEO)
+**Priority:** P1 | **Effort:** 4 days | **Module:** platform/auth/billing
 
-### 🟡 P1: Product Features
-
-#### Ticket #12: Brand Asset Generation
-**Priority:** P1 | **Effort:** 5 days | **Module:** Brand
-
-- [ ] Design asset generation UI in brand recon results
-- [ ] Implement email template generation using brand data
-- [ ] Implement landing page generation using brand data
-- [ ] Implement social post generation using brand data
-- [ ] Add preview and export functionality
+- [ ] Implement settings page for account, notifications, API keys
+- [ ] Integrate Stripe customer portal and usage display
+- [ ] Enforce plan gating across primitives using usage_events
 
 **Acceptance Criteria:**
-- Users can generate 3+ asset types from brand recon
-- Assets reflect extracted brand identity (colors, fonts, voice)
-- Export as HTML, Markdown, or plain text
+- Users can self-serve account + billing updates
+- Usage and limits visible per plan tier
+- Gating enforced consistently on API routes
 
 ---
 
-#### Ticket #13: Cross-Module Integration
-**Priority:** P1 | **Effort:** 3 days | **Module:** Integration
+### 🟢 P2: Platform & Observability
 
-- [ ] Add "Create Scout" CTA from Enrich results
-- [ ] Add "Create Monitor" CTA from Enrich results
-- [ ] Add "Create Scout" CTA from Brand Recon results
-- [ ] Add "Create Monitor" CTA from Brand Recon results
-- [ ] Pre-fill scout/monitor forms with context
+#### Ticket #13: End-to-End Tracing
+**Priority:** P2 | **Effort:** 3 days | **Module:** monitoring
+
+- [ ] Add request-level tracing from API → LLM → DB → Firecrawl
+- [ ] Publish latency/error dashboards per primitive
 
 **Acceptance Criteria:**
-- One-click creation from all result pages
-- Context (company name, URL) pre-populated
-- User can customize before saving
+- Traces available for all canonical routes
+- P95 latency and error rates visible with alerts
 
 ---
 
-#### Ticket #14: Settings Page
-**Priority:** P1 | **Effort:** 4 days | **Module:** Dashboard
+#### Ticket #14: Feature Flags & Gradual Rollouts
+**Priority:** P2 | **Effort:** 2 days | **Module:** devops
 
-- [ ] Design Settings page layout
-- [ ] Implement Account section (email, name, password)
-- [ ] Implement Billing section (plan, usage, invoices)
-- [ ] Implement Notifications section (email preferences)
-- [ ] Implement API Keys section (if applicable)
-- [ ] Add Stripe Customer Portal integration
+- [ ] Integrate feature flag provider
+- [ ] Add percentage rollouts for risky remediation features
+- [ ] Provide admin override UI
 
 **Acceptance Criteria:**
-- Users can update account details
-- Users can view billing history
-- Users can manage notification preferences
-- Self-serve subscription changes via Stripe portal
+- Flags controllable without redeploy
+- 1%→10%→50%→100% rollout supported
+- Flag state visible to admins
 
 ---
 
-#### Ticket #15: API Performance
-**Priority:** P1 | **Effort:** 3 days | **Module:** API
+#### Ticket #15: Segmentation & ICP Scoring
+**Priority:** P2 | **Effort:** 4 days | **Module:** enrich/research
 
-- [ ] Implement response caching for enrichment API
-- [ ] Implement response caching for research API
-- [ ] Implement response caching for brand recon API
-- [ ] Add rate limiting to expensive endpoints
-- [ ] Add cache invalidation strategy
+- [ ] Integrate external data (Exa/Clearbit) for ICP signals
+- [ ] Add scoring model and surface scores in enrich results
 
 **Acceptance Criteria:**
-- Identical requests return cached responses (5min TTL)
-- Rate limits: 10 req/min for free, 100 req/min for pro
-- Cache hit rate >60% after 1 week
+- Scores computed with source attribution
+- Toggleable enrichment step; does not block core run
 
 ---
 
-#### Ticket #16: E2E Test Suite
-**Priority:** P1 | **Effort:** 5 days | **Module:** Testing
+#### Ticket #16: Usage-Based Credits (Optional Layer)
+**Priority:** P2 | **Effort:** 4 days | **Module:** billing
 
-- [ ] Set up Playwright test environment
-- [ ] CSV upload → enrichment → export test
-- [ ] Brand recon job → report view test
-- [ ] Scout creation → scheduled run → notification test
-- [ ] Monitor creation → change detection → notification test
-- [ ] Research assistant session with streaming test
+- [ ] Design credits schema and deduction rules per primitive
+- [ ] Add top-up flow via Stripe and balance display
 
 **Acceptance Criteria:**
-- All critical user journeys covered
-- Tests run in CI/CD pipeline
-- <5 minute total test execution time
+- Credits deducted predictably per operation
+- Webhook updates balance; UI reflects real-time state
 
 ---
 
-#### Ticket #17: Exa SDK Integration
-**Priority:** P1 | **Effort:** 2 days | **Module:** Research/Integration
+### ⚪ P3: Future Considerations
 
-- [ ] Install `exa-js` official TypeScript SDK
-- [ ] Create `lib/exa/client.ts` wrapper following Firecrawl pattern
-- [ ] Refactor `app/api/research/[id]/run/route.ts` to use SDK
-- [ ] Remove raw `fetch` calls to Exa API (lines 73-110)
-- [ ] Add proper error handling and retry logic
-- [ ] Update type definitions for Exa responses
-- [ ] Document usage in `docs/rules/EXA_TYPESCRIPT_SDK_RULES.md`
+#### Ticket #17: Counter Ops Response Tools
+**Priority:** P3 | **Effort:** TBD | **Module:** agent
+
+- [ ] Prototype agent-driven response playbooks when competitors ship changes
 
 **Acceptance Criteria:**
-- Exa SDK installed and configured
-- All Exa API calls use SDK instead of raw fetch
-- Error handling matches Firecrawl client pattern
-- Type safety for all Exa operations
-- Existing research functionality unchanged
+- Draft responses generated with sources and safety checks
 
 ---
 
-#### Ticket #18: Remove Dead Enrich Prototype Code
-**Priority:** P1 | **Effort:** 1 day | **Module:** Code Quality/Cleanup
+#### Ticket #18: Marketplace Extensions
+**Priority:** P3 | **Effort:** TBD | **Module:** platform
 
-- [ ] Delete `src/app/api/ai/enrich/route.ts` (prototype endpoint)
-- [ ] Delete `src/components/ai/EnrichForm.tsx` (unused component)
-- [ ] Verify no other references to `/api/ai/enrich` exist
-- [ ] Update DIRECTORY_TREE.md if needed
-- [ ] Document removal in cleanup notes
-
-**Context**: Duplicate enrich systems exist from early prototyping:
-- `/api/ai/enrich` - Simple prototype (68 lines, no auth, no DB, dead code)
-- `/api/enrich` - Production system (243 lines, multi-agent, Firecrawl, persistence)
-
-The prototype endpoint and its unused React component (`EnrichForm.tsx`) are never imported or used anywhere in the application.
+- [ ] Define governance for third-party modules using extract/observe/scout primitives
+- [ ] Pilot one external module with sandboxed execution
 
 **Acceptance Criteria:**
-- Both dead files removed from codebase
-- No broken imports or references
-- Production `/api/enrich` system unaffected
-- Code coverage improved (less dead code)
-
----
-
-#### Ticket #19: Repository Restructure
-**Priority:** P1 | **Effort:** 3-4 weeks | **Module:** Architecture/Code Quality
-
-**Goal**: Transform flat `src/lib/` structure into layered, domain-driven architecture
-
-- [ ] **Phase 1: Platform Foundation** (Week 1)
-  - [ ] Create `platform/auth/`, `platform/db/`, `platform/billing/`, `platform/cache/`
-  - [ ] Move auth files from `lib/` to `platform/auth/`
-  - [ ] Move database from `lib/db/` to `platform/db/`
-  - [ ] Move billing from `lib/stripe/` to `platform/billing/`
-  - [ ] Move cache from `lib/redis.ts` to `platform/cache/`
-  - [ ] Update all imports for platform layer
-  - [ ] Verify builds and tests pass
-
-- [ ] **Phase 2: Shared Utilities** (Week 1)
-  - [ ] Create `shared/utils/`, `shared/types/`, `shared/schemas/`
-  - [ ] Move `lib/utils.ts` to `shared/utils/`
-  - [ ] Extract common types to `shared/types/`
-  - [ ] Update imports for shared layer
-  - [ ] Verify builds and tests pass
-
-- [ ] **Phase 3: Services Layer** (Week 2)
-  - [ ] Create `services/enrichment/` structure
-  - [ ] Move all agent files from `lib/agents/` to `services/enrichment/`
-  - [ ] Organize agents into `services/enrichment/agents/`
-  - [ ] Update all imports for services layer
-  - [ ] Verify enrichment workflow works end-to-end
-
-- [ ] **Phase 4: Features Migration** (Week 2-3)
-  - [ ] Migrate Enrich feature (components, hooks, types)
-  - [ ] Migrate Research feature (components, types)
-  - [ ] Migrate Scouts feature (components, types)
-  - [ ] Migrate Brand Recon feature (components, types)
-  - [ ] Update imports for each feature
-  - [ ] Verify each feature works end-to-end
-
-- [ ] **Phase 5: Cleanup** (Week 3)
-  - [ ] Delete empty `lib/` subdirectories
-  - [ ] Clean up `components/` (remove feature-specific)
-  - [ ] Clean up `hooks/` (move to features or platform)
-  - [ ] Update documentation (CLAUDE.md, PRD.md, PLAN.md)
-  - [ ] Run full test suite across all modules
-  - [ ] Remove dead code identified during migration
-
-**Context**: Current `src/lib/` is a mixed bag of platform code, third-party adapters, feature logic, and orchestration. New structure provides clear separation:
-
-```
-src/
-  app/          # Next.js router (thin wiring)
-  features/     # Product modules (enrich, scouts, observe, etc.)
-  services/     # Shared behaviors (enrichment orchestration)
-  lib/          # Third-party adapters (firecrawl, exa, vercel-ai)
-  platform/     # Foundations (auth, db, billing, cache, config)
-  components/   # Shared UI primitives + effects
-  shared/       # Cross-runtime types/schemas/utils (no React)
-  hooks/        # Truly global hooks (rare)
-  context/      # Truly global providers (rarer)
-```
-
-**Acceptance Criteria:**
-- All platform code in `platform/` (auth, db, billing, cache)
-- All third-party adapters in `lib/` (firecrawl, exa, vercel-ai)
-- All feature code self-contained in `features/[feature]/`
-- Enrichment orchestration in `services/enrichment/`
-- Cross-runtime utilities in `shared/`
-- Only shared UI in `components/`
-- All imports updated and TypeScript compiles
-- All tests passing
-- Documentation updated with new structure
-- No dead code or empty directories
-
-**Documentation**: Full migration plan at `/docs/code/REPO_RESTRUCTURE_PLAN.md`
-
-**Risk Mitigation:**
-- Work in feature branch with frequent commits
-- Run TypeScript check after each phase
-- Test each feature after migration
-- Keep rollback plan ready
-- Update docs immediately after each phase
-
----
-
-#### Ticket #28: Bolster Resend Integration & User Sign Up + Engagement Layer
-**Priority:** P1 | **Effort:** TBD | **Module:** Auth/Engagement
-
-- [ ] TBD
-
----
-
-#### Ticket #29: War Games - AI Sandbox Arsenal
-**Priority:** P1 | **Effort:** 2-3 weeks | **Module:** Arsenal/Conversion
-
-Transform `/arsenal` into an interactive "AI War Games" sandbox for pre-signup experimentation.
-
-**Full Planning Docs:** `docs/features/war-games/`
-
-- [ ] **Week 1: Foundation**
-  - [ ] Create migration `011-sandbox-tables.sql` (sessions, executions, conversions)
-  - [ ] Implement session management `/api/sandbox/session/route.ts`
-  - [ ] Create `lib/sandbox/rate-limiter.ts` (daily limits, cooldowns, token limits)
-  - [ ] Build first workflow: Agent Routing (`lib/sandbox/workflows/agent-routing.ts`)
-  - [ ] Create basic UI shell (`SituationRoom`, `MissionSelector`, `UsageIndicator`)
-
-- [ ] **Week 2: Workflows + UI**
-  - [ ] Parallel Processing workflow
-  - [ ] Web Search workflow (Firecrawl integration)
-  - [ ] PDF Ingest workflow
-  - [ ] Form Enrichment workflow
-  - [ ] Prompt Evaluation workflow
-  - [ ] Complete `WorkflowExecutor` streaming UI
-  - [ ] Build side panels (`SystemStatus`, `ActivityFeed`, `GlobalNetwork`)
-
-- [ ] **Week 3: Conversion + Polish**
-  - [ ] Create `ConversionGate.tsx` with trigger detection
-  - [ ] Analytics integration (PostHog or similar)
-  - [ ] Error handling + retry logic
-  - [ ] Performance optimization
-  - [ ] Accessibility audit
-  - [ ] Mobile optimization
-
-**Acceptance Criteria:**
-- 6 AI workflows functional in sandbox
-- Rate limiting enforces daily/cooldown limits
-- Conversion gate triggers at appropriate moments
-- Analytics tracks full funnel (session → execution → conversion)
-- <2s p95 response time
-- 15%+ conversion rate target
-
----
-
-## 🟢 Medium-Term Tickets (1-2 Months)
-
-### 🟢 P2: Platform Features
-
-#### Ticket #19: Usage-Based Credits System
-**Priority:** P2 | **Effort:** 1 week | **Module:** Billing
-
-- [ ] Design credits schema (user_credits table)
-- [ ] Implement credits deduction on usage
-- [ ] Implement credits top-up via Stripe
-- [ ] Add credits balance display in dashboard
-- [ ] Add low-balance warnings
-- [ ] Integrate with existing subscription tiers
-
-**Acceptance Criteria:**
-- Credits deducted correctly per operation type
-- Stripe webhook updates credits on purchase
-- Users can see real-time balance and history
-
----
-
-#### Ticket #20: Enhanced Authentication
-**Priority:** P2 | **Effort:** 3 days | **Module:** Auth
-
-- [ ] Add email verification flow
-- [ ] Implement Google OAuth sign-in
-- [ ] Implement GitHub OAuth sign-in
-- [ ] Add LinkedIn OAuth sign-in (optional)
-- [ ] Update Better Auth configuration
-
-**Acceptance Criteria:**
-- Email verification required for new signups
-- 3+ OAuth providers available
-- Existing users can link OAuth accounts
-
----
-
-#### Ticket #21: CRM Integration
-**Priority:** P2 | **Effort:** 1 week | **Module:** Integration
-
-- [ ] Design CRM export UI
-- [ ] Implement HubSpot connector (OAuth + API)
-- [ ] Implement Salesforce connector (OAuth + API)
-- [ ] Add field mapping configuration
-- [ ] Add sync status tracking
-- [ ] Add error handling and retries
-
-**Acceptance Criteria:**
-- Users can export enriched leads to HubSpot/Salesforce
-- Field mapping saved per user
-- Sync errors displayed with actionable messages
-
----
-
-#### Ticket #22: Observability Platform
-**Priority:** P2 | **Effort:** 1 week | **Module:** Monitoring
-
-- [ ] Implement request-level tracing for enrichment flows
-- [ ] Implement request-level tracing for research flows
-- [ ] Set up latency dashboards
-- [ ] Set up error rate dashboards
-- [ ] Add custom metrics for business KPIs
-- [ ] Integrate with Sentry or similar APM
-
-**Acceptance Criteria:**
-- Full request traces from API → LLM → database
-- P95 latency visible per endpoint
-- Error rate alerts configured
-
----
-
-## 📊 Monitoring & Metrics
-
-### ⚪ P3: KPIs & Dashboards
-
-#### Ticket #23: Data Quality KPIs
-**Priority:** P3 | **Effort:** 3 days | **Module:** Analytics
-
-- [ ] Define KPI tracking schema
-- [ ] Implement Field Population Rate metric (target ≥75%)
-- [ ] Implement Data Accuracy metric (target ≥90%)
-- [ ] Implement Personal Site Detection metric (target ≥90%)
-- [ ] Implement Enrichment Success Rate metric (target ≥85%)
-- [ ] Implement LLM Fallback Success metric (target ≥95%)
-- [ ] Implement Firecrawl Extraction Rate metric (target ≥80%)
-- [ ] Build dashboard to display all KPIs
-
-**Acceptance Criteria:**
-- All 6 KPIs tracked in real-time
-- Historical trends visible (7d, 30d, 90d)
-- Exportable reports for stakeholders
-
----
-
-#### Ticket #24: Regression Alerts
-**Priority:** P3 | **Effort:** 2 days | **Module:** Monitoring
-
-- [ ] Configure alerts for Field Population Rate <75%
-- [ ] Configure alerts for Data Accuracy <90%
-- [ ] Configure alerts for Enrichment Success <85%
-- [ ] Configure alerts for Extraction Rate <80%
-- [ ] Set rolling window thresholds (1h, 6h, 24h)
-- [ ] Test alert channels (Slack/email)
-
-**Acceptance Criteria:**
-- Alerts fire within 5 minutes of threshold breach
-- False positive rate <10%
-- Clear actionable guidance in alert messages
-
----
-
-#### Ticket #25: Feature Flags & Gradual Rollouts
-**Priority:** P3 | **Effort:** 2 days | **Module:** DevOps
-
-- [ ] Integrate feature flag system (LaunchDarkly or Flagsmith)
-- [ ] Add feature flags for major remediation changes
-- [ ] Implement percentage-based rollouts
-- [ ] Add flag override UI for testing
-- [ ] Document flag usage in runbooks
-
-**Acceptance Criteria:**
-- New features deployable to 1% → 10% → 50% → 100%
-- Flags can be toggled without redeployment
-- Flag status visible in admin dashboard
-
----
-
-#### Ticket #26: Incident Runbooks
-**Priority:** P3 | **Effort:** 3 days | **Module:** Documentation
-
-- [ ] Document LLM parsing error runbook
-- [ ] Document Firecrawl extraction failure runbook
-- [ ] Document data mapping issue runbook
-- [ ] Document personal site misclassification runbook
-- [ ] Add runbooks to `/docs/code/runbooks/`
-- [ ] Include diagnostic steps and resolution procedures
-
-**Acceptance Criteria:**
-- 4+ runbooks covering common failure modes
-- Each includes: symptoms, diagnosis, resolution, prevention
-- Runbooks tested during incident drills
-
----
-
-#### Ticket #27: Lessons Learned Documentation
-**Priority:** P3 | **Effort:** Ongoing | **Module:** Documentation
-
-- [ ] Create post-mortem template
-- [ ] Document data quality regression analysis findings
-- [ ] Document Firecrawl reliability improvements
-- [ ] Update runbooks based on real incidents
-- [ ] Share learnings in team reviews
-
-**Acceptance Criteria:**
-- Post-mortem within 1 week of major incidents
-- Action items tracked as tickets
-- Runbooks updated within 2 weeks of learnings
+- Clear contract for third-party tools; sandbox boundaries enforced
 
 ---
 

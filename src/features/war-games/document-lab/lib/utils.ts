@@ -1,6 +1,16 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import type { DocumentType } from "./types"
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+// Helper to determine file type from filename
+export function getFileType( fileName: string ): DocumentType | null {
+  const ext = fileName.split( "." ).pop()?.toLowerCase()
+  switch ( ext ) {
+    case "pdf":
+      return "pdf"
+    case "docx":
+      return "docx"
+    case "txt":
+      return "txt"
+    default:
+      return null
+  }
 }

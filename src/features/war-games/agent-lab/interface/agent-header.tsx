@@ -138,7 +138,7 @@ export function AgentHeader({
   )
 }
 
-export function VercelIcon(props) {
+export function VercelIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       height='222'

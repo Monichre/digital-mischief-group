@@ -36,7 +36,7 @@ interface InputPanelProps {
   onInputChange: (fieldName: string, value: string) => void;
   onExampleSelect: (example: ExamplePrompt, index: number) => void;
   examplePrompts: ExamplePrompt[];
-  selectedExampleIndex: number;
+  selectedExampleIndex: number | null;
   resetState: () => void;
   children?: React.ReactNode;
 }
@@ -202,7 +202,7 @@ function ExampleButtons({
 }: {
   examplePrompts: ExamplePrompt[];
   onExampleSelect: (example: ExamplePrompt, index: number) => void;
-  selectedExampleIndex: number;
+  selectedExampleIndex: number | null;
   resetState: () => void;
   selectedAgent: AgentType;
 }) {

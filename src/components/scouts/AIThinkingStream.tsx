@@ -4,7 +4,7 @@ import {Brain, Eye, Lightbulb, Zap} from 'lucide-react'
 import type {
   SentinelStreamEvent,
   ConductorThought,
-} from '@/lib/scouts/stream-types'
+} from '@/daedalus/scout/stream-types'
 
 interface AIThinkingStreamProps {
   events: SentinelStreamEvent[]

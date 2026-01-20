@@ -15,7 +15,7 @@ const PROTECTED_ROUTES = [
   "/scouts",
   "/observe",
   "/research",
-  "/arsenal",
+  "/field-report",
   "/burn-logs",
   "/settings",
 ];

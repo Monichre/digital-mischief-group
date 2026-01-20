@@ -31,7 +31,7 @@ const initialParams = {
 export function AgentSandbox() {
   // State Management
   const [inputs, setInputs] = useState<Record<string, string>>({}) // Stores user input fields
-  const [selectedExampleIndex, setSelectedExampleIndex] = useState(null) // Currently selected example index
+  const [selectedExampleIndex, setSelectedExampleIndex] = useState<number | null>(null) // Currently selected example index
   const [output, setOutput] = useState('') // Raw output from the agent
   const [loading, setLoading] = useState(false) // Loading state during API calls
   const [parsedOutput, setParsedOutput] = useState<any>(null) // Parsed JSON output if available
@@ -76,8 +76,8 @@ export function AgentSandbox() {
    * Handles agent type changes and resets state
    */
   const handleAgentChange = useCallback(
-    (newAgent: (typeof agentTypes)[number]['id']) => {
-      setSelectedAgent(newAgent)
+    (newAgent: string) => {
+      setSelectedAgent(newAgent as (typeof agentTypes)[number]['id'])
       resetState()
     },
     [resetState]

@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db/neon"
-import { auth } from "@/lib/auth"
+import { sql } from "@/platform/db/neon"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
-import { orchestrateEnrichment, type EnrichmentInput } from "@/lib/agents"
+import { runEnrichment, type EnrichmentInput } from "@/daedalus/enrich/api"
 
 export const maxDuration = 60
 
@@ -144,7 +144,7 @@ export async function PUT( request: NextRequest ) {
     }
 
     // Run multi-agent orchestration
-    const result = await orchestrateEnrichment( enrichmentInput, {
+    const result = await runEnrichment( enrichmentInput, {
       onProgress: ( progress ) => {
         console.log( `[Batch ${batchId}] Row ${rowId}: ${progress.phase} - ${progress.status}` )
       },

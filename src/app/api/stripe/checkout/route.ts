@@ -1,6 +1,6 @@
 
-import { stripe } from "@/lib/stripe/stripe"
-import { auth } from "@/lib/auth"
+import { stripe } from "@/platform/billing/stripe"
+import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 

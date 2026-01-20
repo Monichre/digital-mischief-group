@@ -17,7 +17,7 @@ const sql = neon(DATABASE_URL)
 async function runMigration() {
   console.log("Running migration 010: Add Sentinel AI Schema...")
 
-  const migrationPath = path.join(process.cwd(), "scripts", "010-add-sentinel-ai-schema.sql")
+  const migrationPath = path.join(process.cwd(), "scripts", "migrations", "010-add-sentinel-ai-schema.sql")
   const migrationSQL = fs.readFileSync(migrationPath, "utf8")
 
   // Remove comments
