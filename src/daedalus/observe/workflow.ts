@@ -2,6 +2,8 @@ import { sql } from '@/platform/db/neon'
 import { generateText } from 'ai'
 import { MODELS } from '@/ai/models'
 import { getFirecrawlClient } from '@/platform/firecrawl/service'
+import { generateDiff, formatDiffAsText } from './diff'
+import { notifyMonitorChange, type NotificationPayload } from './notifications'
 import type { Monitor, CheckMonitorResult, CreateMonitorInput } from './types'
 
 /**
@@ -24,11 +26,18 @@ export async function createMonitor(
   input: CreateMonitorInput,
   userId: string
 ): Promise<Monitor> {
-  const { name, url, check_interval_seconds = 86400, notification_email = null } = input
+  const {
+    name,
+    url,
+    check_interval_seconds = 86400,
+    notification_email = null,
+    webhook_url = null,
+    notification_cooldown_minutes = 60,
+  } = input
 
   const [monitor] = await sql`
-    INSERT INTO monitors (name, url, check_interval_seconds, notification_email, user_id)
-    VALUES (${name}, ${url}, ${check_interval_seconds}, ${notification_email}, ${userId})
+    INSERT INTO monitors (name, url, check_interval_seconds, notification_email, webhook_url, notification_cooldown_minutes, user_id)
+    VALUES (${name}, ${url}, ${check_interval_seconds}, ${notification_email}, ${webhook_url}, ${notification_cooldown_minutes}, ${userId})
     RETURNING *
   `
 
@@ -86,8 +95,9 @@ export async function deleteMonitor(monitorId: string, userId: string): Promise<
  * Check a monitor for changes - core observe workflow
  * 1. Scrape current content
  * 2. Compare hash with stored hash
- * 3. If changed, generate AI summary and record change
- * 4. Update monitor with new hash and excerpt
+ * 3. If changed, generate diff and AI summary, record change
+ * 4. Send notifications with suppression controls
+ * 5. Update monitor with new hash, content, and excerpt
  */
 export async function checkMonitor(
   monitorId: string,
@@ -111,7 +121,7 @@ export async function checkMonitor(
   })
 
   if (!scrapeResult.success || !scrapeResult.data) {
-    console.error('Failed to scrape monitor URL', scrapeResult.errorDetails || scrapeResult.error)
+    console.error('[observe] Failed to scrape monitor URL', scrapeResult.errorDetails || scrapeResult.error)
     return { success: false, changed: false, newHash: '', error: 'Failed to scrape URL' }
   }
 
@@ -124,34 +134,86 @@ export async function checkMonitor(
   const hasChanged = monitor.last_content_hash && monitor.last_content_hash !== newHash
 
   let aiSummary: string | null = null
+  let diffResult = null
+  let notificationSent = false
 
   if (hasChanged) {
-    // Generate AI summary of changes
+    // Generate diff between old and new content
+    diffResult = generateDiff(monitor.last_content, content)
+    const diffText = formatDiffAsText(diffResult, 30)
+
+    // Generate AI summary of changes using diff context
     try {
       const { text } = await generateText({
         model: MODELS.openai.gpt52,
         prompt: `Summarize what changed on this webpage. Be concise (2-3 sentences).
-          
+
+Changes detected (${diffResult.summary}):
+${diffText}
+
 Old excerpt: ${monitor.last_excerpt || 'N/A'}
 
 New excerpt: ${excerpt}`,
       })
       aiSummary = text
     } catch (e) {
-      console.error('AI summary failed:', e)
+      console.error('[observe] AI summary failed:', e)
+      // Fallback summary
+      aiSummary = `Content changed: ${diffResult.summary}`
     }
 
-    // Record the change
+    // Record the change with full content snapshots
     await sql`
-      INSERT INTO monitor_changes (monitor_id, old_hash, new_hash, old_excerpt, new_excerpt, ai_summary, user_id)
-      VALUES (${monitorId}, ${monitor.last_content_hash}, ${newHash}, ${monitor.last_excerpt || null}, ${excerpt}, ${aiSummary}, ${userId})
+      INSERT INTO monitor_changes (
+        monitor_id, old_hash, new_hash, 
+        old_content, new_content,
+        old_excerpt, new_excerpt, 
+        diff_additions, diff_deletions,
+        ai_summary, user_id
+      )
+      VALUES (
+        ${monitorId}, ${monitor.last_content_hash}, ${newHash}, 
+        ${monitor.last_content}, ${content},
+        ${monitor.last_excerpt || null}, ${excerpt}, 
+        ${diffResult.additions}, ${diffResult.deletions},
+        ${aiSummary}, ${userId}
+      )
     `
+
+    // Send notifications with suppression controls
+    const notificationPayload: NotificationPayload = {
+      monitorId,
+      monitorName: monitor.name,
+      url: monitor.url,
+      diff: diffResult,
+      aiSummary,
+      timestamp: new Date(),
+    }
+
+    const notifyResult = await notifyMonitorChange(
+      monitorId,
+      userId,
+      monitor.notification_email,
+      monitor.webhook_url,
+      notificationPayload,
+      { cooldownMinutes: monitor.notification_cooldown_minutes || 60 }
+    )
+
+    notificationSent = notifyResult.sent
+    if (notifyResult.suppressed) {
+      console.log(`[observe] Notification suppressed for monitor ${monitorId}: ${notifyResult.reason}`)
+    }
   }
 
-  // Update monitor with new hash and excerpt
+  // Update monitor with new hash, content, and excerpt
   await sql`
     UPDATE monitors 
-    SET last_checked_at = NOW(), last_content_hash = ${newHash}, last_excerpt = ${excerpt}, updated_at = NOW()
+    SET 
+      last_checked_at = NOW(), 
+      last_content_hash = ${newHash}, 
+      last_content = ${content},
+      last_excerpt = ${excerpt}, 
+      updated_at = NOW()
     WHERE id = ${monitorId}
   `
 
@@ -160,5 +222,11 @@ New excerpt: ${excerpt}`,
     changed: hasChanged,
     newHash,
     aiSummary,
+    diff: diffResult ? {
+      additions: diffResult.additions,
+      deletions: diffResult.deletions,
+      summary: diffResult.summary,
+    } : undefined,
+    notificationSent,
   }
 }

@@ -10,6 +10,8 @@ const CreateMonitorSchema = z.object({
   url: z.string().url("Valid URL is required"),
   check_interval_seconds: z.number().int().min(60).optional(),
   notification_email: z.string().email().optional().nullable(),
+  webhook_url: z.string().url().optional().nullable(),
+  notification_cooldown_minutes: z.number().int().min(1).max(1440).optional(),
 })
 
 export async function GET() {
@@ -45,10 +47,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, url, check_interval_seconds, notification_email } = parseResult.data
+    const { name, url, check_interval_seconds, notification_email, webhook_url, notification_cooldown_minutes } = parseResult.data
 
     const monitor = await createMonitor(
-      { name, url, check_interval_seconds, notification_email },
+      { name, url, check_interval_seconds, notification_email, webhook_url, notification_cooldown_minutes },
       session.user.id
     )
 
