@@ -1,6 +1,19 @@
-import { generateObject, generateText, stepCountIs } from "ai"
+/**
+ * LLM Tool - Backward Compatible Wrapper
+ *
+ * This module provides backward compatibility with the original API
+ * while using the new unified LLM provider service under the hood.
+ *
+ * @deprecated Use `@/platform/llm-service` directly for new code
+ */
+
 import type { ToolSet } from "ai"
 import { z } from "zod"
+import {
+  generateText as unifiedGenerateText,
+  generateObject as unifiedGenerateObject,
+  isQuotaError,
+} from "@/platform/llm-service"
 import { DEFAULT_JSON_MODEL, DEFAULT_TEXT_MODEL } from "@/ai/models"
 
 export type LLMProvider = "ai-gateway"
@@ -21,51 +34,42 @@ export interface LLMRequestOptions {
   maxSteps?: number
 }
 
+/**
+ * Check if error is a credit/quota error
+ * @deprecated Use `isQuotaError` from `@/platform/llm-service` instead
+ */
 export function isLLMCreditError(error: unknown): boolean {
-  if (!error) return false
-
-  const errorMessage = error instanceof Error ? error.message : String(error)
-  const creditIndicators = [
-    "credit balance",
-    "insufficient_quota",
-    "quota exceeded",
-    "billing",
-    "payment required",
-  ]
-
-  const hasCreditsMessage = creditIndicators.some((indicator) =>
-    errorMessage.toLowerCase().includes(indicator)
-  )
-
-  const hasQuotaStatus =
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error.status === 400 || error.status === 402 || error.status === 429)
-
-  return hasCreditsMessage || hasQuotaStatus
+  return isQuotaError(error)
 }
 
+/**
+ * Generate text with fallback handling
+ * @deprecated Use `generateText` from `@/platform/llm-service` instead
+ */
 export async function generateWithFallback(options: LLMRequestOptions): Promise<LLMResponse> {
   const model = options.model ?? DEFAULT_TEXT_MODEL
 
-  const result = await generateText({
-    model,
-    system: options.systemPrompt,
+  const result = await unifiedGenerateText({
     prompt: options.prompt,
+    systemPrompt: options.systemPrompt,
+    model,
+    maxTokens: options.maxTokens,
     temperature: options.temperature,
-    maxOutputTokens: options.maxTokens,
     tools: options.tools,
-    stopWhen: options.maxSteps != null ? stepCountIs(options.maxSteps) : undefined,
+    maxSteps: options.maxSteps,
   })
 
   return {
-    text: result.text,
+    text: result.data,
     provider: "ai-gateway",
-    model,
+    model: result.model,
   }
 }
 
+/**
+ * Generate structured object with schema validation
+ * @deprecated Use `generateObject` from `@/platform/llm-service` instead
+ */
 export async function generateObjectWithFallback<TSchema extends z.ZodTypeAny>(options: {
   schema: TSchema
   prompt: string
@@ -75,23 +79,25 @@ export async function generateObjectWithFallback<TSchema extends z.ZodTypeAny>(o
   temperature?: number
   tools?: ToolSet
   maxSteps?: number
+  safeModeSchema?: z.ZodTypeAny
 }): Promise<{ object: z.infer<TSchema>; provider: LLMProvider; model: string }> {
   const model = options.model ?? DEFAULT_JSON_MODEL
 
-  const result = await generateObject({
-    model,
+  const result = await unifiedGenerateObject({
     schema: options.schema,
-    system: options.systemPrompt,
     prompt: options.prompt,
+    systemPrompt: options.systemPrompt,
+    model,
+    maxTokens: options.maxTokens,
     temperature: options.temperature,
-    maxOutputTokens: options.maxTokens,
     tools: options.tools,
-    stopWhen: options.maxSteps != null ? stepCountIs(options.maxSteps) : undefined,
+    maxSteps: options.maxSteps,
+    safeModeSchema: options.safeModeSchema,
   })
 
   return {
-    object: result.object,
+    object: result.data,
     provider: "ai-gateway",
-    model,
+    model: result.model,
   }
 }
