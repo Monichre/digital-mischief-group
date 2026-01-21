@@ -42,6 +42,7 @@ import {BulkEnrichTable} from '@/components/enrich/BulkEnrichTable'
 import {EnrichHistory} from '@/components/enrich/EnrichHistory'
 import {BatchHistory} from '@/components/enrich/BatchHistory'
 import {useEnrichStream} from '@/hooks/useEnrichStream'
+import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
 
 type EnrichStatus = 'idle' | 'loading' | 'success' | 'error'
 type BulkStep = 'input' | 'mapping' | 'processing' | 'complete'
@@ -611,30 +612,43 @@ export default function EnrichPage() {
           {status === 'success' && result && (
             <div className='space-y-8 animate-in fade-in duration-500'>
               {/* Action Bar with Brand Recon */}
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-4'>
-                  <button
-                    onClick={resetAll}
-                    className='flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors'
-                  >
-                    <ArrowLeft className='w-4 h-4' />
-                    Enrich another
-                  </button>
-                  {result.id && (
-                    <Link
-                      href={`/brand-recon/competitive?enrichmentJobId=${result.id}`}
-                      className='flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-mono'
+              <div className='flex flex-col gap-4'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <button
+                      onClick={resetAll}
+                      className='flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors'
                     >
-                      <Crosshair className='w-4 h-4 animate-pulse' />
-                      <span>COMPETITIVE INTEL</span>
-                    </Link>
+                      <ArrowLeft className='w-4 h-4' />
+                      Enrich another
+                    </button>
+                    {result.id && (
+                      <Link
+                        href={`/brand-recon/competitive?enrichmentJobId=${result.id}`}
+                        className='flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-mono'
+                      >
+                        <Crosshair className='w-4 h-4 animate-pulse' />
+                        <span>COMPETITIVE INTEL</span>
+                      </Link>
+                    )}
+                  </div>
+                  {result.duration_ms && (
+                    <span className='text-xs text-zinc-500'>
+                      Completed in {(result.duration_ms / 1000).toFixed(1)}s
+                    </span>
                   )}
                 </div>
-                {result.duration_ms && (
-                  <span className='text-xs text-zinc-500'>
-                    Completed in {(result.duration_ms / 1000).toFixed(1)}s
-                  </span>
-                )}
+
+                {/* Cross-Primitive CTAs - T-009 */}
+                <CrossPrimitiveCTAs
+                  context={{
+                    companyName: result.company_name,
+                    domain: result.domain,
+                    website: result.company_website,
+                    industry: result.company_industry,
+                    description: result.company_description,
+                  }}
+                />
               </div>
 
               {/* Company Header */}

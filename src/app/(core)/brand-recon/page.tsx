@@ -20,6 +20,7 @@ import {BrandHeader} from '@/components/brand-recon/BrandHeader'
 import {SpacingCard} from '@/components/brand-recon/SpacingCard'
 import {ScreenshotPreview} from '@/components/brand-recon/ScreenshotPreview'
 import {ProGate} from '@/components/pro-gate'
+import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
 
 export default function BrandReconPage() {
   const [input, setInput] = useState('')
@@ -193,6 +194,28 @@ export default function BrandReconPage() {
                   branding={branding}
                   metadata={metadata || undefined}
                 />
+
+                {/* Cross-Primitive CTAs - T-009 */}
+                <div className='border border-zinc-800 bg-zinc-900/30 p-4'>
+                  <div className='flex items-center gap-2 mb-3'>
+                    <div className='w-1 h-4 bg-orange-500' />
+                    <span className='text-xs uppercase tracking-widest text-zinc-500'>
+                      Quick Actions
+                    </span>
+                  </div>
+                  <CrossPrimitiveCTAs
+                    context={{
+                      companyName: metadata?.title,
+                      domain: metadata?.sourceURL ? new URL(metadata.sourceURL).hostname : undefined,
+                      website: metadata?.sourceURL,
+                      description: metadata?.description,
+                      brandColors: branding.colors
+                        ? Object.values(branding.colors).filter((c): c is string => typeof c === 'string')
+                        : undefined,
+                      logo: branding.images?.logo,
+                    }}
+                  />
+                </div>
 
                 {/* Screenshot Preview */}
                 {screenshot && (
