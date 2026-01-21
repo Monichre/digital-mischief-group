@@ -1,4 +1,4 @@
-import { getFirecrawlClient, normalizeUrl, extractDomain, extractDomainFromEmail } from "@/lib/firecrawl/client"
+import { getFirecrawlClient, normalizeUrl, extractDomain, extractDomainFromEmail } from "@/platform/firecrawl/service"
 import { DiscoveryResultSchema, DISCOVERY_EXTRACTION_SCHEMA } from "../schemas"
 import type { Agent, EnrichmentInput, EnrichmentContext, DiscoveryResult } from "../types"
 

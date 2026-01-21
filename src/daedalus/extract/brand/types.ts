@@ -1,7 +1,7 @@
 // Brand Recon TypeScript Types
 // Based on Firecrawl's modern extract endpoint with comprehensive brand schema
 
-import type { BrandingProfile } from '@/lib/firecrawl/client'
+import type { BrandingProfile } from '@/platform/firecrawl/service'
 import { z } from 'zod'
 
 // Re-export BrandingProfile from Firecrawl client for consistency

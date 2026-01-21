@@ -1,7 +1,7 @@
 import { sql } from '@/platform/db/neon'
 import { generateText } from 'ai'
 import { MODELS } from '@/ai/models'
-import { getFirecrawlClient } from '@/lib/firecrawl/client'
+import { getFirecrawlClient } from '@/platform/firecrawl/service'
 import type { Monitor, CheckMonitorResult, CreateMonitorInput } from './types'
 
 /**

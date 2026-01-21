@@ -1,8 +1,8 @@
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { CompanyProfileResultSchema, COMPANY_PROFILE_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, DiscoveryResult, EnrichmentContext, CompanyProfileResult } from "../types"
-import { extractTool, mapTool, scrapeTool } from "@/lib/firecrawl/ai-tools"
+import { extractTool, mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
 
 function classifySegment( employeeCount: number | null ): "SMB" | "Mid-Market" | "Enterprise" | "Unknown" {

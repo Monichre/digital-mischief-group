@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import type { BrandReconResponse } from "@/daedalus/extract/brand/types"
 import { sql } from "@/platform/db/neon"
-import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/lib/firecrawl/client"
+import { getFirecrawlClient, normalizeUrl, extractDomain } from "@/platform/firecrawl/service"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 

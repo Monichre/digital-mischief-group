@@ -1,8 +1,8 @@
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { CustomFieldsResultSchema, LEADERSHIP_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, EnrichmentContext, CustomFieldsResult } from "../types"
-import { mapTool, scrapeTool } from "@/lib/firecrawl/ai-tools"
+import { mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
 
 // ICP (Ideal Customer Profile) configuration - customize per business

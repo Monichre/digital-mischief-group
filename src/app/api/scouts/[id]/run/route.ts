@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/platform/db/neon"
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 

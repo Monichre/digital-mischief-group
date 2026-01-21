@@ -1,8 +1,8 @@
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { FundingResultSchema, FUNDING_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, DiscoveryResult, EnrichmentContext, FundingResult } from "../types"
-import { scrapeTool, searchTool } from "@/lib/firecrawl/ai-tools"
+import { scrapeTool, searchTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
 
 export const fundingAgent: Agent<DiscoveryResult, FundingResult> = {

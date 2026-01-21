@@ -1,5 +1,5 @@
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { z } from "zod"
 
 // ============================================================================

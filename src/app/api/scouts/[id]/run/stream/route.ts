@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server"
 import { sql } from "@/platform/db/neon"
-import { getFirecrawlClient } from "@/lib/firecrawl/client"
+import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { runSentinelAgent } from "@/ai/agents/sentinel.agent"
 import type { Scout, ScoutResult } from "@/daedalus/scout/types"
 import type { SentinelStreamEvent, SearchProgress } from "@/daedalus/scout/stream-types"

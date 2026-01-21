@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server'
 import { sql } from '@/platform/db/neon'
-import { getFirecrawlClient } from '@/lib/firecrawl/client'
+import { getFirecrawlClient } from '@/platform/firecrawl/service'
 import { runEnrichmentStream } from '@/daedalus/enrich/api'
 import type { EnrichmentInput } from '@/daedalus/enrich/api'
 import { auth } from '@/platform/auth/server'
