@@ -21,6 +21,7 @@ import {
 import { ICPScoreCard } from "./ICPScoreCard"
 import { BuyingSignals } from "./BuyingSignals"
 import { TechSignals } from "./TechSignals"
+import { RowErrorPanel } from "./RowErrorPanel"
 
 interface EnrichedResult {
   company_name: string | null
@@ -69,6 +70,7 @@ interface RowState {
   phaseMessage?: string
   enriched?: EnrichedResult
   error?: string
+  jobId?: string // T-008: Database job ID for retry functionality
 }
 
 interface BulkEnrichTableProps {
@@ -109,9 +111,23 @@ export function BulkEnrichTable({
   const [batchId, setBatchId] = useState<string | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
 
+  const [isRetrying, setIsRetrying] = useState(false)
+
   const completedCount = Object.values(rowStates).filter((s) => s.status === "completed").length
   const failedCount = Object.values(rowStates).filter((s) => s.status === "failed").length
   const isComplete = completedCount + failedCount === rows.length && rows.length > 0
+
+  // T-008: Build failed rows list for RowErrorPanel
+  const failedRows = rows
+    .filter((row) => rowStates[row.id]?.status === "failed")
+    .map((row, idx) => ({
+      id: row.id,
+      inputValue: row.input,
+      inputType: row.email ? "email" : row.domain ? "domain" : row.company_name ? "company_name" : "unknown",
+      error: rowStates[row.id]?.error || "Unknown error",
+      rowIndex: rows.findIndex((r) => r.id === row.id),
+      jobId: rowStates[row.id]?.jobId,
+    }))
 
   // Start streaming enrichment
   const startEnrichment = useCallback(async () => {
@@ -221,6 +237,7 @@ export function BulkEnrichTable({
           [d.rowId as string]: {
             status: "completed",
             enriched: d.enriched as EnrichedResult,
+            jobId: d.jobId as string | undefined, // T-008: Capture job ID for retry
           },
         }))
         break
@@ -231,6 +248,7 @@ export function BulkEnrichTable({
           [d.rowId as string]: {
             status: "failed",
             error: d.error as string,
+            jobId: d.jobId as string | undefined, // T-008: Capture job ID for retry
           },
         }))
         break
@@ -285,6 +303,158 @@ export function BulkEnrichTable({
       console.error("Export failed:", error)
     }
   }, [batchId])
+
+  /**
+   * T-008: CSV Enrichment Flow - Retry single failed row
+   */
+  const handleRetryRow = useCallback(async (rowId: string) => {
+    if (!batchId) {
+      console.error("No batch ID available for retry")
+      return
+    }
+
+    const failedRow = failedRows.find((r) => r.id === rowId)
+    if (!failedRow?.jobId) {
+      console.error("No job ID found for row", rowId)
+      return
+    }
+
+    // Set row to processing state
+    setRowStates((prev) => ({
+      ...prev,
+      [rowId]: {
+        ...prev[rowId],
+        status: "processing",
+        currentPhase: "retrying",
+        phaseMessage: "Retrying enrichment...",
+      },
+    }))
+
+    try {
+      const response = await fetch(`/api/enrich/batch/${batchId}/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobIds: [failedRow.jobId] }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Retry request failed")
+      }
+
+      const data = await response.json()
+      const result = data.results?.[0]
+
+      if (result?.status === "completed" && result.enriched) {
+        setRowStates((prev) => ({
+          ...prev,
+          [rowId]: {
+            status: "completed",
+            enriched: result.enriched as EnrichedResult,
+            jobId: failedRow.jobId,
+          },
+        }))
+      } else {
+        setRowStates((prev) => ({
+          ...prev,
+          [rowId]: {
+            status: "failed",
+            error: result?.error || "Retry failed",
+            jobId: failedRow.jobId,
+          },
+        }))
+      }
+    } catch (error) {
+      console.error("Retry failed:", error)
+      setRowStates((prev) => ({
+        ...prev,
+        [rowId]: {
+          status: "failed",
+          error: error instanceof Error ? error.message : "Retry failed",
+          jobId: failedRow?.jobId,
+        },
+      }))
+    }
+  }, [batchId, failedRows])
+
+  /**
+   * T-008: CSV Enrichment Flow - Retry all failed rows
+   */
+  const handleRetryAll = useCallback(async () => {
+    if (!batchId || failedRows.length === 0) return
+
+    const jobIds = failedRows
+      .filter((r) => r.jobId)
+      .map((r) => r.jobId!)
+
+    if (jobIds.length === 0) {
+      console.error("No job IDs found for retry")
+      return
+    }
+
+    setIsRetrying(true)
+
+    // Set all failed rows to processing
+    const newStates: Record<string, RowState> = {}
+    for (const row of failedRows) {
+      newStates[row.id] = {
+        status: "processing",
+        currentPhase: "retrying",
+        phaseMessage: "Retrying enrichment...",
+        jobId: row.jobId,
+      }
+    }
+    setRowStates((prev) => ({ ...prev, ...newStates }))
+
+    try {
+      const response = await fetch(`/api/enrich/batch/${batchId}/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobIds }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Retry all request failed")
+      }
+
+      const data = await response.json()
+
+      // Update each row based on results
+      const updatedStates: Record<string, RowState> = {}
+      for (const result of data.results || []) {
+        const row = failedRows.find((r) => r.jobId === result.jobId)
+        if (!row) continue
+
+        if (result.status === "completed" && result.enriched) {
+          updatedStates[row.id] = {
+            status: "completed",
+            enriched: result.enriched as EnrichedResult,
+            jobId: result.jobId,
+          }
+        } else {
+          updatedStates[row.id] = {
+            status: "failed",
+            error: result.error || "Retry failed",
+            jobId: result.jobId,
+          }
+        }
+      }
+      setRowStates((prev) => ({ ...prev, ...updatedStates }))
+    } catch (error) {
+      console.error("Retry all failed:", error)
+      // Reset failed rows back to failed state
+      const resetStates: Record<string, RowState> = {}
+      for (const row of failedRows) {
+        resetStates[row.id] = {
+          status: "failed",
+          error: error instanceof Error ? error.message : "Retry failed",
+          jobId: row.jobId,
+        }
+      }
+      setRowStates((prev) => ({ ...prev, ...resetStates }))
+    } finally {
+      setIsRetrying(false)
+    }
+  }, [batchId, failedRows])
 
   return (
     <div className="space-y-6">
@@ -543,6 +713,16 @@ export function BulkEnrichTable({
           </table>
         </div>
       </div>
+
+      {/* T-008: Row Error Panel with retry functionality */}
+      {isComplete && failedRows.length > 0 && (
+        <RowErrorPanel
+          failedRows={failedRows}
+          batchId={batchId || undefined}
+          onRetry={handleRetryRow}
+          onRetryAll={handleRetryAll}
+        />
+      )}
     </div>
   )
 }

@@ -105,6 +105,9 @@ function resolveInputDetails( row: BatchStreamInput['rows'][number] ): RowInputD
   }
 }
 
+/**
+ * T-008: Persist failed row and return job ID for retry functionality
+ */
 async function persistFailedRow( {
   row,
   contact,
@@ -117,12 +120,12 @@ async function persistFailedRow( {
   batchId: string
   userId: string
   errorMessage: string
-} ) {
+} ): Promise<string | null> {
   const inputDetails = resolveInputDetails( row )
   const contactPayload = contact ? { contact } : null
 
   try {
-    await sql`
+    const result = await sql`
       INSERT INTO enrichment_jobs (
         input_type, input_value, domain, company_name,
         custom_fields_data, status, error_message,
@@ -138,9 +141,12 @@ async function persistFailedRow( {
         ${batchId},
         ${userId}
       )
+      RETURNING id
     `
+    return result[0]?.id || null
   } catch ( persistError ) {
     console.error( "[Batch Stream] Failed to persist row error:", persistError )
+    return null
   }
 }
 
@@ -343,7 +349,8 @@ export async function POST( request: NextRequest ) {
           console.error( "[Batch Stream] Failed to update batch failure count:", updateError )
         }
 
-        await persistFailedRow( {
+        // T-008: Capture job ID for retry functionality
+        const jobId = await persistFailedRow( {
           row,
           contact,
           batchId,
@@ -355,6 +362,7 @@ export async function POST( request: NextRequest ) {
           rowId: row.id,
           rowIndex,
           error: errorMessage,
+          jobId, // T-008: Include job ID for retry
         } )
       }
 
@@ -432,8 +440,10 @@ export async function POST( request: NextRequest ) {
                 }
               }
 
+              // T-008: Capture job ID for retry functionality
+              let jobId: string | null = null
               try {
-                await sql`
+                const insertResult = await sql`
                   INSERT INTO enrichment_jobs (
                     input_type, input_value, normalized_url, domain,
                     company_name, company_description, industry,
@@ -473,7 +483,9 @@ export async function POST( request: NextRequest ) {
                     ${batchId},
                     ${userId}
                   )
+                  RETURNING id
                 `
+                jobId = insertResult[0]?.id || null
 
                 await sql`
                   UPDATE enrichment_batches 
@@ -497,11 +509,15 @@ export async function POST( request: NextRequest ) {
                 rowIndex: i,
                 enriched: result,
                 contact: result?.contact,
+                jobId, // T-008: Include job ID for retry
               } )
 
               continue
             }
           }
+
+          // T-008: Track job ID for retry functionality
+          let jobId: string | null = null
 
           // Run enrichment if not cached
           if ( !result ) {
@@ -555,7 +571,7 @@ export async function POST( request: NextRequest ) {
 
             // Save to DB
             try {
-              await sql`
+              const insertResult = await sql`
                 INSERT INTO enrichment_jobs (
                   input_type, input_value, normalized_url, domain,
                   company_name, company_description, industry,
@@ -595,7 +611,9 @@ export async function POST( request: NextRequest ) {
                   ${batchId},
                   ${userId}
                 )
+                RETURNING id
               `
+              jobId = insertResult[0]?.id || null
             } catch ( dbError ) {
               console.error( "[Batch Stream] DB save error:", dbError )
               await markRowFailed( {
@@ -621,6 +639,7 @@ export async function POST( request: NextRequest ) {
             rowIndex: i,
             enriched: result,
             contact: result?.contact,
+            jobId, // T-008: Include job ID for retry
           } )
 
         } catch ( error ) {
