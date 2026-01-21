@@ -6,7 +6,6 @@ import { headers } from "next/headers"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
-const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 
 async function searchSerper( query: string ) {
   if ( !SERPER_API_KEY ) return []
@@ -59,8 +58,6 @@ async function searchExa( query: string ) {
 }
 
 async function searchFirecrawl( query: string ) {
-  if ( !FIRECRAWL_API_KEY ) return []
-
   try {
     const firecrawl = getFirecrawlClient()
     const result = await firecrawl.search( {

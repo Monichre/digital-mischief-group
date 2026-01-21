@@ -1,0 +1,30 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: US-005
+- **Task Title**: Run scouts to discover new signals
+- **Description**: As a **growth or strategy lead**, I want to configure scouts that run recurring web searches and deduplicate results so that I only see new, relevant mentions (jobs, press, launches) instead of noisy,...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T08:44:29.997Z
+- **Ended At**: 2026-01-21T08:46:43.013Z
+- **Duration**: 2m 13s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+US-005 "Run scouts to discover new signals" was already fully implemented. The scout primitive includes:
+
+- **Scout CRUD API** (`/api/scouts`) for creating/listing scouts with queries and schedules
+- **Multi-engine search** (Serper, Exa, Firecrawl) with parallel execution
+- **URL deduplication** via `seen_urls` array to prevent repeated alerts
+- **AI-powered analysis** with competitive intel, trend detection, and insights
+- **Streaming UI** with real-time search progress, AI thinking stream, and result cards
+
+I fixed TypeScript errors in the scout components and marked US-005 as passing in prd.json.
+[?25h

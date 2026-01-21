@@ -1,0 +1,37 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: US-006
+- **Task Title**: Run research sessions with agents
+- **Description**: As a **strategist or researcher**, I want an agent-driven research view with streaming thinking, answers, and sources so that I can ask complex questions, see how conclusions were reached, and drill i...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T08:46:44.023Z
+- **Ended At**: 2026-01-21T08:50:08.658Z
+- **Duration**: 3m 24s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+## Summary
+
+Implemented US-006 - Run research sessions with agents:
+
+1. **Created `/api/agent` route** (`src/app/api/agent/route.ts`) - the canonical Agent primitive endpoint per PRD specifications
+2. **Features implemented**:
+   - Streaming SSE for thinking, sources, and synthesis panels
+   - Multi-provider search orchestration (Perplexity, Exa, Serper, Firecrawl)
+   - Deep scraping of top sources for detailed content
+   - AI-powered synthesis with Claude (streaming)
+   - Session persistence to `research_missions` table
+   - Usage event logging
+
+3. **Updated live research page** to use the new `/api/agent` endpoint instead of `/api/research/stream`
+
+The existing split-view UI (ThinkingPanel, SourcePanel, SynthesisPanel) at `/research/live` provides the strategist/researcher experience with streaming thinking, answers, and sources.
+[?25h

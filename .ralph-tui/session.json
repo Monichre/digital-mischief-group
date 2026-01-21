@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "sessionId": "9ab6fa5c-1f17-4567-8d76-96f7a365df43",
+  "status": "running",
+  "startedAt": "2026-01-21T08:15:15.733Z",
+  "updatedAt": "2026-01-21T08:54:58.500Z",
+  "currentIteration": 7,
+  "maxIterations": 10,
+  "tasksCompleted": 7,
+  "isPaused": false,
+  "agentPlugin": "droid",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "./prd.json",
+    "totalTasks": 7,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "Enrich a CSV of leads",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-002",
+        "title": "Enrich a single lead",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-003",
+        "title": "Extract brand identity from a URL",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-004",
+        "title": "Monitor critical pages for changes",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-005",
+        "title": "Run scouts to discover new signals",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-006",
+        "title": "Run research sessions with agents",
+        "status": "completed",
+        "completedInSession": true
+      },
+      {
+        "id": "US-007",
+        "title": "Manage plans, usage, and billing (GEO)",
+        "status": "completed",
+        "completedInSession": true
+      }
+    ]
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-001",
+      "taskTitle": "Enrich a CSV of leads",
+      "taskCompleted": true,
+      "durationMs": 1234121,
+      "startedAt": "2026-01-21T08:17:01.678Z",
+      "endedAt": "2026-01-21T08:37:35.799Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-002",
+      "taskTitle": "Enrich a single lead",
+      "taskCompleted": true,
+      "durationMs": 84479,
+      "startedAt": "2026-01-21T08:37:36.811Z",
+      "endedAt": "2026-01-21T08:39:01.290Z"
+    },
+    {
+      "iteration": 3,
+      "status": "completed",
+      "taskId": "US-003",
+      "taskTitle": "Extract brand identity from a URL",
+      "taskCompleted": true,
+      "durationMs": 152426,
+      "startedAt": "2026-01-21T08:39:02.298Z",
+      "endedAt": "2026-01-21T08:41:34.724Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-004",
+      "taskTitle": "Monitor critical pages for changes",
+      "taskCompleted": true,
+      "durationMs": 173251,
+      "startedAt": "2026-01-21T08:41:35.733Z",
+      "endedAt": "2026-01-21T08:44:28.984Z"
+    },
+    {
+      "iteration": 5,
+      "status": "completed",
+      "taskId": "US-005",
+      "taskTitle": "Run scouts to discover new signals",
+      "taskCompleted": true,
+      "durationMs": 133016,
+      "startedAt": "2026-01-21T08:44:29.997Z",
+      "endedAt": "2026-01-21T08:46:43.013Z"
+    },
+    {
+      "iteration": 6,
+      "status": "completed",
+      "taskId": "US-006",
+      "taskTitle": "Run research sessions with agents",
+      "taskCompleted": true,
+      "durationMs": 204635,
+      "startedAt": "2026-01-21T08:46:44.023Z",
+      "endedAt": "2026-01-21T08:50:08.658Z"
+    },
+    {
+      "iteration": 7,
+      "status": "completed",
+      "taskId": "US-007",
+      "taskTitle": "Manage plans, usage, and billing (GEO)",
+      "taskCompleted": true,
+      "durationMs": 288817,
+      "startedAt": "2026-01-21T08:50:09.675Z",
+      "endedAt": "2026-01-21T08:54:58.492Z"
+    }
+  ],
+  "skippedTaskIds": [],
+  "cwd": "/Users/liamellis/Desktop/digital-mischief-group",
+  "activeTaskIds": [],
+  "subagentPanelVisible": false
+}

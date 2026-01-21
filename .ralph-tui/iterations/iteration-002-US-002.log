@@ -1,0 +1,29 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: US-002
+- **Task Title**: Enrich a single lead
+- **Description**: As an **AE or SDR**, I want to enrich a single person or company from an email, name, or domain so that I can quickly personalize an email or call without leaving my workflow.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T08:37:36.811Z
+- **Ended At**: 2026-01-21T08:39:01.290Z
+- **Duration**: 1m 24s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hUS-002 (Enrich a single lead) is complete. The functionality was already fully implemented:
+
+- **API**: `POST /api/enrich` accepts email, URL, domain, or company name
+- **UI**: `/enrich` page with `UnifiedInput` component for text-based input
+- **Streaming**: `/api/enrich/stream` endpoint with `useEnrichStream` hook for real-time progress
+- **Pipeline**: 5-phase AI enrichment (discovery → company_profile → funding → tech_stack → custom_fields)
+
+Marked US-002 as passing in `prd.json` and committed.
+
+<promise>COMPLETE</promise>
+[?25h

@@ -64,9 +64,10 @@
       "description": "As a **strategist or researcher**, I want an agent-driven research view with streaming thinking, answers, and sources so that I can ask complex questions, see how conclusions were reached, and drill into the underlying evidence.",
       "acceptanceCriteria": [],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-007",
@@ -74,14 +75,15 @@
       "description": "As a **workspace admin**, I want to manage plans, usage limits, and billing in one place so that I can control access to primitives (enrich, extract, observe, scout, agent) and stay within budget without unexpected overages.",
       "acceptanceCriteria": [],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
     "createdAt": "2026-01-20T14:51:57.403Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-21T08:44:29.997Z"
+    "updatedAt": "2026-01-21T08:54:58.492Z"
   }
 }

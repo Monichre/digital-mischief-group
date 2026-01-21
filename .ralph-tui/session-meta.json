@@ -1,14 +1,14 @@
 {
-  "id": "587e38de-b7db-416c-a122-e5bb6c653c51",
-  "status": "completed",
-  "startedAt": "2026-01-20T14:41:31.099Z",
-  "updatedAt": "2026-01-20T14:43:50.779Z",
+  "id": "9ab6fa5c-1f17-4567-8d76-96f7a365df43",
+  "status": "running",
+  "startedAt": "2026-01-21T08:15:13.695Z",
+  "updatedAt": "2026-01-21T08:54:58.503Z",
   "agentPlugin": "droid",
   "trackerPlugin": "json",
-  "currentIteration": 0,
+  "prdPath": "./prd.json",
+  "currentIteration": 7,
   "maxIterations": 10,
   "totalTasks": 0,
-  "tasksCompleted": 0,
-  "cwd": "/Users/liamellis/Desktop/digital-mischief-group",
-  "endedAt": "2026-01-20T14:43:50.779Z"
+  "tasksCompleted": 7,
+  "cwd": "/Users/liamellis/Desktop/digital-mischief-group"
 }

@@ -1,0 +1,31 @@
+# Iteration 1 Log
+
+## Metadata
+
+- **Task ID**: US-001
+- **Task Title**: Enrich a CSV of leads
+- **Description**: As a **RevOps leader**, I want to upload a CSV of leads and receive enriched records with company, role, firmographics, and tech stack so that my team can segment and prioritize outreach without manua...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: No
+- **Started At**: 2026-01-21T08:17:01.678Z
+- **Ended At**: 2026-01-21T08:37:35.799Z
+- **Duration**: 20m 34s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h# Summary
+Implemented consistent input normalization and failure persistence for bulk CSV enrichment by passing the UI input value to the streaming API, storing failed rows (including contact info) in `enrichment_jobs`, and surfacing row-level error messages in the UI. Updated the enrichment page’s input precedence to match server logic so exports and on-screen inputs stay aligned.
+
+# Tests
+- `bun run lint` — **passed** with 284 pre-existing warnings.
+- `bunx tsc --noEmit` — **failed** with pre-existing type errors (e.g., `.next/*/validator.ts`, `src/ai/agents/company-profile.agent.ts`, `src/components/particle-face.tsx`, `src/platform/billing/stripe-sync.ts`).
+
+# Notes
+- TypeScript validation is currently failing due to existing project issues unrelated to the CSV enrich changes.
+
+# Commit
+- `de72f44` — `feat: improve CSV enrich failure handling`
+[?25h
