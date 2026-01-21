@@ -329,70 +329,111 @@ function formatArray( arr: any[] | null | undefined ): string {
   return arr.map( item => typeof item === "object" ? JSON.stringify( item ) : String( item ) ).join( "; " )
 }
 
+/**
+ * T-008: CSV Export Transformation
+ * 
+ * Ensures export fidelity matches dashboard display by including all fields
+ * shown in the BulkEnrichTable expanded view.
+ */
 function transformToCSVRow( job: EnrichmentJobRow ): Record<string, any> {
   const contact = job.custom_fields_data?.contact || {}
+  const techStack = job.tech_stack_data || {}
+  const profile = job.profile_data || {}
+  const funding = job.funding_data || {}
+  const customFields = job.custom_fields_data || {}
+
+  // Format buying signals with confidence percentages (matches dashboard display)
+  const formattedBuyingSignals = Array.isArray( job.buying_signals )
+    ? job.buying_signals.map( s => `${s.signal} (${Math.round( s.confidence * 100 )}%)` ).join( "; " )
+    : ""
+
+  // Format leadership with titles (matches dashboard display)
+  const formattedLeadership = Array.isArray( job.leadership )
+    ? job.leadership.map( l => `${l.name} - ${l.title}${l.linkedin ? ` (${l.linkedin})` : ""}` ).join( "; " )
+    : ""
+
+  // All technologies combined (matches dashboard display)
+  const allTechnologies = [
+    ...( techStack.languages || [] ),
+    ...( techStack.frameworks || [] ),
+    ...( techStack.infrastructure || [] ),
+    ...( techStack.tools || [] ),
+  ]
 
   return {
-    // Input data
+    // === Input data ===
     "Input Type": job.input_type,
     "Input Value": job.input_value,
 
-    // Contact info
+    // === Contact info (matches dashboard Contact column) ===
     "Contact First Name": contact.first_name || "",
     "Contact Last Name": contact.last_name || "",
     "Contact Full Name": contact.full_name || "",
     "Contact Title": contact.title || "",
     "Contact Email": contact.email || "",
 
-    // Discovery data
+    // === Discovery data (matches dashboard Company column) ===
     "Company Name": job.company_name,
     "Domain": job.domain,
     "Website": job.website,
-    "Discovery Confidence": job.discovery_data?.confidence ? `${Math.round( job.discovery_data.confidence * 100 )}%` : "",
+    "Discovery Confidence": job.discovery_data?.confidence 
+      ? `${Math.round( job.discovery_data.confidence * 100 )}%` 
+      : "",
 
-    // Company profile
+    // === Company profile (matches dashboard Industry column + expanded view) ===
     "Industry": job.industry,
-    "Segment": job.profile_data?.segment || "",
+    "Segment": profile.segment || "",
     "Employee Count": job.employee_count,
-    "Employee Range": job.profile_data?.employee_range || "",
+    "Employee Range": profile.employee_range || "",
     "Founded Year": job.founded_year,
     "Headquarters": job.headquarters,
-    "Business Type": job.profile_data?.business_type || "",
+    "Business Type": profile.business_type || "",
     "Description": job.company_description,
 
-    // Funding data
-    "Funding Stage": job.funding_data?.funding_stage || "",
+    // === Funding data (matches dashboard expanded Funding section) ===
+    "Funding Stage": funding.funding_stage || "",
     "Total Funding": job.funding_total,
-    "Last Round Date": job.funding_data?.last_round_date || "",
-    "Last Round Amount": job.funding_data?.last_round_amount || "",
-    "Investors": formatArray( job.funding_data?.investors ),
-    "Valuation": job.funding_data?.valuation || "",
-    "Is Public": job.funding_data?.is_public ? "Yes" : "No",
+    "Last Round Date": funding.last_round_date || "",
+    "Last Round Amount": funding.last_round_amount || "",
+    "Investors": formatArray( funding.investors ),
+    "Valuation": funding.valuation || "",
+    "Is Public": funding.is_public ? "Yes" : "No",
 
-    // Tech stack
-    "Languages": formatArray( job.tech_stack_data?.languages ),
-    "Frameworks": formatArray( job.tech_stack_data?.frameworks ),
-    "Infrastructure": formatArray( job.tech_stack_data?.infrastructure ),
-    "Tools": formatArray( job.tech_stack_data?.tools ),
-    "AI Adoption": job.tech_stack_data?.signals?.ai_adoption ? "Yes" : "No",
-    "Modern Stack": job.tech_stack_data?.signals?.modern_stack ? "Yes" : "No",
-    "Cloud Native": job.tech_stack_data?.signals?.cloud_native ? "Yes" : "No",
+    // === Tech stack (matches dashboard Tech column + expanded view) ===
+    "All Technologies": allTechnologies.join( "; " ),
+    "Languages": formatArray( techStack.languages ),
+    "Frameworks": formatArray( techStack.frameworks ),
+    "Infrastructure": formatArray( techStack.infrastructure ),
+    "Tools": formatArray( techStack.tools ),
+    "AI Adoption": techStack.signals?.ai_adoption ? "Yes" : "No",
+    "Modern Stack": techStack.signals?.modern_stack ? "Yes" : "No",
+    "Cloud Native": techStack.signals?.cloud_native ? "Yes" : "No",
 
-    // Custom fields / Intelligence
-    "CEO Name": job.custom_fields_data?.ceo_name || "",
-    "Key Executives": formatArray( job.leadership ),
-    "ICP Fit Score": job.icp_fit_score,
+    // === Intelligence (matches dashboard ICP Score + Signals columns) ===
+    "ICP Fit Score": job.icp_fit_score ?? "",
     "ICP Fit Reasons": formatArray( job.icp_fit_reasons ),
-    "Is Personal Site": job.custom_fields_data?.is_personal_site ? "Yes" : "No",
-    "Pain Points": formatArray( job.custom_fields_data?.pain_points ),
-    "Buying Signals": formatArray( job.buying_signals ),
-    "Competitive Landscape": formatArray( job.custom_fields_data?.competitive_landscape ),
+    "Buying Signals": formattedBuyingSignals,
+    "Buying Signals Count": Array.isArray( job.buying_signals ) ? job.buying_signals.length : 0,
 
-    // Metadata
+    // === Leadership (matches dashboard expanded Leadership section) ===
+    "CEO Name": customFields.ceo_name || "",
+    "Key Executives": formattedLeadership,
+
+    // === Additional intelligence fields ===
+    "Is Personal Site": customFields.is_personal_site ? "Yes" : "No",
+    "Pain Points": formatArray( customFields.pain_points ),
+    "Competitive Landscape": formatArray( customFields.competitive_landscape ),
+
+    // === Intelligence Brief (matches dashboard Synthesis section) ===
+    "Intelligence Brief": job.synthesis || "",
+
+    // === Source attribution (matches dashboard Sources section) ===
     "Sources": formatArray( job.sources ),
-    "Synthesis": job.synthesis || "",
+    "Source Count": Array.isArray( job.sources ) ? job.sources.length : 0,
+
+    // === Metadata ===
     "Status": job.status,
-    "Error": job.error_message || "",
+    "Error Message": job.error_message || "",
     "Enriched At": new Date( job.created_at ).toISOString(),
   }
 }

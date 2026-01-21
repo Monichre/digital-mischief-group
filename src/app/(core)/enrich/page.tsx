@@ -40,6 +40,7 @@ import {SourceAttribution} from '@/components/enrich/SourceAttribution'
 import {EnrichThinkingPanel} from '@/components/enrich/EnrichThinkingPanel'
 import {BulkEnrichTable} from '@/components/enrich/BulkEnrichTable'
 import {EnrichHistory} from '@/components/enrich/EnrichHistory'
+import {BatchHistory} from '@/components/enrich/BatchHistory'
 import {useEnrichStream} from '@/hooks/useEnrichStream'
 
 type EnrichStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -183,6 +184,7 @@ export default function EnrichPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [showRawData, setShowRawData] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [historyTab, setHistoryTab] = useState<'single' | 'batch'>('single')
   const [loadingHistoryItem, setLoadingHistoryItem] = useState(false)
   const [historicalResult, setHistoricalResult] =
     useState<EnrichmentResult | null>(null)
@@ -277,6 +279,52 @@ export default function EnrichPage() {
       setLoadingHistoryItem(false)
     }
   }
+
+  // T-008: Batch history handlers for session continuity
+  const handleBatchSelect = useCallback(async (batchIdToLoad: string) => {
+    setShowHistory(false)
+    setBatchId(batchIdToLoad)
+    try {
+      const res = await fetch(`/api/enrich/batch/${batchIdToLoad}`)
+      if (!res.ok) throw new Error('Failed to load batch')
+      const data = await res.json()
+      
+      // Transform jobs to bulkRows format for display
+      const loadedRows = data.jobs.map((job: any) => ({
+        id: job.id,
+        input: job.inputValue,
+        domain: job.domain,
+        email: job.inputType === 'email' ? job.inputValue : undefined,
+        company_name: job.companyName,
+        first_name: job.enriched?.contact?.first_name,
+        last_name: job.enriched?.contact?.last_name,
+        title: job.enriched?.contact?.title,
+        original: { [job.inputType]: job.inputValue },
+      }))
+      
+      setBulkRows(loadedRows)
+      setBulkStep('processing')
+    } catch (err) {
+      console.error('Failed to load batch:', err)
+    }
+  }, [])
+
+  const handleBatchExport = useCallback(async (batchIdToExport: string) => {
+    try {
+      const response = await fetch(`/api/enrich/batch?batchId=${batchIdToExport}&format=csv`)
+      if (!response.ok) throw new Error('Failed to export CSV')
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `enrichment_export_${batchIdToExport}_${new Date().toISOString().split('T')[0]}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Export failed:', error)
+    }
+  }, [])
 
   const handleCsvUpload = useCallback(
     (data: Record<string, string>[], headers: string[]) => {
@@ -942,7 +990,7 @@ export default function EnrichPage() {
         </div>
       </main>
 
-      {/* History Panel */}
+      {/* History Panel - T-008: Session continuity with batch history */}
       {showHistory && (
         <>
           {/* Backdrop */}
@@ -951,9 +999,10 @@ export default function EnrichPage() {
             onClick={() => setShowHistory(false)}
           />
           {/* Panel */}
-          <div className='fixed top-0 right-0 h-full w-full max-w-md z-50 animate-in slide-in-from-right duration-300'>
+          <div className='fixed top-0 right-0 h-full w-full max-w-md z-50 animate-in slide-in-from-right duration-300 bg-zinc-900'>
             <div className='h-full flex flex-col'>
-              <div className='flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800'>
+              {/* Header */}
+              <div className='flex items-center justify-between px-4 py-3 border-b border-zinc-800'>
                 <span className='font-semibold'>Enrichment History</span>
                 <button
                   onClick={() => setShowHistory(false)}
@@ -962,11 +1011,44 @@ export default function EnrichPage() {
                   <X className='w-5 h-5' />
                 </button>
               </div>
-              <div className='flex-1 overflow-hidden'>
-                <EnrichHistory
-                  onSelect={handleHistorySelect}
-                  onClose={() => setShowHistory(false)}
-                />
+
+              {/* Tab Switcher */}
+              <div className='flex border-b border-zinc-800'>
+                <button
+                  onClick={() => setHistoryTab('single')}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    historyTab === 'single'
+                      ? 'text-orange-500 border-b-2 border-orange-500 bg-orange-500/5'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                  }`}
+                >
+                  Single Enrichments
+                </button>
+                <button
+                  onClick={() => setHistoryTab('batch')}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    historyTab === 'batch'
+                      ? 'text-orange-500 border-b-2 border-orange-500 bg-orange-500/5'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                  }`}
+                >
+                  CSV Batches
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className='flex-1 overflow-y-auto p-4'>
+                {historyTab === 'single' ? (
+                  <EnrichHistory
+                    onSelect={handleHistorySelect}
+                    onClose={() => setShowHistory(false)}
+                  />
+                ) : (
+                  <BatchHistory
+                    onSelect={handleBatchSelect}
+                    onExport={handleBatchExport}
+                  />
+                )}
               </div>
             </div>
           </div>
