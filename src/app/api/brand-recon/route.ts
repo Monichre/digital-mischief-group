@@ -129,6 +129,13 @@ export async function POST( request: NextRequest ): Promise<NextResponse<BrandRe
 // GET - Fetch brand extraction history
 export async function GET( request: NextRequest ) {
   try {
+    // Require authentication
+    const session = await auth.api.getSession( { headers: await headers() } )
+    if ( !session?.user?.id ) {
+      return NextResponse.json( { success: false, error: "Unauthorized" }, { status: 401 } )
+    }
+    const userId = session.user.id
+
     const { searchParams } = new URL( request.url )
     const limit = Number.parseInt( searchParams.get( "limit" ) || "20" )
     const offset = Number.parseInt( searchParams.get( "offset" ) || "0" )
@@ -138,13 +145,14 @@ export async function GET( request: NextRequest ) {
     if ( domain ) {
       extractions = await sql`
         SELECT * FROM brand_extractions 
-        WHERE domain = ${domain}
+        WHERE domain = ${domain} AND user_id = ${userId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
       `
     } else {
       extractions = await sql`
         SELECT * FROM brand_extractions 
+        WHERE user_id = ${userId}
         ORDER BY created_at DESC 
         LIMIT ${limit} OFFSET ${offset}
       `

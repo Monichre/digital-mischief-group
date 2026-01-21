@@ -1,7 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { sql } from "@/platform/db/neon"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
+
+// Input validation schema
+const CreateScoutSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  search_query: z.string().min(1, "Search query is required"),
+  schedule: z.enum(["manual", "hourly", "daily", "weekly"]).optional(),
+  notification_email: z.string().email().optional().nullable(),
+})
 
 export async function GET() {
   try {
@@ -34,11 +43,17 @@ export async function POST( request: NextRequest ) {
     const userId = session.user.id
 
     const body = await request.json()
-    const { name, search_query, schedule, notification_email } = body
 
-    if ( !name || !search_query ) {
-      return NextResponse.json( { error: "Name and search query required" }, { status: 400 } )
+    // Validate input with Zod
+    const parseResult = CreateScoutSchema.safeParse(body)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error.errors[0]?.message || "Invalid input" },
+        { status: 400 }
+      )
     }
+
+    const { name, search_query, schedule, notification_email } = parseResult.data
 
     const [scout] = await sql`
       INSERT INTO scouts (name, search_query, schedule, notification_email, user_id)

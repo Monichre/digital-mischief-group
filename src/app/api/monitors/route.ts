@@ -1,7 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 import { getMonitors, createMonitor } from "@/daedalus/observe/workflow"
+
+// Input validation schema
+const CreateMonitorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  url: z.string().url("Valid URL is required"),
+  check_interval_seconds: z.number().int().min(60).optional(),
+  notification_email: z.string().email().optional().nullable(),
+})
 
 export async function GET() {
   try {
@@ -26,11 +35,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, url, check_interval_seconds, notification_email } = body
-
-    if (!name || !url) {
-      return NextResponse.json({ error: "Name and URL required" }, { status: 400 })
+    
+    // Validate input with Zod
+    const parseResult = CreateMonitorSchema.safeParse(body)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error.errors[0]?.message || "Invalid input" },
+        { status: 400 }
+      )
     }
+
+    const { name, url, check_interval_seconds, notification_email } = parseResult.data
 
     const monitor = await createMonitor(
       { name, url, check_interval_seconds, notification_email },

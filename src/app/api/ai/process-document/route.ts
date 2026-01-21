@@ -1,6 +1,8 @@
 import { generateObject } from "ai"
 import { z } from "zod"
 import { MODELS } from "@/ai/models"
+import { auth } from "@/platform/auth/server"
+import { headers } from "next/headers"
 
 export const maxDuration = 60
 
@@ -16,7 +18,17 @@ const documentExtractionSchema = z.object( {
 } )
 
 export async function POST( req: Request ) {
+  // 1. Authenticate
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // 2. Validate input
   const { file } = await req.json()
+  if (!file || !file.data || !file.mediaType) {
+    return Response.json({ error: "File with data and mediaType is required" }, { status: 400 })
+  }
 
   try {
     const { object } = await generateObject( {

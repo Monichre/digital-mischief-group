@@ -2,8 +2,15 @@ import { generateObject } from "ai"
 import { z } from "zod"
 import * as cheerio from "cheerio"
 import { MODELS } from "@/ai/models"
+import { auth } from "@/platform/auth/server"
+import { headers } from "next/headers"
 
 export const maxDuration = 30
+
+// Input validation schema
+const ScrapeInputSchema = z.object({
+  url: z.string().url("Valid URL is required"),
+})
 
 const structuredContentSchema = z.object( {
   title: z.string().optional(),
@@ -15,7 +22,23 @@ const structuredContentSchema = z.object( {
 } )
 
 export async function POST( req: Request ) {
-  const { url } = await req.json()
+  // 1. Authenticate
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // 2. Validate input
+  const body = await req.json()
+  const parseResult = ScrapeInputSchema.safeParse(body)
+  if (!parseResult.success) {
+    return Response.json(
+      { error: parseResult.error.errors[0]?.message || "Invalid input" },
+      { status: 400 }
+    )
+  }
+
+  const { url } = parseResult.data
 
   try {
     // Fetch the page
