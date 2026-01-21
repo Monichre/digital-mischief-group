@@ -124,6 +124,7 @@ export function BulkEnrichTable({
         body: JSON.stringify({
           rows: rows.map((r) => ({
             id: r.id,
+            input: r.input,
             domain: r.domain,
             email: r.email,
             company_name: r.company_name,
@@ -500,6 +501,14 @@ export function BulkEnrichTable({
                           phase={state.currentPhase}
                           message={state.phaseMessage}
                         />
+                        {state.status === "failed" && state.error && (
+                          <p
+                            className="mt-1 text-xs text-red-400 max-w-[160px] whitespace-normal break-words"
+                            title={state.error}
+                          >
+                            {state.error}
+                          </p>
+                        )}
                       </td>
 
                       {/* View Details */}

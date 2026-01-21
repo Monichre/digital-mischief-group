@@ -11,6 +11,7 @@ export const maxDuration = 300
 interface BatchStreamInput {
   rows: Array<{
     id: string
+    input?: string
     domain?: string
     email?: string
     company_name?: string
@@ -63,6 +64,85 @@ const EnrichedResultSchema = z.object( {
 } )
 
 type EnrichedResult = z.infer<typeof EnrichedResultSchema>
+
+type RowInputType = "email" | "domain" | "company_name" | "unknown"
+
+type ContactRecord = {
+  first_name: string | null
+  last_name: string | null
+  full_name: string | null
+  title: string | null
+  email: string | null
+} | null
+
+type RowInputDetails = {
+  inputType: RowInputType
+  inputValue: string
+  domain: string | null
+  companyName: string | null
+}
+
+function resolveInputDetails( row: BatchStreamInput['rows'][number] ): RowInputDetails {
+  const email = row.email?.trim() || null
+  const domain = row.domain?.trim() || null
+  const companyName = row.company_name?.trim() || null
+  const inputType: RowInputType = email
+    ? "email"
+    : domain
+    ? "domain"
+    : companyName
+    ? "company_name"
+    : "unknown"
+  const fallbackInput = row.input?.trim() || row.id
+  const inputValue = email || domain || companyName || fallbackInput
+  const resolvedDomain = domain || ( email ? email.split( "@" )[1] || null : null )
+
+  return {
+    inputType,
+    inputValue,
+    domain: resolvedDomain,
+    companyName,
+  }
+}
+
+async function persistFailedRow( {
+  row,
+  contact,
+  batchId,
+  userId,
+  errorMessage,
+}: {
+  row: BatchStreamInput['rows'][number]
+  contact: ContactRecord
+  batchId: string
+  userId: string
+  errorMessage: string
+} ) {
+  const inputDetails = resolveInputDetails( row )
+  const contactPayload = contact ? { contact } : null
+
+  try {
+    await sql`
+      INSERT INTO enrichment_jobs (
+        input_type, input_value, domain, company_name,
+        custom_fields_data, status, error_message,
+        batch_id, user_id
+      ) VALUES (
+        ${inputDetails.inputType},
+        ${inputDetails.inputValue},
+        ${inputDetails.domain},
+        ${inputDetails.companyName},
+        ${contactPayload ? JSON.stringify( contactPayload ) : null},
+        'failed',
+        ${errorMessage},
+        ${batchId},
+        ${userId}
+      )
+    `
+  } catch ( persistError ) {
+    console.error( "[Batch Stream] Failed to persist row error:", persistError )
+  }
+}
 
 // Helper to safely map raw/cached data to EnrichedResult
 function mapToEnrichedResult( source: any, source_type: 'cache' | 'fresh' ): EnrichedResult {
@@ -128,7 +208,7 @@ function mapToEnrichedResult( source: any, source_type: 'cache' | 'fresh' ): Enr
   return EnrichedResultSchema.parse( result )
 }
 
-function buildContactFromRow( row: BatchStreamInput['rows'][number] ) {
+function buildContactFromRow( row: BatchStreamInput['rows'][number] ): ContactRecord {
   const first_name = row.first_name?.trim() || null
   const last_name = row.last_name?.trim() || null
   const title = row.title?.trim() || null
@@ -240,36 +320,79 @@ export async function POST( request: NextRequest ) {
       let completedCount = 0
       let failedCount = 0
 
+      const markRowFailed = async ( {
+        row,
+        rowIndex,
+        errorMessage,
+        contact,
+      }: {
+        row: BatchStreamInput['rows'][number]
+        rowIndex: number
+        errorMessage: string
+        contact: ContactRecord
+      } ) => {
+        failedCount++
+
+        try {
+          await sql`
+            UPDATE enrichment_batches 
+            SET failed_rows = failed_rows + 1, updated_at = NOW()
+            WHERE id = ${batchId}
+          `
+        } catch ( updateError ) {
+          console.error( "[Batch Stream] Failed to update batch failure count:", updateError )
+        }
+
+        await persistFailedRow( {
+          row,
+          contact,
+          batchId,
+          userId,
+          errorMessage,
+        } )
+
+        send( "row_failed", {
+          rowId: row.id,
+          rowIndex,
+          error: errorMessage,
+        } )
+      }
+
       for ( let i = 0; i < rows.length; i++ ) {
         const row = rows[i]
         const contactFromRow = buildContactFromRow( row )
+        const inputDetails = resolveInputDetails( row )
 
         // Send row_started event with optimistic placeholder
         send( "row_started", {
           rowId: row.id,
           rowIndex: i,
-          input: row.domain || row.email || row.company_name,
+          input: inputDetails.inputValue,
         } )
 
         try {
           // Build enrichment input
           const enrichmentInput: EnrichmentInput = {}
-          if ( row.email ) enrichmentInput.email = row.email
-          else if ( row.domain ) enrichmentInput.domain = row.domain
-          else if ( row.company_name ) enrichmentInput.company_name = row.company_name
+          const email = row.email?.trim()
+          const domain = row.domain?.trim()
+          const companyName = row.company_name?.trim()
+
+          if ( email ) enrichmentInput.email = email
+          else if ( domain ) enrichmentInput.domain = domain
+          else if ( companyName ) enrichmentInput.company_name = companyName
 
           if ( !enrichmentInput.email && !enrichmentInput.domain && !enrichmentInput.company_name ) {
-            failedCount++
-            send( "row_failed", {
-              rowId: row.id,
+            await markRowFailed( {
+              row,
               rowIndex: i,
-              error: "No domain, email, or company name provided",
+              errorMessage: "No domain, email, or company name provided",
+              contact: contactFromRow,
             } )
             continue
           }
 
           // Check cache
-          const cacheKey = row.domain || ( row.email ? row.email.split( "@" )[1] : null )
+          const cacheKey = inputDetails.domain
           let result: EnrichedResult | null = null
 
           if ( cacheKey ) {
@@ -322,7 +445,7 @@ export async function POST( request: NextRequest ) {
                     synthesis, completed_phases, status, batch_id, user_id
                   ) VALUES (
                     ${cachedRow.input_type || Object.keys( enrichmentInput )[0] || "domain"},
-                    ${row.email || row.domain || row.company_name},
+                    ${inputDetails.inputValue},
                     ${cachedRow.normalized_url || cachedRow.discovery_data?.website || null},
                     ${cachedRow.domain || cacheKey},
                     ${cachedRow.company_name || result.company_name},
@@ -359,8 +482,16 @@ export async function POST( request: NextRequest ) {
                 `
               } catch ( cacheInsertError ) {
                 console.error( "[Batch Stream] Cache persistence error:", cacheInsertError )
+                await markRowFailed( {
+                  row,
+                  rowIndex: i,
+                  errorMessage: "Failed to save cached enrichment results",
+                  contact: contactFromRow,
+                } )
+                continue
               }
 
+              completedCount++
               send( "row_completed", {
                 rowId: row.id,
                 rowIndex: i,
@@ -368,7 +499,6 @@ export async function POST( request: NextRequest ) {
                 contact: result?.contact,
               } )
 
-              completedCount++
               continue
             }
           }
@@ -391,16 +521,11 @@ export async function POST( request: NextRequest ) {
             } )
 
             if ( !enrichResult.success ) {
-              failedCount++
-              await sql`
-                UPDATE enrichment_batches 
-                SET failed_rows = failed_rows + 1, updated_at = NOW()
-                WHERE id = ${batchId}
-              `
-              send( "row_failed", {
-                rowId: row.id,
+              await markRowFailed( {
+                row,
                 rowIndex: i,
-                error: enrichResult.errors?.[0]?.error || "Enrichment failed",
+                errorMessage: enrichResult.errors?.[0]?.error || "Enrichment failed",
+                contact: contactFromRow,
               } )
               continue
             }
@@ -442,7 +567,7 @@ export async function POST( request: NextRequest ) {
                   synthesis, completed_phases, status, batch_id, user_id
                 ) VALUES (
                   ${Object.keys( enrichmentInput )[0]},
-                  ${row.email || row.domain || row.company_name},
+                  ${inputDetails.inputValue},
                   ${discovery.website},
                   ${discovery.domain},
                   ${discovery.company_name},
@@ -473,6 +598,13 @@ export async function POST( request: NextRequest ) {
               `
             } catch ( dbError ) {
               console.error( "[Batch Stream] DB save error:", dbError )
+              await markRowFailed( {
+                row,
+                rowIndex: i,
+                errorMessage: "Failed to save enrichment results",
+                contact: contactFromRow,
+              } )
+              continue
             }
           }
 
@@ -492,11 +624,11 @@ export async function POST( request: NextRequest ) {
           } )
 
         } catch ( error ) {
-          failedCount++
-          send( "row_failed", {
-            rowId: row.id,
+          await markRowFailed( {
+            row,
             rowIndex: i,
-            error: error instanceof Error ? error.message : "Unknown error",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            contact: contactFromRow,
           } )
         }
       }

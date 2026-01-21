@@ -311,8 +311,8 @@ export default function EnrichPage() {
         const last_name = mapping.last_name ? row[mapping.last_name] : undefined
         const title = mapping.title ? row[mapping.title] : undefined
         const input =
-          domain ||
           email ||
+          domain ||
           company_name ||
           Object.values(row)[0] ||
           `Row ${idx + 1}`
