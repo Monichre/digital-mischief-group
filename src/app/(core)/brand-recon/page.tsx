@@ -195,7 +195,7 @@ export default function BrandReconPage() {
                   metadata={metadata || undefined}
                 />
 
-                {/* Cross-Primitive CTAs - T-009 */}
+                {/* Cross-Primitive CTAs - T-009 & T-010 */}
                 <div className='border border-zinc-800 bg-zinc-900/30 p-4'>
                   <div className='flex items-center gap-2 mb-3'>
                     <div className='w-1 h-4 bg-orange-500' />
@@ -213,6 +213,16 @@ export default function BrandReconPage() {
                         ? Object.values(branding.colors).filter((c): c is string => typeof c === 'string')
                         : undefined,
                       logo: branding.images?.logo,
+                      // Extended brand context for T-010 asset generation
+                      primaryColor: branding.colors?.primary,
+                      secondaryColor: branding.colors?.secondary,
+                      accentColor: branding.colors?.accent,
+                      backgroundColor: branding.colors?.background,
+                      textColor: branding.colors?.textPrimary,
+                      primaryFont: branding.typography?.fontFamilies?.primary,
+                      headingFont: branding.typography?.fontFamilies?.heading,
+                      tone: branding.personality?.tone as string[] | undefined,
+                      targetAudience: branding.personality?.targetAudience as string | undefined,
                     }}
                   />
                 </div>

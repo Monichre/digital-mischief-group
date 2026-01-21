@@ -8,6 +8,8 @@ import {
   Loader2,
   Check,
   ExternalLink,
+  AlertCircle,
+  ArrowLeft,
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -20,6 +22,8 @@ import {
 } from '@/components/ui/dialog'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
+import {AssetPreview} from '@/components/brand-assets/AssetPreview'
+import type {AssetGenerationOutput} from '@/daedalus/extract/brand/asset-generation'
 
 export interface CrossPrimitiveContext {
   // From enrichment or brand extraction
@@ -28,9 +32,19 @@ export interface CrossPrimitiveContext {
   website?: string
   industry?: string
   description?: string
-  // For asset generation
+  // For asset generation - extended brand identity
   brandColors?: string[]
   logo?: string
+  // Additional brand context for better asset generation
+  primaryColor?: string
+  secondaryColor?: string
+  accentColor?: string
+  backgroundColor?: string
+  textColor?: string
+  primaryFont?: string
+  headingFont?: string
+  tone?: string[]
+  targetAudience?: string
 }
 
 interface CrossPrimitiveCTAsProps {
@@ -364,6 +378,9 @@ function CreateMonitorDialog({open, onOpenChange, context}: CreateMonitorDialogP
 function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogProps) {
   const [selectedAssets, setSelectedAssets] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [generatedAssets, setGeneratedAssets] = useState<AssetGenerationOutput | null>(null)
+  const [view, setView] = useState<'select' | 'results'>('select')
 
   const assetTypes = [
     {id: 'email', name: 'Email Template', description: 'Brand-consistent outreach emails'},
@@ -380,20 +397,130 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
   const handleGenerate = async () => {
     if (selectedAssets.length === 0) return
     setIsGenerating(true)
-    // TODO: T-010 - Implement actual asset generation
-    // For now, just simulate a delay and close
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsGenerating(false)
-    onOpenChange(false)
+    setError(null)
+
+    try {
+      // Build brand context from available data
+      const brandContext = {
+        companyName: context.companyName || 'Unknown Company',
+        description: context.description,
+        colors: {
+          primary: context.primaryColor || context.brandColors?.[0] || '#FF6B00',
+          secondary: context.secondaryColor || context.brandColors?.[1],
+          accent: context.accentColor || context.brandColors?.[2],
+          background: context.backgroundColor,
+          textPrimary: context.textColor,
+        },
+        typography: {
+          fontFamilies: {
+            primary: context.primaryFont,
+            heading: context.headingFont,
+          },
+        },
+        personality: {
+          tone: context.tone,
+          targetAudience: context.targetAudience,
+        },
+        logo: context.logo,
+        website: context.website || (context.domain ? `https://${context.domain}` : undefined),
+      }
+
+      const response = await fetch('/api/brand-assets', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          brandContext,
+          assetTypes: selectedAssets as ('email' | 'landing' | 'social')[],
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to generate assets')
+      }
+
+      setGeneratedAssets(data.data)
+      setView('results')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleClose = () => {
     onOpenChange(false)
+    // Reset state after dialog closes
     setTimeout(() => {
       setSelectedAssets([])
+      setError(null)
+      setGeneratedAssets(null)
+      setView('select')
     }, 200)
   }
 
+  const handleBack = () => {
+    setView('select')
+    setGeneratedAssets(null)
+    setError(null)
+  }
+
+  // Results view - show generated assets
+  if (view === 'results' && generatedAssets) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBack}
+                className="p-1 hover:bg-zinc-800 rounded transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4 text-zinc-400" />
+              </button>
+              <div>
+                <DialogTitle className="flex items-center gap-2 text-zinc-100">
+                  <Sparkles className="w-5 h-5 text-orange-500" />
+                  Generated Assets
+                </DialogTitle>
+                <DialogDescription className="text-zinc-400">
+                  Your brand-consistent marketing assets are ready.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="py-4">
+            <AssetPreview
+              email={generatedAssets.email}
+              landing={generatedAssets.landing}
+              social={generatedAssets.social}
+              brandSummary={generatedAssets.brandSummary}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="border-zinc-700 text-zinc-400 hover:text-zinc-100"
+            >
+              Generate More
+            </Button>
+            <Button
+              onClick={handleClose}
+              className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
+            >
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Selection view - choose asset types
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-lg">
@@ -412,6 +539,16 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
             <div className="mb-4 p-3 bg-zinc-800/50 border border-zinc-700 rounded">
               <p className="text-xs text-zinc-500 mb-1">GENERATING FOR</p>
               <p className="text-sm font-medium text-zinc-200">{context.companyName}</p>
+              {context.website && (
+                <p className="text-xs text-zinc-500 mt-1">{context.website}</p>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-400">{error}</p>
             </div>
           )}
 
@@ -421,11 +558,12 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
               <button
                 key={asset.id}
                 onClick={() => toggleAsset(asset.id)}
+                disabled={isGenerating}
                 className={`w-full p-3 text-left border rounded transition-colors ${
                   selectedAssets.includes(asset.id)
                     ? 'border-orange-500 bg-orange-500/10'
                     : 'border-zinc-700 hover:border-zinc-600'
-                }`}
+                } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -447,12 +585,25 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
               </button>
             ))}
           </div>
+
+          {isGenerating && (
+            <div className="mt-4 p-4 bg-zinc-800/30 border border-zinc-700 rounded">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                <div>
+                  <p className="text-sm text-zinc-200">Generating assets...</p>
+                  <p className="text-xs text-zinc-500">This may take 30-60 seconds</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
           <Button
             variant="outline"
             onClick={handleClose}
+            disabled={isGenerating}
             className="border-zinc-700 text-zinc-400 hover:text-zinc-100"
           >
             Cancel
