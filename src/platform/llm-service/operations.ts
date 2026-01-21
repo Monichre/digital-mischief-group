@@ -18,6 +18,7 @@ import {
   createLLMError,
 } from "./types"
 import { stripMarkdownFences, isQuotaError, sleep, getBackoffDelay } from "./utils"
+import { recordLLMRequest, recordLLMFallback } from "@/platform/monitoring"
 
 export interface GenerateTextOptions {
   prompt: string
@@ -83,6 +84,14 @@ export async function generateText(
       })
 
       const text = stripMarkdownFences(result.text)
+      const durationMs = Date.now() - startTime
+
+      recordLLMRequest("enrich", true, {
+        provider: providerName,
+        model: modelId,
+        durationMs,
+        usedSafeMode: false,
+      })
 
       return {
         data: text,
@@ -95,12 +104,17 @@ export async function generateText(
               totalTokens: result.usage.totalTokens ?? 0,
             }
           : undefined,
-        durationMs: Date.now() - startTime,
+        durationMs,
       }
     } catch (error) {
       lastError = error
 
       if (isQuotaError(error)) {
+        recordLLMRequest("enrich", false, {
+          provider: providerName,
+          model: modelId,
+          durationMs: Date.now() - startTime,
+        })
         throw createLLMError(
           "Quota exceeded",
           providerName,
@@ -116,6 +130,11 @@ export async function generateText(
     }
   }
 
+  recordLLMRequest("enrich", false, {
+    provider: providerName,
+    model: modelId,
+    durationMs: Date.now() - startTime,
+  })
   throw createLLMError(
     `Failed after ${maxRetries + 1} attempts`,
     providerName,
@@ -153,6 +172,14 @@ export async function generateObject<T extends z.ZodTypeAny>(
         maxSteps: options.maxSteps,
       })
 
+      const durationMs = Date.now() - startTime
+      recordLLMRequest("enrich", true, {
+        provider: providerName,
+        model: modelId,
+        durationMs,
+        usedSafeMode: false,
+      })
+
       return {
         data: result.object,
         provider: providerName,
@@ -164,12 +191,17 @@ export async function generateObject<T extends z.ZodTypeAny>(
               totalTokens: result.usage.totalTokens ?? 0,
             }
           : undefined,
-        durationMs: Date.now() - startTime,
+        durationMs,
       }
     } catch (error) {
       lastError = error
 
       if (isQuotaError(error)) {
+        recordLLMRequest("enrich", false, {
+          provider: providerName,
+          model: modelId,
+          durationMs: Date.now() - startTime,
+        })
         throw createLLMError(
           "Quota exceeded",
           providerName,
@@ -200,6 +232,19 @@ export async function generateObject<T extends z.ZodTypeAny>(
           usedSafeMode = true
           console.warn(`[LLM] Used safe mode fallback for ${modelId}`)
 
+          const fallbackDurationMs = Date.now() - startTime
+          recordLLMFallback("enrich", {
+            reason: "validation_failure",
+            originalProvider: providerName,
+            fallbackProvider: providerName,
+          })
+          recordLLMRequest("enrich", true, {
+            provider: providerName,
+            model: modelId,
+            durationMs: fallbackDurationMs,
+            usedSafeMode: true,
+          })
+
           return {
             data: safeResult.object as z.infer<T>,
             provider: providerName,
@@ -211,7 +256,7 @@ export async function generateObject<T extends z.ZodTypeAny>(
                   totalTokens: safeResult.usage.totalTokens ?? 0,
                 }
               : undefined,
-            durationMs: Date.now() - startTime,
+            durationMs: fallbackDurationMs,
           }
         } catch {
           // Continue to throw primary error
@@ -224,6 +269,12 @@ export async function generateObject<T extends z.ZodTypeAny>(
     }
   }
 
+  recordLLMRequest("enrich", false, {
+    provider: providerName,
+    model: modelId,
+    durationMs: Date.now() - startTime,
+    usedSafeMode,
+  })
   throw createLLMError(
     `Failed after ${maxRetries + 1} attempts`,
     providerName,

@@ -1,5 +1,7 @@
 import Firecrawl from '@mendable/firecrawl-js'
 import { z } from 'zod'
+import { recordFirecrawlRequest } from '@/platform/monitoring'
+import type { Primitive } from '@/platform/monitoring'
 
 export type FirecrawlFormat =
   | 'markdown'
@@ -898,6 +900,12 @@ export class FirecrawlService {
             })
           }
 
+          const durationMs = Date.now() - startTime
+          recordFirecrawlRequest('extract', true, {
+            url: candidate,
+            durationMs,
+            attempts: attempt,
+          })
           return {
             success: true,
             data: payload as T,
@@ -905,7 +913,7 @@ export class FirecrawlService {
               attempts: attempt,
               fallbackUrls,
               finalUrl: candidate,
-              durationMs: Date.now() - startTime,
+              durationMs,
             },
           }
         } catch (error) {
@@ -928,6 +936,13 @@ export class FirecrawlService {
       }
     }
 
+    const durationMs = Date.now() - startTime
+    recordFirecrawlRequest('extract', false, {
+      url: options.url,
+      durationMs,
+      attempts: attempt,
+      errorCode: lastError?.code,
+    })
     return {
       success: false,
       error: lastError?.message || 'Scrape failed',
@@ -935,7 +950,7 @@ export class FirecrawlService {
       meta: {
         attempts: attempt,
         fallbackUrls,
-        durationMs: Date.now() - startTime,
+        durationMs,
       },
     }
   }
