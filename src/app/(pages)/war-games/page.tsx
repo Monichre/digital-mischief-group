@@ -651,7 +651,7 @@ export default function WarGamesPage() {
 
   return (
     <PageTransition>
-      <div className='min-h-screen bg-black text-stone-200 font-mono pt-20 pb-10 px-4'>
+      <div className='min-h-screen w-full bg-black text-stone-200 font-mono pt-20 pb-10 px-4 flex flex-col'>
         <div
           className='fixed inset-0 opacity-5 pointer-events-none'
           style={{
@@ -663,7 +663,7 @@ export default function WarGamesPage() {
           }}
         />
 
-        <div className='max-w-7xl mx-auto relative z-10 space-y-8'>
+        <div className='px-12 w-full mx-auto relative z-10 space-y-8'>
           <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
             <div>
               <div className='text-[10px] text-emerald-700 tracking-widest mb-1'>
@@ -1210,7 +1210,8 @@ export default function WarGamesPage() {
             </div>
           </div>
 
-          <section className='px-2 pb-24'>
+        </div>
+          {/* <section className='px-2 pb-24 mt-auto align-bottom'>
             <div className='max-w-7xl mx-auto'>
               <ScrollReveal y={40}>
                 <div className='border border-white/10 bg-zinc-900/30 p-12 text-center'>
@@ -1232,8 +1233,7 @@ export default function WarGamesPage() {
                 </div>
               </ScrollReveal>
             </div>
-          </section>
-        </div>
+          </section> */}
 
         <AnimatePresence>
           {showGate && <ConversionGate onClose={() => setShowGate(false)} />}

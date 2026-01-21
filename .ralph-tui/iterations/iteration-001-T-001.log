@@ -1,0 +1,22 @@
+# Iteration 1 Log
+
+## Metadata
+
+- **Task ID**: T-001
+- **Task Title**: Firecrawl Adapter Consolidation
+- **Description**: Ticket: Firecrawl Adapter Consolidation (Priority P0, Effort M, Module platform/firecrawl, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:23:05.247Z
+- **Ended At**: 2026-01-21T09:26:10.135Z
+- **Duration**: 3m 4s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hConsolidated all Firecrawl calls into `platform/firecrawl/service` with centralized logging, retries, rate limiting, and fallback URL attempts. Updated all imports across the codebase to use the canonical location, deprecated the old `lib/firecrawl/*` paths with re-exports, and verified tests pass for success/empty/error paths.
+
+<promise>COMPLETE</promise>
+[?25h

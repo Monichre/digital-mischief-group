@@ -120,7 +120,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ### 🔴 P0: Platform Foundations
 
-#### Ticket #1: Firecrawl Adapter Consolidation
+#### US-003: Firecrawl Adapter Consolidation (Ticket #1)
 
 **Priority:** P0 | **Effort:** M | **Module:** platform/firecrawl
 
@@ -137,7 +137,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #2: Unified LLM Provider
+#### US-006: Unified LLM Provider (Ticket #2)
 
 **Priority:** P0 | **Effort:** M | **Module:** platform/llm-service
 
@@ -154,7 +154,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #3: Enrich Workflow Guardrails
+#### US-001: Enrich Workflow Guardrails (Ticket #3)
 
 **Priority:** P0 | **Effort:** M | **Module:** daedalus/enrich
 
@@ -171,7 +171,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #4: API Thin Adapter Audit
+#### US-007: API Thin Adapter Audit (Ticket #4)
 
 **Priority:** P0 | **Effort:** S | **Module:** app/api
 
@@ -187,7 +187,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #5: Observe Reliability
+#### US-004: Observe Reliability (Ticket #5)
 
 **Priority:** P0 | **Effort:** S | **Module:** daedalus/observe
 
@@ -203,7 +203,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #6: Scout Dedup & Scheduling
+#### US-005: Scout Dedup & Scheduling (Ticket #6)
 
 **Priority:** P0 | **Effort:** S | **Module:** daedalus/scout
 
@@ -219,7 +219,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #7: Data Quality Metrics & Alerts
+#### US-001: Data Quality Metrics & Alerts (Ticket #7)
 
 **Priority:** P0 | **Effort:** S | **Module:** monitoring
 
@@ -237,7 +237,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ### 🟡 P1: Experience & Conversion
 
-#### Ticket #8: CSV Enrichment Flow
+#### US-001: CSV Enrichment Flow (Ticket #8)
 
 **Priority:** P1 | **Effort:** M | **Module:** enrich
 
@@ -253,7 +253,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #9: Cross-Primitive CTAs
+#### US-005: Cross-Primitive CTAs (Ticket #9)
 
 **Priority:** P1 | **Effort:** S | **Module:** integration
 
@@ -268,7 +268,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #10: Brand Asset Generation
+#### US-003: Brand Asset Generation (Ticket #10)
 
 **Priority:** P1 | **Effort:** L | **Module:** brand (extract + enrich)
 
@@ -282,7 +282,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #11: Research Split-View Reliability
+#### US-006: Research Split-View Reliability (Ticket #11)
 
 **Priority:** P1 | **Effort:** M | **Module:** agent/research
 
@@ -296,13 +296,13 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #12: Settings & Billing (GEO)
+#### US-007: Settings & Billing (GEO) (Ticket #12)
 
 **Priority:** P1 | **Effort:** L | **Module:** platform/auth/billing
 
 ---
 
-#### Ticket #19: Single Lead Enrichment Flow
+#### US-002: Single Lead Enrichment Flow (Ticket #19)
 
 **Priority:** P1 | **Effort:** S | **Module:** enrich
 
@@ -319,7 +319,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #20: Brand Identity Extract Core
+#### US-003: Brand Identity Extract Core (Ticket #20)
 
 **Priority:** P1 | **Effort:** M | **Module:** extract
 
@@ -348,7 +348,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ### 🟢 P2: Platform & Observability
 
-#### Ticket #13: End-to-End Tracing
+#### US-007: End-to-End Tracing (Ticket #13)
 
 **Priority:** P2 | **Effort:** M | **Module:** monitoring
 
@@ -362,7 +362,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #14: Feature Flags & Gradual Rollouts
+#### US-007: Feature Flags & Gradual Rollouts (Ticket #14)
 
 **Priority:** P2 | **Effort:** S | **Module:** devops
 
@@ -378,7 +378,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #15: Segmentation & ICP Scoring
+#### US-001: Segmentation & ICP Scoring (Ticket #15)
 
 **Priority:** P2 | **Effort:** L | **Module:** enrich/research
 
@@ -392,7 +392,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #16: Usage-Based Credits (Optional Layer)
+#### US-007: Usage-Based Credits (Optional Layer) (Ticket #16)
 
 **Priority:** P2 | **Effort:** L | **Module:** billing
 
@@ -408,7 +408,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ### ⚪ P3: Future Considerations
 
-#### Ticket #17: Counter Ops Response Tools
+#### US-006: Counter Ops Response Tools (Ticket #17)
 
 **Priority:** P3 | **Effort:** TBD | **Module:** agent
 
@@ -420,7 +420,7 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 
 ---
 
-#### Ticket #18: Marketplace Extensions
+#### US-007: Marketplace Extensions (Ticket #18)
 
 **Priority:** P3 | **Effort:** TBD | **Module:** platform
 
@@ -432,41 +432,3 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 - Clear contract for third-party tools; sandbox boundaries enforced
 
 ---
-
-## ✅ Completed Tickets
-
-_Completed tickets will be moved here with completion dates_
-
----
-
-## 📝 Ticket Workflow
-
-**Creating Tickets:**
-
-1. Add new ticket under appropriate priority section
-2. Include: Title, Priority, Effort estimate, Module, Description, Acceptance Criteria
-3. Assign ticket number sequentially
-
-**Working on Tickets:**
-
-1. Check box when starting work
-2. Move to "In Progress" section if needed
-3. Update with blockers or notes inline
-
-**Completing Tickets:**
-
-1. Verify all acceptance criteria met
-2. Move to "Completed Tickets" section
-3. Add completion date
-4. Update related documentation
-
-**Ticket States:**
-
-- Unchecked `[ ]` = To Do
-- Checked `[x]` = In Progress or Done (clarify with section)
-- Moved to Completed = Done with date
-
----
-
-**Next Review:** Weekly sprint planning
-**Last Sprint Completion:** TBD

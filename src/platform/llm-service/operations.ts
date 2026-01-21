@@ -80,8 +80,8 @@ export async function generateText(
         temperature: options.temperature,
         maxOutputTokens: options.maxTokens,
         tools: options.tools,
-        maxSteps: options.maxSteps,
-      })
+        ...(options.maxSteps ? { maxSteps: options.maxSteps } : {}),
+      } as Parameters<typeof aiGenerateText>[0])
 
       const text = stripMarkdownFences(result.text)
       const durationMs = Date.now() - startTime
@@ -315,7 +315,7 @@ export async function streamText(
   }
 
   // Full text promise
-  const fullText = result.text.then((text) => stripMarkdownFences(text))
+  const fullText = Promise.resolve(result.text).then((text) => stripMarkdownFences(text))
 
   return {
     stream: streamChunks(),

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import {cn} from '@/lib/utils'
 import type {Campaign} from '@/components/reports/dossier'
+import { NoiseOverlay } from '@/components/effects'
 
 type FieldReportProps = {
   campaign: Campaign
@@ -140,14 +141,18 @@ export default function FieldReport({
         cfg.containerClass
       )}
       style={{
-        backgroundImage: 'url(/images/grain.jpg)',
+        // backgroundImage: `url(/images/grain.jpg)`,
+        backgroundColor: 'rgba(0,0,0,0.01)',
+        // End of Selection
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        
       }}
       aria-label='Experimental military documentary collage composition'
       role='img'
     >
+     
       {/* Additional texture overlay for paper effect */}
       <div 
         className='pointer-events-none absolute inset-0 z-0'
@@ -219,13 +224,7 @@ export default function FieldReport({
       {(cfg as any).extras?.impactRibbon && (
         <ImpactRibbon trafficStatus={campaign.trafficStatus} />
       )}
-      {cfg.showStamp && (
-        <OfficialStamp
-          date={campaign.date}
-          subtle={(cfg as any).stampSubtle}
-          position={cfg.stampPosition}
-        />
-      )}
+   
       {(cfg as any).extras?.blackoutVignette && <BlackoutVignette />}
 
       {/* Scratches overlay - top layer */}
@@ -234,7 +233,7 @@ export default function FieldReport({
         alt=''
         aria-hidden='true'
         className='pointer-events-none absolute inset-0 z-50 h-full w-full object-cover mix-blend-screen'
-        style={{opacity: scratchOpacity}}
+        style={{opacity: 0.01}}
       />
     </div>
   )
@@ -447,14 +446,7 @@ function OfficialStamp({
       )}
     >
       <div className='relative inline-block'>
-        <img
-          src='/images/stamp.jpg'
-          alt='Official classified stamp'
-          className={cn(
-            'h-24 w-24 rotate-[-12deg] select-none mix-blend-multiply',
-            subtle ? 'opacity-40' : 'opacity-80'
-          )}
-        />
+        
         <div
           className={cn(
             'absolute right-1',

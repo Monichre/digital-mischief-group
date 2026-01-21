@@ -15,7 +15,7 @@ type FieldReportsProps = {
 // COMPONENT
 // =============================================================================
 
-export default function FieldReports({ campaigns }: FieldReportsProps) {
+export  function FieldReports({ campaigns }: FieldReportsProps) {
   return (
     <main className="min-h-screen w-full bg-black">
       {/* Header */}

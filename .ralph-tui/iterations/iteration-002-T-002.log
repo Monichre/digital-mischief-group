@@ -1,0 +1,29 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: T-002
+- **Task Title**: Unified LLM Provider
+- **Description**: Ticket: Unified LLM Provider (Priority P0, Effort M, Module platform/llm-service, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:26:11.150Z
+- **Ended At**: 2026-01-21T09:32:23.757Z
+- **Duration**: 6m 12s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hImplemented the Unified LLM Provider (T-002) at `src/platform/llm-service/` with:
+- Multi-provider support (Anthropic, OpenAI, Groq, Perplexity) via `provider.ts`
+- Schema validation with retry + Safe Mode fallback via `operations.ts` and `utils.ts`
+- Markdown fence stripping for all model outputs
+- Provider comparison harness in `harness.ts`
+- Backward-compatible wrapper updated in `ai/tools/llm.tool.ts`
+
+All existing code continues to work via the wrapper while new code can use the unified service directly.
+
+<promise>COMPLETE</promise>
+[?25h

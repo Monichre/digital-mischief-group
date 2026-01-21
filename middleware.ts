@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getSessionCookie } from "better-auth/cookies"
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
@@ -15,39 +15,39 @@ const PROTECTED_ROUTES = [
   "/scouts",
   "/observe",
   "/research",
-  "/field-report",
-  "/burn-logs",
+
+  "/profile",
   "/settings",
-];
+]
 
 // Routes that should redirect to dashboard if already authenticated
-const AUTH_ROUTES = ["/sign-in", "/sign-up"];
+const AUTH_ROUTES = ["/sign-in", "/sign-up"]
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware( request: NextRequest ) {
+  const { pathname } = request.nextUrl
 
   // Check if the route is protected
-  const isProtectedRoute = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  const isProtectedRoute = PROTECTED_ROUTES.some( ( route ) => pathname.startsWith( route ) )
 
   // Check if route is an auth route
-  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+  const isAuthRoute = AUTH_ROUTES.some( ( route ) => pathname.startsWith( route ) )
 
   // Lightweight auth check in Edge: look for Better Auth session cookie
-  const hasSession = !!getSessionCookie(request);
+  const hasSession = !!getSessionCookie( request )
 
   // Redirect unauthenticated users from protected routes to sign-in
-  if (isProtectedRoute && !hasSession) {
-    const signInUrl = new URL("/sign-in", request.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
+  if ( isProtectedRoute && !hasSession ) {
+    const signInUrl = new URL( "/sign-in", request.url )
+    signInUrl.searchParams.set( "callbackUrl", pathname )
+    return NextResponse.redirect( signInUrl )
   }
 
   // Redirect authenticated users from auth routes to home/dashboard
-  if (isAuthRoute && hasSession) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if ( isAuthRoute && hasSession ) {
+    return NextResponse.redirect( new URL( "/", request.url ) )
   }
 
-  return NextResponse.next();
+  return NextResponse.next()
 }
 
 export const config = {

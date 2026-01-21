@@ -79,11 +79,231 @@
       "labels": [],
       "dependsOn": [],
       "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-001",
+      "title": "Firecrawl Adapter Consolidation",
+      "description": "Ticket: Firecrawl Adapter Consolidation (Priority P0, Effort M, Module platform/firecrawl, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-002",
+      "title": "Unified LLM Provider",
+      "description": "Ticket: Unified LLM Provider (Priority P0, Effort M, Module platform/llm-service, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-003",
+      "title": "Enrich Workflow Guardrails",
+      "description": "Ticket: Enrich Workflow Guardrails (Priority P0, Effort M, Module daedalus/enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-004",
+      "title": "API Thin Adapter Audit",
+      "description": "Ticket: API Thin Adapter Audit (Priority P0, Effort S, Module app/api, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-005",
+      "title": "Observe Reliability",
+      "description": "Ticket: Observe Reliability (Priority P0, Effort S, Module daedalus/observe, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-006",
+      "title": "Scout Dedup & Scheduling",
+      "description": "Ticket: Scout Dedup & Scheduling (Priority P0, Effort S, Module daedalus/scout, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "T-007",
+      "title": "Data Quality Metrics & Alerts",
+      "description": "Ticket: Data Quality Metrics & Alerts (Priority P0, Effort S, Module monitoring, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-008",
+      "title": "CSV Enrichment Flow",
+      "description": "Ticket: CSV Enrichment Flow (Priority P1, Effort M, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed"
+    },
+    {
+      "id": "T-009",
+      "title": "Cross-Primitive CTAs",
+      "description": "Ticket: Cross-Primitive CTAs (Priority P1, Effort S, Module integration, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-010",
+      "title": "Brand Asset Generation",
+      "description": "Ticket: Brand Asset Generation (Priority P1, Effort L, Module brand (extract + enrich), Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-011",
+      "title": "Research Split-View Reliability",
+      "description": "Ticket: Research Split-View Reliability (Priority P1, Effort M, Module agent/research, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-012",
+      "title": "Settings & Billing (GEO)",
+      "description": "Ticket: Settings & Billing (GEO) (Priority P1, Effort L, Module platform/auth/billing, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-013",
+      "title": "End-to-End Tracing",
+      "description": "Ticket: End-to-End Tracing (Priority P2, Effort M, Module monitoring, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-014",
+      "title": "Feature Flags & Gradual Rollouts",
+      "description": "Ticket: Feature Flags & Gradual Rollouts (Priority P2, Effort S, Module devops, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-015",
+      "title": "Segmentation & ICP Scoring",
+      "description": "Ticket: Segmentation & ICP Scoring (Priority P2, Effort L, Module enrich/research, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-016",
+      "title": "Usage-Based Credits (Optional Layer)",
+      "description": "Ticket: Usage-Based Credits (Optional Layer) (Priority P2, Effort L, Module billing, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-017",
+      "title": "Counter Ops Response Tools",
+      "description": "Ticket: Counter Ops Response Tools (Priority P3, Effort TBD, Module agent, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-018",
+      "title": "Marketplace Extensions",
+      "description": "Ticket: Marketplace Extensions (Priority P3, Effort TBD, Module platform, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-019",
+      "title": "Single Lead Enrichment Flow",
+      "description": "Ticket: Single Lead Enrichment Flow (Priority P1, Effort S, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
+    },
+    {
+      "id": "T-020",
+      "title": "Brand Identity Extract Core",
+      "description": "Ticket: Brand Identity Extract Core (Priority P1, Effort M, Module extract, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": false,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": ""
     }
   ],
   "metadata": {
     "createdAt": "2026-01-20T14:51:57.403Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-21T08:54:58.492Z"
+    "updatedAt": "2026-01-21T09:59:20.362Z"
   }
 }

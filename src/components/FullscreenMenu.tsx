@@ -59,7 +59,7 @@ const MENU_ITEMS = [
   },
   {
     label: 'Arsenal',
-    href: '/field-report',
+    href: '/field-reports',
     number: '06',
     icon: Radar,
     description: 'Your intelligence toolkit',

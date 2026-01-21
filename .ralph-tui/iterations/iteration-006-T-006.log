@@ -1,0 +1,26 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: T-006
+- **Task Title**: Scout Dedup & Scheduling
+- **Description**: Ticket: Scout Dedup & Scheduling (Priority P0, Effort S, Module daedalus/scout, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:45:09.831Z
+- **Ended At**: 2026-01-21T09:48:51.950Z
+- **Duration**: 3m 42s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hImplemented T-006 Scout Dedup & Scheduling:
+
+- Created `src/daedalus/scout/workflow.ts` with URL normalization (removing UTM params, trailing slashes), deduplication against `seen_urls`, and `next_run_at` calculation for scheduled runs
+- Refactored `/api/scouts/[id]/run` route to use the workflow module (thin adapter pattern)
+- Added 15 unit tests covering URL normalization, deduplication (including within-batch dedup), and schedule interval calculations
+
+<promise>COMPLETE</promise>
+[?25h

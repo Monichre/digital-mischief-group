@@ -1,4 +1,5 @@
-import FieldReports from '@/components/reports/field-report/field-reports'
+import { FieldReports } from "@/components/reports/field-report/field-reports"
+
 
 // Mock data - replace with actual database query or API fetch
 const mockCampaigns = [

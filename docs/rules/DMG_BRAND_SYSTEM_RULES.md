@@ -1,13 +1,16 @@
 # DMG Brand System - Cursor Rules
 
 ## Overview
+
 This document defines patterns and best practices for implementing brand identity extraction and design system features based on the **Digital Mischief Group** marketing site and brand system patterns.
 
-**Source**: https://www.digitalmischiefgroup.com/
-**Repository**: https://github.com/Monichre/digital-mischief-group (customer zero implementation)
+**Source**: <https://www.digitalmischiefgroup.com/>
+**Repository**: <https://github.com/Monichre/digital-mischief-group> (customer zero implementation)
 
 ## Core Concept
+
 The DMG brand system emphasizes:
+
 - **Cyberpunk/Neon aesthetic** with dark themes and vibrant accents
 - **Military-industrial complex** visual language (tactical, high-tech)
 - **Monospace typography** for technical/code aesthetics
@@ -266,7 +269,7 @@ export const DMG_VOICE_PATTERNS = {
 ```typescript
 // components/navigation/dmg-nav.tsx
 const NAVIGATION = [
-  { name: "FIELD REPORT", href: "/field-report", description: "Templates + Blueprints" },
+  { name: "FIELD REPORT", href: "/field-reports", description: "Templates + Blueprints" },
   { name: "INTEL", href: "/intel", description: "Field Reports" },
   { name: "SUITE", href: "/enrich", description: "Live Recon Tools" },
   { name: "PROTOCOLS", href: "/loadout", description: "Audits + Playbooks" }
@@ -299,11 +302,13 @@ export function DMGNavigation() {
 ## Integration with Unified Suite
 
 ### Current Implementation
+
 - **Location**: `app/`, `components/`, `app/globals.css`
 - **Status**: Basic DMG styling applied, cyberpunk aesthetic implemented
 - **Enhancements Needed**: Brand extraction API, automated style guide generation
 
 ### Suite-Level Enhancements
+
 1. **Brand extraction**: Integrate Firecrawl brand extraction format
 2. **Style guide generation**: Auto-generate style guides from extracted brand data
 3. **Component library**: Build reusable tactical UI components
@@ -311,6 +316,7 @@ export function DMGNavigation() {
 5. **Icon system**: Consistent iconography matching DMG aesthetic
 
 ## File Structure
+
 ```
 components/
   ui/
@@ -328,5 +334,6 @@ app/
 ```
 
 ## References
+
 - [DMG Marketing Site](https://www.digitalmischiefgroup.com/)
 - [Firecrawl Brand Extraction Docs](https://docs.firecrawl.dev/features/scrape#extract-brand-identity)

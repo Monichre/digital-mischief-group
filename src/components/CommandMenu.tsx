@@ -102,7 +102,7 @@ export function CommandMenu({
         label: 'Field Reports',
         shortcut: '⌘A',
         icon: Shield,
-        action: () => router.push('/field-report'),
+        action: () => router.push('/field-reports'),
         group: 'actions',
       },
       {

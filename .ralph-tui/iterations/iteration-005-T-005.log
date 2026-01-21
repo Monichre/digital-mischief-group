@@ -1,0 +1,28 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: T-005
+- **Task Title**: Observe Reliability
+- **Description**: Ticket: Observe Reliability (Priority P0, Effort S, Module daedalus/observe, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:41:13.210Z
+- **Ended At**: 2026-01-21T09:45:08.816Z
+- **Duration**: 3m 55s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hCompleted T-005 - Observe Reliability. Changes implemented:
+
+1. **Full content storage**: Monitors now store `last_content` and changes store `old_content`/`new_content` for proper diffs
+2. **Diff generation**: Added LCS-based diff algorithm in `diff.ts` that tracks additions/deletions
+3. **Notifications with suppression**: Created `notifications.ts` with email (Resend) and webhook support, plus configurable cooldown period (default 60 min) to prevent notification spam
+4. **Updated types and API**: Extended `Monitor`, `MonitorChange`, and `CheckMonitorResult` types; updated API route validation
+5. **Database migration**: Added SQL migration for new columns and `monitor_notifications` table
+
+<promise>COMPLETE</promise>
+[?25h

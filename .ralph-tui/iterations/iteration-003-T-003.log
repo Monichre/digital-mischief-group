@@ -1,0 +1,30 @@
+# Iteration 3 Log
+
+## Metadata
+
+- **Task ID**: T-003
+- **Task Title**: Enrich Workflow Guardrails
+- **Description**: Ticket: Enrich Workflow Guardrails (Priority P0, Effort M, Module daedalus/enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:32:24.767Z
+- **Ended At**: 2026-01-21T09:37:41.178Z
+- **Duration**: 5m 16s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+Implemented T-003 - Enrich Workflow Guardrails:
+
+1. **Created `src/daedalus/enrich/schemas.ts`**: Input/output validation schemas including `EnrichInputSchema`, `ProfileEnrichInputSchema`, `CompanyEnrichInputSchema`, and `BatchEnrichInputSchema` with Zod validation helpers.
+
+2. **Created `src/daedalus/enrich/guardrails.ts`**: Safe Mode planning (discovery + profile only on failure), entry point type detection (profile vs company), competitive analysis guardrails (explicit toggle, off by default), batch row validation, and data sanitization utilities.
+
+3. **Updated orchestrator**: Integrated Safe Mode fallback when LLM planning fails or discovery confidence is very low.
+
+4. **Updated API routes**: Added schema validation at input boundaries, result validation before DB writes, sanitized data writes, and explicit competitive analysis toggle (default false).
+[?25h

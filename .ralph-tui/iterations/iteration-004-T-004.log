@@ -1,0 +1,27 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: T-004
+- **Task Title**: API Thin Adapter Audit
+- **Description**: Ticket: API Thin Adapter Audit (Priority P0, Effort S, Module app/api, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T09:37:42.393Z
+- **Ended At**: 2026-01-21T09:41:10.098Z
+- **Duration**: 3m 27s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25hT-004 completed. Summary of changes:
+
+- Added Zod validation schemas to `/api/monitors` and `/api/scouts` POST routes
+- Added authentication to `/api/ai/scrape` and `/api/ai/process-document` (previously had none)
+- Added authentication and user-scoped queries to `/api/brand-recon` GET endpoint
+- All canonical API routes now follow the thin adapter pattern: auth → validate → dispatch → return
+
+<promise>COMPLETE</promise>
+[?25h
