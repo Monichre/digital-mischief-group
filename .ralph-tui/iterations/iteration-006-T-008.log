@@ -1,0 +1,42 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: T-008
+- **Task Title**: CSV Enrichment Flow
+- **Description**: Ticket: CSV Enrichment Flow (Priority P1, Effort M, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T10:28:24.965Z
+- **Ended At**: 2026-01-21T10:37:06.395Z
+- **Duration**: 8m 41s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+## Summary
+
+I implemented T-008 - CSV Enrichment Flow with the following changes:
+
+1. **Created retry API endpoint** (`/api/enrich/batch/[batchId]/retry/route.ts`) - Allows retrying individual failed rows or all failed rows in a batch, with proper job ID tracking and status updates.
+
+2. **Integrated RowErrorPanel into BulkEnrichTable** - Added the existing `RowErrorPanel` component with:
+   - Row-level error visibility with actionable messages
+   - Individual row retry functionality
+   - Retry-all functionality for batch failures
+   - Error categorization (input, network, rate limit, provider)
+
+3. **Updated stream route to emit job IDs** - Modified `/api/enrich/batch/stream/route.ts` to:
+   - Capture job IDs via `RETURNING id` on INSERT statements
+   - Emit job IDs in `row_completed` and `row_failed` SSE events
+   - Enable retry functionality by tracking database job references
+
+These changes satisfy the T-008 acceptance criteria:
+- ✅ Users can upload, monitor progress, and export in one session
+- ✅ Row errors are visible with actionable messages (via RowErrorPanel)
+- ✅ Export fidelity ≥ dashboard display (already implemented)
+[?25h

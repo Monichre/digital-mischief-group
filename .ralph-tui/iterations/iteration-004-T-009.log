@@ -1,0 +1,35 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: T-009
+- **Task Title**: Cross-Primitive CTAs
+- **Description**: Ticket: Cross-Primitive CTAs (Priority P1, Effort S, Module integration, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T10:15:08.167Z
+- **Ended At**: 2026-01-21T10:26:18.146Z
+- **Duration**: 11m 9s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+T-009 - Cross-Primitive CTAs has been successfully implemented:
+
+1. **Created `CrossPrimitiveCTAs` component** (`src/components/cross-primitive-ctas/`) with:
+   - Scout creation dialog with prefilled company name and domain-based search query
+   - Monitor creation dialog with prefilled URL from company website
+   - Asset pack generation dialog with selectable asset types (email, landing page, social posts)
+
+2. **Integrated into Enrich results view** - CTAs appear after the action bar when enrichment completes, prefilled with company context (name, domain, website, industry, description)
+
+3. **Integrated into Brand Recon results view** - CTAs appear as "Quick Actions" section after the brand header, prefilled with brand context including colors and logo
+
+All acceptance criteria met:
+- One-click CTAs open prefilled forms that users can edit before saving
+- Scout/monitor creations use existing API endpoints and persist correctly
+[?25h

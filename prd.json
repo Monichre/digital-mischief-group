@@ -152,10 +152,10 @@
       "description": "Ticket: Data Quality Metrics & Alerts (Priority P0, Effort S, Module monitoring, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-008",
@@ -163,10 +163,10 @@
       "description": "Ticket: CSV Enrichment Flow (Priority P1, Effort M, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": "Completed"
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-009",
@@ -174,10 +174,10 @@
       "description": "Ticket: Cross-Primitive CTAs (Priority P1, Effort S, Module integration, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-010",
@@ -185,10 +185,10 @@
       "description": "Ticket: Brand Asset Generation (Priority P1, Effort L, Module brand (extract + enrich), Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-011",
@@ -196,10 +196,10 @@
       "description": "Ticket: Research Split-View Reliability (Priority P1, Effort M, Module agent/research, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-012",
@@ -207,10 +207,10 @@
       "description": "Ticket: Settings & Billing (GEO) (Priority P1, Effort L, Module platform/auth/billing, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-013",
@@ -284,10 +284,10 @@
       "description": "Ticket: Single Lead Enrichment Flow (Priority P1, Effort S, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).",
       "acceptanceCriteria": [],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": ""
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "T-020",
@@ -304,6 +304,6 @@
   "metadata": {
     "createdAt": "2026-01-20T14:51:57.403Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-21T09:59:20.362Z"
+    "updatedAt": "2026-01-21T11:40:27.923Z"
   }
 }

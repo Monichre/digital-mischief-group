@@ -4,7 +4,20 @@ import { getFirecrawlClient } from '@/platform/firecrawl/service'
 import { sql } from '@/platform/db/neon'
 import { auth } from '@/platform/auth/server'
 import { headers } from 'next/headers'
-import type { ResearchStreamEvent, SourceFoundEvent } from '@/daedalus/agent/research/stream-types'
+import type {
+  ResearchStreamEvent,
+  SourceFoundEvent,
+  CitationFoundEvent,
+} from '@/daedalus/agent/research/stream-types'
+import {
+  createStreamState,
+  executeWithFallback,
+  extractCitations,
+  generateToolSummary,
+  reconcileStreamState,
+  type StreamState,
+  type ToolResult,
+} from '@/daedalus/agent/research/stream-handler'
 import { MODELS } from '@/ai/models'
 
 /**
@@ -18,9 +31,11 @@ import { MODELS } from '@/ai/models'
  * - Multi-provider search (Perplexity, Exa, Serper, Firecrawl)
  * - AI-powered synthesis with citations
  * - Session persistence for audit trail
+ * - Tool failure fallback handling (T-011)
+ * - Citation tracking for source attribution (T-011)
+ * - Stream synchronization across providers (T-011)
  */
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
 const SERPER_API_KEY = process.env.SERPER_API_KEY
@@ -30,12 +45,17 @@ function formatSSE(event: ResearchStreamEvent): string {
   return `data: ${JSON.stringify({ ...event, timestamp: Date.now() })}\n\n`
 }
 
-// Search Perplexity
-async function searchPerplexity(query: string): Promise<{
-  content: string
-  citations: string[]
-}> {
-  if (!PERPLEXITY_API_KEY) return { content: '', citations: [] }
+// Search result types
+type PerplexityResult = { content: string; citations: string[] }
+type ExaResult = { title: string; url: string; text: string; score: number }
+type SerperResult = { title: string; link: string; snippet: string }
+
+// Search Perplexity with proper error handling
+async function searchPerplexity(query: string): Promise<PerplexityResult> {
+  if (!PERPLEXITY_API_KEY) {
+    console.log('[Agent] Perplexity API key not configured, skipping')
+    return { content: '', citations: [] }
+  }
 
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
@@ -57,7 +77,10 @@ async function searchPerplexity(query: string): Promise<{
     }),
   })
 
-  if (!response.ok) return { content: '', citations: [] }
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error')
+    throw new Error(`Perplexity API error (${response.status}): ${errorText}`)
+  }
 
   const data = await response.json()
   return {
@@ -66,14 +89,12 @@ async function searchPerplexity(query: string): Promise<{
   }
 }
 
-// Search Exa
-async function searchExa(query: string): Promise<Array<{
-  title: string
-  url: string
-  text: string
-  score: number
-}>> {
-  if (!EXA_API_KEY) return []
+// Search Exa with proper error handling
+async function searchExa(query: string): Promise<ExaResult[]> {
+  if (!EXA_API_KEY) {
+    console.log('[Agent] Exa API key not configured, skipping')
+    return []
+  }
 
   const response = await fetch('https://api.exa.ai/search', {
     method: 'POST',
@@ -90,19 +111,21 @@ async function searchExa(query: string): Promise<Array<{
     }),
   })
 
-  if (!response.ok) return []
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error')
+    throw new Error(`Exa API error (${response.status}): ${errorText}`)
+  }
 
   const data = await response.json()
   return data.results || []
 }
 
-// Search Serper (Google)
-async function searchSerper(query: string): Promise<Array<{
-  title: string
-  link: string
-  snippet: string
-}>> {
-  if (!SERPER_API_KEY) return []
+// Search Serper (Google) with proper error handling
+async function searchSerper(query: string): Promise<SerperResult[]> {
+  if (!SERPER_API_KEY) {
+    console.log('[Agent] Serper API key not configured, skipping')
+    return []
+  }
 
   const response = await fetch('https://google.serper.dev/search', {
     method: 'POST',
@@ -113,7 +136,10 @@ async function searchSerper(query: string): Promise<Array<{
     body: JSON.stringify({ q: query, num: 10 }),
   })
 
-  if (!response.ok) return []
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error')
+    throw new Error(`Serper API error (${response.status}): ${errorText}`)
+  }
 
   const data = await response.json()
   return data.organic || []
@@ -181,25 +207,32 @@ export async function POST(req: NextRequest) {
   }
 
   const encoder = new TextEncoder()
-  const startTime = Date.now()
-  const allSources: SourceFoundEvent['data'][] = []
   let missionId: string | null = sessionId || null
 
-  // 3. Stream response with tool orchestration
+  // 3. Initialize stream state for reliability tracking (T-011)
+  const streamState = createStreamState()
+
+  // 4. Stream response with tool orchestration and fallback handling
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: ResearchStreamEvent) => {
         controller.enqueue(encoder.encode(formatSSE(event)))
       }
 
+      // Track thinking block numbers for synchronization
+      let thinkingBlockNum = 0
+      const nextThinkingBlock = () => ++thinkingBlockNum
+
       try {
+        streamState.phase = 'searching'
+
         // Phase 1: Initial thinking
         send({
           type: 'thinking',
-          data: { blockNumber: 1, content: `Analyzing query: "${query}"` },
+          data: { blockNumber: nextThinkingBlock(), content: `Analyzing query: "${query}"` },
         })
 
-        // Phase 2: Search multiple sources in parallel (tool orchestration)
+        // Phase 2: Search multiple sources in parallel with fallback handling (T-011)
         send({ type: 'search_start', data: { source: 'perplexity', query } })
         send({ type: 'search_start', data: { source: 'exa', query } })
         send({ type: 'search_start', data: { source: 'serper', query } })
@@ -207,40 +240,119 @@ export async function POST(req: NextRequest) {
 
         const searchStart = Date.now()
         const firecrawl = getFirecrawlClient()
-        const [perplexityResult, exaResults, serperResults, firecrawlResults] = await Promise.all([
-          searchPerplexity(query),
-          searchExa(query),
-          searchSerper(query),
-          firecrawl.search({ query, limit: 5 }).then(r => r.success ? (r.data || []) : []).catch(() => []),
+
+        // Execute searches with fallback handling
+        const [perplexityToolResult, exaToolResult, serperToolResult, firecrawlToolResult] = await Promise.all([
+          executeWithFallback<PerplexityResult>(
+            'perplexity',
+            () => searchPerplexity(query),
+            undefined,
+            {
+              maxRetries: 1,
+              onRetry: (attempt, error) => {
+                console.log(`[Agent] Perplexity retry ${attempt}: ${error.message}`)
+              },
+            }
+          ),
+          executeWithFallback<ExaResult[]>(
+            'exa',
+            () => searchExa(query),
+            undefined,
+            {
+              maxRetries: 1,
+              onRetry: (attempt, error) => {
+                console.log(`[Agent] Exa retry ${attempt}: ${error.message}`)
+              },
+            }
+          ),
+          executeWithFallback<SerperResult[]>(
+            'serper',
+            () => searchSerper(query),
+            undefined,
+            {
+              maxRetries: 1,
+              onRetry: (attempt, error) => {
+                console.log(`[Agent] Serper retry ${attempt}: ${error.message}`)
+              },
+            }
+          ),
+          executeWithFallback<Array<{ url: string; title: string; description?: string; markdown?: string }>>(
+            'firecrawl',
+            () => firecrawl.search({ query, limit: 5 }).then(r => r.success ? (r.data || []) : []),
+            undefined,
+            {
+              maxRetries: 1,
+              onRetry: (attempt, error) => {
+                console.log(`[Agent] Firecrawl retry ${attempt}: ${error.message}`)
+              },
+            }
+          ),
         ])
+
         const searchDuration = Date.now() - searchStart
 
-        // Report search results
-        send({
-          type: 'search_result',
-          data: { source: 'perplexity', resultCount: perplexityResult.citations.length, duration: searchDuration },
-        })
-        send({
-          type: 'search_result',
-          data: { source: 'exa', resultCount: exaResults.length, duration: searchDuration },
-        })
-        send({
-          type: 'search_result',
-          data: { source: 'serper', resultCount: serperResults.length, duration: searchDuration },
-        })
-        send({
-          type: 'search_result',
-          data: { source: 'firecrawl', resultCount: firecrawlResults.length, duration: searchDuration },
-        })
+        // Store tool results in stream state
+        streamState.toolResults.set('perplexity', perplexityToolResult)
+        streamState.toolResults.set('exa', exaToolResult)
+        streamState.toolResults.set('serper', serperToolResult)
+        streamState.toolResults.set('firecrawl', firecrawlToolResult)
+
+        // Extract data with defaults for failed tools
+        const perplexityResult = perplexityToolResult.data || { content: '', citations: [] }
+        const exaResults = exaToolResult.data || []
+        const serperResults = serperToolResult.data || []
+        const firecrawlResults = firecrawlToolResult.data || []
+
+        // Report search results with fallback indicators (T-011)
+        for (const [toolName, result] of [
+          ['perplexity', perplexityToolResult] as const,
+          ['exa', exaToolResult] as const,
+          ['serper', serperToolResult] as const,
+          ['firecrawl', firecrawlToolResult] as const,
+        ]) {
+          if (result.status === 'failed') {
+            streamState.failedTools.push(toolName)
+            streamState.errors.push({
+              tool: toolName,
+              message: result.error || 'Unknown error',
+              timestamp: Date.now(),
+            })
+            send({
+              type: 'search_fallback',
+              data: {
+                source: toolName,
+                error: result.error || 'Unknown error',
+                fallbackAction: 'Continuing with other search providers',
+              },
+            })
+            console.warn(`[Agent] Tool ${toolName} failed: ${result.error}`)
+          } else {
+            const count = toolName === 'perplexity'
+              ? (result.data as PerplexityResult)?.citations?.length || 0
+              : Array.isArray(result.data) ? result.data.length : 0
+            send({
+              type: 'search_result',
+              data: { source: toolName, resultCount: count, duration: searchDuration },
+            })
+          }
+        }
 
         // Phase 3: Process and emit sources
         const totalSources = exaResults.length + serperResults.length + perplexityResult.citations.length + firecrawlResults.length
+        const failedCount = streamState.failedTools.length
+
         send({
           type: 'thinking',
-          data: { blockNumber: 2, content: `Found ${totalSources} potential sources across 4 search engines. Analyzing...` },
+          data: {
+            blockNumber: nextThinkingBlock(),
+            content: failedCount > 0
+              ? `Found ${totalSources} sources across ${4 - failedCount} providers (${failedCount} provider${failedCount > 1 ? 's' : ''} unavailable). Analyzing...`
+              : `Found ${totalSources} potential sources across 4 search engines. Analyzing...`,
+          },
         })
 
-        // Add Perplexity citations
+        // Add sources with proper tracking
+        // Perplexity citations
         for (const url of perplexityResult.citations.slice(0, 3)) {
           const source: SourceFoundEvent['data'] = {
             url,
@@ -249,11 +361,11 @@ export async function POST(req: NextRequest) {
             source: 'perplexity',
             favicon: getFaviconUrl(url),
           }
-          allSources.push(source)
+          streamState.sources.push(source)
           send({ type: 'source_found', data: source })
         }
 
-        // Add Exa results
+        // Exa results
         for (const result of exaResults.slice(0, 5)) {
           const source: SourceFoundEvent['data'] = {
             url: result.url,
@@ -262,11 +374,11 @@ export async function POST(req: NextRequest) {
             source: 'exa',
             favicon: getFaviconUrl(result.url),
           }
-          allSources.push(source)
+          streamState.sources.push(source)
           send({ type: 'source_found', data: source })
         }
 
-        // Add Serper results
+        // Serper results
         for (const result of serperResults.slice(0, 5)) {
           const source: SourceFoundEvent['data'] = {
             url: result.link,
@@ -275,11 +387,11 @@ export async function POST(req: NextRequest) {
             source: 'serper',
             favicon: getFaviconUrl(result.link),
           }
-          allSources.push(source)
+          streamState.sources.push(source)
           send({ type: 'source_found', data: source })
         }
 
-        // Add Firecrawl results
+        // Firecrawl results
         for (const result of firecrawlResults.slice(0, 5)) {
           const source: SourceFoundEvent['data'] = {
             url: result.url,
@@ -288,46 +400,77 @@ export async function POST(req: NextRequest) {
             source: 'firecrawl',
             favicon: getFaviconUrl(result.url),
           }
-          allSources.push(source)
+          streamState.sources.push(source)
           send({ type: 'source_found', data: source })
         }
 
-        // Phase 4: Deep scrape top sources
+        // Phase 4: Deep scrape top sources with fallback handling (T-011)
+        streamState.phase = 'scraping'
         send({
           type: 'thinking',
-          data: { blockNumber: 3, content: 'Deep scraping top sources for detailed content...' },
+          data: { blockNumber: nextThinkingBlock(), content: 'Deep scraping top sources for detailed content...' },
         })
 
-        const urlsToScrape = allSources.slice(0, 3).map(s => s.url)
+        const urlsToScrape = streamState.sources.slice(0, 3).map(s => s.url)
         const scrapedContent: string[] = []
+        let scrapeFailures = 0
 
         for (const url of urlsToScrape) {
           send({ type: 'scrape_start', data: { url, reason: 'Top relevance source' } })
 
-          const scrapeResult = await deepScrape(url)
+          const scrapeToolResult = await executeWithFallback(
+            `scrape:${url}`,
+            () => deepScrape(url),
+            undefined,
+            { maxRetries: 1 }
+          )
 
-          send({
-            type: 'scrape_result',
-            data: {
-              url,
-              title: scrapeResult.title,
-              content: scrapeResult.content.slice(0, 500),
-              success: scrapeResult.success,
-            },
-          })
+          streamState.toolResults.set(`scrape:${url}`, scrapeToolResult)
 
-          if (scrapeResult.success && scrapeResult.content) {
+          const scrapeResult = scrapeToolResult.data || { title: url, content: '', success: false }
+
+          if (!scrapeResult.success || scrapeToolResult.status === 'failed') {
+            scrapeFailures++
+            send({
+              type: 'scrape_fallback',
+              data: {
+                url,
+                error: scrapeToolResult.error || 'Content extraction failed',
+                fallbackAction: 'Using snippet from search results instead',
+              },
+            })
+            // Use snippet as fallback content
+            const sourceSnippet = streamState.sources.find(s => s.url === url)?.snippet
+            if (sourceSnippet) {
+              scrapedContent.push(`[Source: ${url}]\n${sourceSnippet}`)
+            }
+          } else {
+            send({
+              type: 'scrape_result',
+              data: {
+                url,
+                title: scrapeResult.title,
+                content: scrapeResult.content.slice(0, 500),
+                success: true,
+              },
+            })
             scrapedContent.push(`[Source: ${url}]\n${scrapeResult.content.slice(0, 2000)}`)
           }
         }
 
         // Phase 5: Synthesize with streaming LLM
+        streamState.phase = 'synthesizing'
         send({
           type: 'thinking',
-          data: { blockNumber: 4, content: 'Synthesizing findings into intelligence brief...' },
+          data: {
+            blockNumber: nextThinkingBlock(),
+            content: scrapeFailures > 0
+              ? `Synthesizing findings (${scrapeFailures} source${scrapeFailures > 1 ? 's' : ''} using fallback snippets)...`
+              : 'Synthesizing findings into intelligence brief...',
+          },
         })
 
-        send({ type: 'synthesis_start', data: { sourceCount: allSources.length } })
+        send({ type: 'synthesis_start', data: { sourceCount: streamState.sources.length } })
 
         const currentDate = new Date().toLocaleDateString('en-US', {
           weekday: 'long',
@@ -370,14 +513,15 @@ Structure your analysis as:
 ## SOURCES
 (list URLs used)
 
-Be direct, tactical, and actionable. Include specific data points and statistics when available.`,
+Be direct, tactical, and actionable. Include specific data points and statistics when available.
+When citing information, reference the source URL inline where appropriate.`,
           prompt: `Research Query: ${query}
 
 Research Data:
 ${contextText}
 
 Sources Found:
-${allSources.map(s => `- ${s.title}: ${s.url}`).join('\n')}
+${streamState.sources.map(s => `- ${s.title}: ${s.url}`).join('\n')}
 
 Synthesize these findings into an intelligence brief.`,
         })
@@ -388,8 +532,37 @@ Synthesize these findings into an intelligence brief.`,
           send({ type: 'synthesis_chunk', data: { content: chunk } })
         }
 
+        streamState.synthesis = fullSummary
+
+        // Phase 6: Extract citations from synthesis (T-011)
+        const citations = extractCitations(fullSummary, streamState.sources)
+        streamState.citations = citations
+
+        // Emit citation events
+        for (const citation of citations) {
+          send({
+            type: 'citation_found',
+            data: {
+              id: citation.id,
+              sourceUrl: citation.sourceUrl,
+              sourceTitle: citation.sourceTitle,
+              textSnippet: citation.textSnippet,
+            },
+          })
+        }
+
+        // Reconcile stream state and log warnings (T-011)
+        const reconciliation = reconcileStreamState(streamState)
+        if (reconciliation.warnings.length > 0) {
+          console.log('[Agent] Stream reconciliation warnings:', reconciliation.warnings)
+        }
+
+        // Generate tool summary for logging
+        const toolSummary = generateToolSummary(streamState)
+
         // Save session to database
-        const totalDuration = Date.now() - startTime
+        streamState.phase = 'complete'
+        const totalDuration = Date.now() - streamState.startTime
         try {
           const [mission] = await sql`
             INSERT INTO research_missions (
@@ -401,7 +574,7 @@ Synthesize these findings into an intelligence brief.`,
               'deep',
               ${['perplexity', 'exa', 'serper', 'firecrawl']},
               'completed',
-              ${JSON.stringify(allSources.map(s => ({ url: s.url, title: s.title, snippet: s.snippet })))},
+              ${JSON.stringify(streamState.sources.map(s => ({ url: s.url, title: s.title, snippet: s.snippet })))},
               ${fullSummary},
               ${userId}
             )
@@ -412,7 +585,7 @@ Synthesize these findings into an intelligence brief.`,
           console.error('[Agent] DB save error:', dbError)
         }
 
-        // Log usage event
+        // Log usage event with enhanced metadata
         try {
           await sql`
             INSERT INTO usage_events (event_type, module, input_value, status, metadata, user_id)
@@ -422,9 +595,13 @@ Synthesize these findings into an intelligence brief.`,
               ${query},
               'success',
               ${JSON.stringify({
-                sources_count: allSources.length,
+                sources_count: streamState.sources.length,
+                citations_count: citations.length,
                 duration_ms: totalDuration,
                 session_id: missionId,
+                tool_summary: toolSummary,
+                failed_tools: streamState.failedTools,
+                reconciliation_warnings: reconciliation.warnings,
               })},
               ${userId}
             )
@@ -433,23 +610,35 @@ Synthesize these findings into an intelligence brief.`,
           console.error('[Agent] Usage log error:', usageError)
         }
 
-        // Complete
+        // Complete with enhanced metadata (T-011)
         send({
           type: 'complete',
           data: {
             summary: fullSummary,
-            sources: allSources,
+            sources: streamState.sources,
+            citations: citations.map(c => ({
+              id: c.id,
+              sourceUrl: c.sourceUrl,
+              sourceTitle: c.sourceTitle,
+              textSnippet: c.textSnippet,
+            })),
             duration: totalDuration,
             missionId,
+            toolSummary,
           },
         })
 
       } catch (error) {
+        streamState.phase = 'error'
+        const errorMessage = error instanceof Error ? error.message : 'Agent session failed'
+        console.error('[Agent] Session error:', error)
+
         send({
           type: 'error',
           data: {
-            message: error instanceof Error ? error.message : 'Agent session failed',
+            message: errorMessage,
             code: 'AGENT_ERROR',
+            recoverable: false,
           },
         })
       } finally {
