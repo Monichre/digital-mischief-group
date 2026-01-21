@@ -3,6 +3,8 @@ import { sql } from "@/platform/db/neon"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
 import { runEnrichment, type EnrichmentInput } from "@/daedalus/enrich/api"
+import { BatchEnrichInputSchema, validateEnrichmentResult } from "@/daedalus/enrich/schemas"
+import { validateBatchRow, sanitizeEnrichmentData } from "@/daedalus/enrich/guardrails"
 
 export const maxDuration = 60
 
@@ -25,18 +27,21 @@ export async function POST( request: NextRequest ) {
     }
     const userId = session.user.id
 
-    const { rows, mapping } = ( await request.json() ) as {
-      rows: Record<string, string>[]
-      mapping: Record<string, string | null>
+    const body = await request.json()
+
+    // Validate batch input with schema (T-003 guardrail)
+    const inputValidation = BatchEnrichInputSchema.safeParse( body )
+    if ( !inputValidation.success ) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: inputValidation.error.issues.map( i => i.message ).join( ", " ) 
+        },
+        { status: 400 },
+      )
     }
 
-    if ( !rows || !Array.isArray( rows ) || rows.length === 0 ) {
-      return NextResponse.json( { success: false, error: "No rows provided" }, { status: 400 } )
-    }
-
-    if ( rows.length > 100 ) {
-      return NextResponse.json( { success: false, error: "Maximum 100 rows per batch" }, { status: 400 } )
-    }
+    const { rows, mapping } = inputValidation.data
 
     // Create batch job in DB
     const batchResult = await sql`

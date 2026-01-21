@@ -5,6 +5,11 @@ import { type EnrichmentJob } from "@/platform/firecrawl/types"
 import { runEnrichment, type EnrichmentInput } from "@/daedalus/enrich/api"
 import { auth } from "@/platform/auth/server"
 import { headers } from "next/headers"
+import { 
+  validateEnrichmentResult,
+  EnrichInputSchema,
+} from "@/daedalus/enrich/schemas"
+import { sanitizeEnrichmentData } from "@/daedalus/enrich/guardrails"
 
 export async function POST( request: NextRequest ) {
   try {
@@ -15,7 +20,8 @@ export async function POST( request: NextRequest ) {
     }
     const userId = session.user.id
 
-    const { input, useAgents = true } = await request.json()
+    const body = await request.json()
+    const { input, useAgents = true, includeCompetitive = false } = body
 
     if ( !input || typeof input !== "string" ) {
       return NextResponse.json(
@@ -38,8 +44,22 @@ export async function POST( request: NextRequest ) {
       enrichmentInput.company_name = inputTrimmed
     }
 
+    // Validate enrichment input via schema
+    const inputValidation = EnrichInputSchema.safeParse( enrichmentInput )
+    if ( !inputValidation.success ) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: inputValidation.error.issues.map( i => i.message ).join( ", " ) 
+        },
+        { status: 400 },
+      )
+    }
+
     // Run multi-agent orchestration
+    // Note: competitive analysis is OFF by default per T-003 guardrails
     const result = await runEnrichment( enrichmentInput, {
+      competitive: includeCompetitive === true, // Must be explicitly true
       onProgress: ( progress ) => {
         console.log( `[Enrich] ${progress.phase}: ${progress.status} - ${progress.message}` )
       },
@@ -72,13 +92,26 @@ export async function POST( request: NextRequest ) {
 
     const { discovery, profile, funding, techStack, customFields, sources } = result.data
 
+    // Validate result data before DB write (T-003 guardrail)
+    const resultValidation = validateEnrichmentResult( result.data )
+    if ( !resultValidation.success ) {
+      console.warn( "[Enrich] Result validation warnings:", resultValidation.error )
+      // Continue with sanitized data - don't fail the request
+    }
+
+    // Sanitize data before DB write
+    const sanitizedProfile = sanitizeEnrichmentData( profile )
+    const sanitizedFunding = sanitizeEnrichmentData( funding )
+    const sanitizedTechStack = sanitizeEnrichmentData( techStack )
+    const sanitizedCustomFields = sanitizeEnrichmentData( customFields )
+
     // Also get branding/screenshot using modern extract endpoint
     const firecrawl = getFirecrawlClient()
     const brandResult = await firecrawl.extractBrand( discovery.website )
     const screenshot = brandResult.success ? brandResult.data?.screenshot : null
     const logo = brandResult.success ? brandResult.data?.images?.logo : null
 
-    // Save to database with full agent phase data
+    // Save to database with full agent phase data (using sanitized data per T-003)
     let savedJob: EnrichmentJob | null = null
     try {
       const dbResult = await sql`
@@ -97,24 +130,24 @@ export async function POST( request: NextRequest ) {
           ${discovery.website}, 
           ${discovery.domain},
           ${discovery.company_name}, 
-          ${profile.description}, 
-          ${profile.industry},
-          ${profile.employee_count}, 
-          ${profile.year_founded}, 
-          ${profile.headquarters}, 
+          ${sanitizedProfile.description}, 
+          ${sanitizedProfile.industry},
+          ${sanitizedProfile.employee_count}, 
+          ${sanitizedProfile.year_founded}, 
+          ${sanitizedProfile.headquarters}, 
           ${discovery.website},
-          ${funding.total_funding},
-          ${JSON.stringify( [...techStack.languages, ...techStack.frameworks, ...techStack.tools] )}, 
-          ${JSON.stringify( customFields.key_executives )},
+          ${sanitizedFunding.total_funding},
+          ${JSON.stringify( [...sanitizedTechStack.languages, ...sanitizedTechStack.frameworks, ...sanitizedTechStack.tools] )}, 
+          ${JSON.stringify( sanitizedCustomFields.key_executives )},
           ${JSON.stringify( discovery )},
-          ${JSON.stringify( profile )},
-          ${JSON.stringify( funding )},
-          ${JSON.stringify( techStack )},
-          ${JSON.stringify( customFields )},
+          ${JSON.stringify( sanitizedProfile )},
+          ${JSON.stringify( sanitizedFunding )},
+          ${JSON.stringify( sanitizedTechStack )},
+          ${JSON.stringify( sanitizedCustomFields )},
           ${JSON.stringify( sources )},
-          ${customFields.icp_fit_score},
-          ${customFields.icp_fit_reasons},
-          ${JSON.stringify( customFields.buying_signals )},
+          ${sanitizedCustomFields.icp_fit_score},
+          ${sanitizedCustomFields.icp_fit_reasons},
+          ${JSON.stringify( sanitizedCustomFields.buying_signals )},
           ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
           ${JSON.stringify( result.data )}, 
           'completed', 

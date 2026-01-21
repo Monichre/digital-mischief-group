@@ -12,6 +12,11 @@ import type {
   AgentPhase,
   AgentError,
 } from "../types"
+import {
+  getSafeModePlan,
+  shouldUseSafeMode,
+  logSafeModeActivation,
+} from "@/daedalus/enrich/guardrails"
 
 // Conductor thinking event types
 export interface ConductorThought {
@@ -182,6 +187,17 @@ Respond in JSON format:
     }))
   } catch (error) {
     console.error("[Conductor] Analysis failed:", error)
+
+    // Use Safe Mode on planning failure
+    if (shouldUseSafeMode(error as Error, discovery)) {
+      logSafeModeActivation("LLM planning failure", input)
+      onThought({
+        type: "reasoning",
+        content: "⚠️ AI planning unavailable. Activating Safe Mode (discovery + profile only).",
+        timestamp: Date.now(),
+      })
+      return getSafeModePlan(discovery)
+    }
 
     if (isLLMCreditError(error)) {
       onThought({
