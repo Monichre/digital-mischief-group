@@ -32,7 +32,7 @@ export default function LiveResearchPage() {
     setIsSynthesizing(false)
 
     try {
-      const response = await fetch('/api/research/stream', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({query}),
