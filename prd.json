@@ -1,0 +1,84 @@
+{
+  "name": "**Daedalus — Product Requirements Document (PRD)**",
+  "description": "**Status:** Active / Source of Truth **Audience:** Engineers, Designers, Operators **Goal:** Enable continued feature shipping without naming churn, architectural confusion, or large refactors.",
+  "branchName": "feature/daedalus-product-requirements-document-prd",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Enrich a CSV of leads",
+      "description": "As a **RevOps leader**, I want to upload a CSV of leads and receive enriched records with company, role, firmographics, and tech stack so that my team can segment and prioritize outreach without manual research.",
+      "acceptanceCriteria": [],
+      "priority": 1,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-002",
+      "title": "Enrich a single lead",
+      "description": "As an **AE or SDR**, I want to enrich a single person or company from an email, name, or domain so that I can quickly personalize an email or call without leaving my workflow.",
+      "acceptanceCriteria": [],
+      "priority": 2,
+      "passes": true,
+      "labels": [],
+      "dependsOn": [],
+      "completionNotes": "Single lead enrichment implemented with: (1) POST /api/enrich endpoint accepting email, URL, domain, or company name; (2) /enrich page with UnifiedInput component; (3) Streaming support via /api/enrich/stream with useEnrichStream hook; (4) 5-phase AI pipeline: discovery, company_profile, funding, tech_stack, custom_fields"
+    },
+    {
+      "id": "US-003",
+      "title": "Extract brand identity from a URL",
+      "description": "As a **marketer**, I want to input a brand’s website URL and receive a structured brand identity (logo, colors, fonts, voice, key messages) so that I can generate on-brand assets and compare against competitors.",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Monitor critical pages for changes",
+      "description": "As a **competitive intelligence owner**, I want to set up monitors on pricing, feature, or policy pages so that I am alerted when competitors ship meaningful changes and can respond quickly.",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Run scouts to discover new signals",
+      "description": "As a **growth or strategy lead**, I want to configure scouts that run recurring web searches and deduplicate results so that I only see new, relevant mentions (jobs, press, launches) instead of noisy, repeated alerts.",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Run research sessions with agents",
+      "description": "As a **strategist or researcher**, I want an agent-driven research view with streaming thinking, answers, and sources so that I can ask complex questions, see how conclusions were reached, and drill into the underlying evidence.",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Manage plans, usage, and billing (GEO)",
+      "description": "As a **workspace admin**, I want to manage plans, usage limits, and billing in one place so that I can control access to primitives (enrich, extract, observe, scout, agent) and stay within budget without unexpected overages.",
+      "acceptanceCriteria": [],
+      "priority": 4,
+      "passes": false,
+      "labels": [],
+      "dependsOn": []
+    }
+  ],
+  "metadata": {
+    "createdAt": "2026-01-20T14:51:57.403Z",
+    "version": "1.0.0",
+    "updatedAt": "2026-01-21T08:37:36.811Z"
+  }
+}
