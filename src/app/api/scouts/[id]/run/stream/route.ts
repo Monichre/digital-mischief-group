@@ -7,7 +7,6 @@ import type { SentinelStreamEvent, SearchProgress } from "@/daedalus/scout/strea
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
-const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY
 
 function formatSSE( event: SentinelStreamEvent ): string {
   return `data: ${JSON.stringify( { ...event, timestamp: Date.now() } )}\n\n`
@@ -48,7 +47,6 @@ async function searchExa( query: string ) {
 }
 
 async function searchFirecrawl( query: string ) {
-  if ( !FIRECRAWL_API_KEY ) return []
   try {
     const firecrawl = getFirecrawlClient()
     const result = await firecrawl.search( {
@@ -81,7 +79,8 @@ export async function GET( request: NextRequest, { params }: { params: Promise<{
 
       try {
         // Get scout
-        const [scout] = await sql<Scout[]>`SELECT * FROM scouts WHERE id = ${id}`
+        const rows = await sql`SELECT * FROM scouts WHERE id = ${id}`
+        const scout = rows[0] as Scout | undefined
         if ( !scout ) {
           send( { type: "error", data: { message: "Scout not found", phase: "init", recoverable: false } } )
           controller.close()

@@ -23,7 +23,7 @@
       "passes": true,
       "labels": [],
       "dependsOn": [],
-      "completionNotes": "Single lead enrichment implemented with: (1) POST /api/enrich endpoint accepting email, URL, domain, or company name; (2) /enrich page with UnifiedInput component; (3) Streaming support via /api/enrich/stream with useEnrichStream hook; (4) 5-phase AI pipeline: discovery, company_profile, funding, tech_stack, custom_fields"
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-003",
@@ -31,9 +31,10 @@
       "description": "As a **marketer**, I want to input a brand’s website URL and receive a structured brand identity (logo, colors, fonts, voice, key messages) so that I can generate on-brand assets and compare against competitors.",
       "acceptanceCriteria": [],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-004",
@@ -41,9 +42,10 @@
       "description": "As a **competitive intelligence owner**, I want to set up monitors on pricing, feature, or policy pages so that I am alerted when competitors ship meaningful changes and can respond quickly.",
       "acceptanceCriteria": [],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-005",
@@ -51,9 +53,10 @@
       "description": "As a **growth or strategy lead**, I want to configure scouts that run recurring web searches and deduplicate results so that I only see new, relevant mentions (jobs, press, launches) instead of noisy, repeated alerts.",
       "acceptanceCriteria": [],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "labels": [],
-      "dependsOn": []
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-006",
@@ -79,6 +82,6 @@
   "metadata": {
     "createdAt": "2026-01-20T14:51:57.403Z",
     "version": "1.0.0",
-    "updatedAt": "2026-01-21T08:37:36.811Z"
+    "updatedAt": "2026-01-21T08:44:29.997Z"
   }
 }

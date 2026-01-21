@@ -10,25 +10,28 @@ interface AIThinkingStreamProps {
   events: SentinelStreamEvent[]
 }
 
-const thoughtIcons = {
+const thoughtIcons: Record<string, typeof Zap> = {
   action: Zap,
   observation: Eye,
   reasoning: Brain,
   insight: Lightbulb,
+  decision: Brain,
 }
 
-const thoughtColors = {
+const thoughtColors: Record<string, string> = {
   action: 'text-blue-600',
   observation: 'text-purple-600',
   reasoning: 'text-zinc-600',
   insight: 'text-[#fa5d19]',
+  decision: 'text-green-600',
 }
 
-const thoughtLabels = {
+const thoughtLabels: Record<string, string> = {
   action: 'Action',
   observation: 'Observation',
   reasoning: 'Reasoning',
   insight: 'Insight',
+  decision: 'Decision',
 }
 
 export function AIThinkingStream({events}: AIThinkingStreamProps) {

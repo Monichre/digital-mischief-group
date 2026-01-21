@@ -57,10 +57,9 @@ export function StreamingInsightCard({insight}: StreamingInsightCardProps) {
             <div className='flex items-center gap-2 mb-1'>
               <h5 className='font-semibold text-zinc-900'>{insight.title}</h5>
               {insight.actionable && (
-                <CheckCircle
-                  className='w-4 h-4 text-green-600'
-                  title='Actionable'
-                />
+                <span title='Actionable'>
+                  <CheckCircle className='w-4 h-4 text-green-600' />
+                </span>
               )}
             </div>
 
