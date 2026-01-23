@@ -70,7 +70,7 @@ export function ProGate({
             [ OPERATOR CLEARANCE REQUIRED ]
           </h3>
           <p className='text-zinc-400 text-sm'>
-            Upgrade to Operator tier to unlock unlimited access to this tool and more.
+            Upgrade to the Operator loadout to unlock unlimited access to this tool and more.
           </p>
         </div>
         <Button asChild className='whitespace-nowrap bg-orange-500 hover:bg-orange-600 text-white font-mono'>

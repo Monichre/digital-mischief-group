@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {ArrowLeft, Crosshair, RefreshCw, Clock, ArrowRight} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import type {Monitor, MonitorChange} from '@/daedalus/scout/types'
+import {AuthLinks} from '@/components/AuthLinks'
 
 export default function MonitorDetailClient({id}: {id: string}) {
   const [monitor, setMonitor] = useState<Monitor | null>(null)
@@ -58,20 +59,26 @@ export default function MonitorDetailClient({id}: {id: string}) {
             <ArrowLeft className='w-4 h-4' />
             <span>Back to Recon</span>
           </Link>
-          <Button
-            onClick={checkNow}
-            disabled={checking}
-            className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
-          >
-            {checking ? (
-              'Checking...'
-            ) : (
-              <>
-                <RefreshCw className='w-4 h-4 mr-2' />
-                Check Now
-              </>
-            )}
-          </Button>
+          <div className='flex items-center gap-3'>
+            <Button
+              onClick={checkNow}
+              disabled={checking}
+              className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
+            >
+              {checking ? (
+                'Checking...'
+              ) : (
+                <>
+                  <RefreshCw className='w-4 h-4 mr-2' />
+                  Check Now
+                </>
+              )}
+            </Button>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
+          </div>
         </div>
       </header>
 

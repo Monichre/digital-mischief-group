@@ -6,12 +6,8 @@ import {useEffect, useMemo, useState} from 'react'
 import Link from 'next/link'
 import {motion, AnimatePresence} from 'framer-motion'
 import {
-  Activity,
   Shield,
   Zap,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   Server,
   Cpu,
   Database,
@@ -25,7 +21,9 @@ import {
   Users,
   Brain,
   Bot,
+  Activity,
 } from 'lucide-react'
+import Script from 'next/script'
 import {cn} from '@/lib/utils'
 import {PageTransition} from '@/components/military/PageTransition'
 import {HoloGlobe} from '@/components/military/HoloGlobe'
@@ -33,6 +31,7 @@ import {Magnetic, ScrollReveal} from '@/components/scroll-animations'
 import {AgentSandbox} from '@/features/war-games/agent-lab'
 import {PromptLab} from '@/features/war-games/prompt-lab'
 import {DocumentLab} from '@/features/war-games/document-lab/DocumentLab'
+import {UploadZoneWrapper} from '@/features/war-games/document-lab/interface/upload-zone'
 
 type MissionId =
   | 'agent-sandbox'
@@ -51,13 +50,6 @@ type Mission = {
   primaryModel: string
   cooldown: string
   tokens: string
-}
-
-type ActivityItem = {
-  time: string
-  mission: string
-  status: 'success' | 'warning' | 'info'
-  detail: string
 }
 
 const DAILY_LIMIT = 10
@@ -113,7 +105,7 @@ const MISSIONS: Mission[] = [
   },
   {
     id: 'enrich-profile',
-    title: 'Enrich Profile',
+    title: 'Target Profiling',
     classification: 'AUGMENTATION',
     description: 'Enhance profiles with tags, categories, and career guidance.',
     color: 'amber',
@@ -157,33 +149,6 @@ const GLOBAL_NODES = [
   {id: 2, name: 'EU-WEST', status: 'online', latency: 45},
   {id: 3, name: 'ASIA-PAC', status: 'online', latency: 89},
   {id: 4, name: 'SA-PRIME', status: 'degraded', latency: 156},
-]
-
-const SYSTEM_EVENTS: ActivityItem[] = [
-  {
-    time: '00:42:17Z',
-    mission: 'Network',
-    status: 'warning',
-    detail: 'Firewall blocked 23 intrusion attempts',
-  },
-  {
-    time: '00:38:52Z',
-    mission: 'Neural Core',
-    status: 'success',
-    detail: 'LLM orchestration warm cache primed',
-  },
-  {
-    time: '00:35:11Z',
-    mission: 'Storage',
-    status: 'info',
-    detail: 'Backup protocols initiated',
-  },
-  {
-    time: '00:31:44Z',
-    mission: 'Diagnostics',
-    status: 'success',
-    detail: 'System diagnostics passed',
-  },
 ]
 
 const ThreatGauge = ({level}: {level: number}) => {
@@ -277,8 +242,8 @@ const UsageIndicator = ({
   const percent = Math.max(0, Math.min(100, (remaining / limit) * 100))
   return (
     <div className='flex items-center gap-3 text-xs text-stone-400'>
-      <div className='font-bold tracking-widest text-orange-400'>
-        {remaining}/{limit} MISSIONS
+      <div className='font-bold tracking-widest text-emerald-400'>
+        {remaining}/{limit} LAB RUNS
       </div>
       <div className='flex-1 h-2 bg-stone-900 w-32'>
         <div
@@ -343,44 +308,6 @@ const MissionCard = ({
     </button>
   )
 }
-
-const ActivityFeed = ({items}: {items: ActivityItem[]}) => (
-  <div className='bg-black/40 border border-stone-900 p-4 h-full'>
-    <div className='text-[10px] text-stone-500 tracking-widest mb-4'>
-      ACTIVITY_FEED
-    </div>
-    <div className='space-y-3 max-h-96 overflow-y-auto pr-1'>
-      {items.map((item, idx) => (
-        <motion.div
-          key={`${item.time}-${idx}`}
-          initial={{opacity: 0, x: -10}}
-          animate={{opacity: 1, x: 0}}
-          transition={{delay: idx * 0.05}}
-          className='flex items-start gap-3 border-b border-stone-900 pb-3 last:border-0'
-        >
-          {item.status === 'success' && (
-            <CheckCircle size={14} className='text-emerald-500 mt-0.5' />
-          )}
-          {item.status === 'warning' && (
-            <AlertTriangle size={14} className='text-orange-500 mt-0.5' />
-          )}
-          {item.status === 'info' && (
-            <Clock size={14} className='text-cyan-500 mt-0.5' />
-          )}
-          <div className='flex-1'>
-            <div className='text-xs text-white flex items-center gap-2'>
-              <span className='tracking-tight'>{item.mission}</span>
-              <span className='text-[10px] text-stone-500'>{item.time}</span>
-            </div>
-            <div className='text-[12px] text-stone-400 leading-relaxed'>
-              {item.detail}
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-)
 
 const ModuleCard = ({
   name,
@@ -534,19 +461,19 @@ const ConversionGate = ({onClose}: {onClose: () => void}) => (
       </button>
       <div className='text-center mb-6'>
         <div className='inline-flex items-center gap-2 px-4 py-2 mb-4 border border-orange-500/30 bg-orange-500/5 text-[10px] font-mono text-orange-500 uppercase tracking-widest'>
-          War Games Locked
+          War Games Lab Locked
         </div>
         <h2 className='text-3xl font-bold tracking-tighter text-white mb-3'>
-          Mission Limit Reached
+          Lab Limit Reached
         </h2>
         <p className='text-zinc-400'>
-          Unlock unlimited executions, zero cooldowns, and priority lanes for
-          $30/mo.
+          Unlock unlimited lab executions, zero cooldowns, and priority lanes
+          for $30/mo.
         </p>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-6'>
         {[
-          {label: 'Unlimited Missions', value: '∞'},
+          {label: 'Unlimited Labs', value: '∞'},
           {label: 'Cooldown', value: '0s'},
           {label: 'Priority Queue', value: '10x'},
         ].map((b) => (
@@ -568,7 +495,7 @@ const ConversionGate = ({onClose}: {onClose: () => void}) => (
           rel='noopener noreferrer'
           className='flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors'
         >
-          <Zap className='w-5 h-5' /> Unlock Pro — $30/mo
+          <Zap className='w-5 h-5' /> Unlock Operator — $30/mo
         </Link>
         <button
           onClick={onClose}
@@ -584,12 +511,111 @@ const ConversionGate = ({onClose}: {onClose: () => void}) => (
   </div>
 )
 
+const LeftPanelContent = () => (
+  <>
+    {/* <ThreatGauge level={2} /> */}
+    {/* <div className='bg-black/40 border border-stone-900 p-4'>
+      <div className='text-[10px] text-stone-500 tracking-widest mb-3'>
+        SYSTEM_HEALTH
+      </div>
+      <SystemHealthBar
+        label='NEURAL_NET'
+        health={SYSTEM_STATUS.neural.health}
+        status={SYSTEM_STATUS.neural.status}
+      />
+      <SystemHealthBar
+        label='FIREWALL'
+        health={SYSTEM_STATUS.firewall.health}
+        status={SYSTEM_STATUS.firewall.status}
+      />
+      <SystemHealthBar
+        label='ENCRYPTION'
+        health={SYSTEM_STATUS.encryption.health}
+        status={SYSTEM_STATUS.encryption.status}
+      />
+      <SystemHealthBar
+        label='UPLINK'
+        health={SYSTEM_STATUS.uplink.health}
+        status={SYSTEM_STATUS.uplink.status}
+      />
+    </div> */}
+    <div className='bg-black/40 border border-stone-900 p-4 space-y-3'>
+      <div className='text-[10px] text-stone-500 tracking-widest'>
+        CORE_MODULES
+      </div>
+      {MODULES.map((module) => (
+        <ModuleCard key={module.id} {...module} />
+      ))}
+    </div>
+    <div className='bg-black/40 border border-stone-900 p-4'>
+      <div className='text-[10px] text-stone-500 tracking-widest mb-4'>
+        QUICK_ACTIONS
+      </div>
+      <div className='grid grid-cols-2 gap-2'>
+        <button className='flex items-center justify-center gap-2 p-3 border border-emerald-900 text-emerald-600 text-[10px] tracking-widest hover:bg-emerald-900/20 transition-colors'>
+          <Target size={14} /> NEW_OP
+        </button>
+        <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
+          <Server size={14} /> SCAN
+        </button>
+        <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
+          <Database size={14} /> BACKUP
+        </button>
+        <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
+          <Cpu size={14} /> DIAG
+        </button>
+      </div>
+    </div>
+  </>
+)
+
+const RightPanelContent = () => (
+  <div className='bg-black/40 border border-stone-900 p-4'>
+    <div className='text-[10px] text-stone-500 tracking-widest mb-4'>
+      GLOBAL_NETWORK
+    </div>
+    <div className='mb-4'>
+      <HoloGlobe />
+    </div>
+    {GLOBAL_NODES.map((node) => (
+      <div
+        key={node.id}
+        className='flex items-center justify-between py-2 border-b border-stone-900 last:border-0'
+      >
+        <div className='flex items-center gap-2'>
+          <div
+            className={cn(
+              'w-2 h-2 rounded-full',
+              node.status === 'online'
+                ? 'bg-emerald-500'
+                : 'bg-yellow-500'
+            )}
+          />
+          <span className='text-xs font-bold'>{node.name}</span>
+        </div>
+        <div className='flex items-center gap-4'>
+          <span className='text-[10px] text-stone-500'>
+            {node.latency}ms
+          </span>
+          <Wifi
+            size={12}
+            className={
+              node.status === 'online'
+                ? 'text-emerald-600'
+                : 'text-yellow-600'
+            }
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+)
+
 export default function WarGamesPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [streamLines, setStreamLines] = useState<string[]>([])
-  const [activity, setActivity] = useState<ActivityItem[]>(SYSTEM_EVENTS)
   const [remaining, setRemaining] = useState(DAILY_LIMIT)
   const [isStreaming, setIsStreaming] = useState(false)
   const [showGate, setShowGate] = useState(false)
@@ -628,15 +654,6 @@ export default function WarGamesPage() {
         setStreamLines([...lines])
         if (idx === script.length - 1) {
           setIsStreaming(false)
-          setActivity((prev) => [
-            {
-              time: new Date().toISOString().slice(11, 19) + 'Z',
-              mission: selectedMission.title,
-              status: 'success',
-              detail: inputValue || 'Mission executed with default payload.',
-            },
-            ...prev,
-          ])
           if (lines.length && remaining - 1 <= 0) setShowGate(true)
         }
       }, 600 * (idx + 1))
@@ -656,8 +673,8 @@ export default function WarGamesPage() {
           className='fixed inset-0 opacity-5 pointer-events-none'
           style={{
             backgroundImage: `
-              linear-gradient(rgba(16, 185, 129, 0.25) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(16, 185, 129, 0.25) 1px, transparent 1px)
+              linear-gradient(rgba(34, 211, 238, 0.22) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.22) 1px, transparent 1px)
             `,
             backgroundSize: '40px 40px',
           }}
@@ -670,7 +687,7 @@ export default function WarGamesPage() {
                 DIGITAL MISCHIEF // WAR_GAMES
               </div>
               <h1 className='text-3xl font-black text-white tracking-tight'>
-                Daedalus Simulation Context Active: War Games
+                Daedalus Simulation Context Active: War Games Lab
               </h1>
             </div>
             <div className='flex items-center gap-6'>
@@ -714,14 +731,14 @@ export default function WarGamesPage() {
                 </div>
                 <ul className='list-disc list-inside space-y-1 text-stone-300'>
                   <li>
-                    Run 5 live missions: Agent Sandbox, Prompt Sandbox, PDF
-                    Analysis, Document Pipeline, Enrich Profile.
+                    Run 5 live labs/simulations: Agent Sandbox, Prompt Sandbox,
+                    PDF Analysis, Document Pipeline, Target Profiling.
                   </li>
                   <li>
                     Stream reasoning and outputs with Cortex orchestration and
                     Sentience guardrails.
                   </li>
-                  <li>Test real AI workflows before committing to PRO.</li>
+                  <li>Test real AI workflows before committing to Operator.</li>
                 </ul>
               </div>
               <div className='space-y-2'>
@@ -730,12 +747,12 @@ export default function WarGamesPage() {
                 </div>
                 <ul className='list-disc list-inside space-y-1 text-stone-300'>
                   <li>
-                    Free tier: {DAILY_LIMIT} missions/day, short cooldowns,
+                    Observer loadout: {DAILY_LIMIT} labs/day, short cooldowns,
                     1K/2K token envelope.
                   </li>
                   <li>
                     Streaming telemetry feeds the activity log; hit limits to
-                    unlock PRO for unlimited runs.
+                    unlock Operator for unlimited lab runs.
                   </li>
                   <li>
                     Real data paths—no mock results. Keep inputs concise for
@@ -747,67 +764,26 @@ export default function WarGamesPage() {
           </CardShell>
 
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-            <div className='space-y-6'>
-              <ThreatGauge level={2} />
-              <div className='bg-black/40 border border-stone-900 p-4'>
-                <div className='text-[10px] text-stone-500 tracking-widest mb-3'>
-                  SYSTEM_HEALTH
-                </div>
-                <SystemHealthBar
-                  label='NEURAL_NET'
-                  health={SYSTEM_STATUS.neural.health}
-                  status={SYSTEM_STATUS.neural.status}
-                />
-                <SystemHealthBar
-                  label='FIREWALL'
-                  health={SYSTEM_STATUS.firewall.health}
-                  status={SYSTEM_STATUS.firewall.status}
-                />
-                <SystemHealthBar
-                  label='ENCRYPTION'
-                  health={SYSTEM_STATUS.encryption.health}
-                  status={SYSTEM_STATUS.encryption.status}
-                />
-                <SystemHealthBar
-                  label='UPLINK'
-                  health={SYSTEM_STATUS.uplink.health}
-                  status={SYSTEM_STATUS.uplink.status}
-                />
-              </div>
-              <div className='bg-black/40 border border-stone-900 p-4 space-y-3'>
-                <div className='text-[10px] text-stone-500 tracking-widest'>
-                  CORE_MODULES
-                </div>
-                {MODULES.map((module) => (
-                  <ModuleCard key={module.id} {...module} />
-                ))}
-              </div>
-              <div className='bg-black/40 border border-stone-900 p-4'>
-                <div className='text-[10px] text-stone-500 tracking-widest mb-4'>
-                  QUICK_ACTIONS
-                </div>
-                <div className='grid grid-cols-2 gap-2'>
-                  <button className='flex items-center justify-center gap-2 p-3 border border-emerald-900 text-emerald-600 text-[10px] tracking-widest hover:bg-emerald-900/20 transition-colors'>
-                    <Target size={14} /> NEW_OP
-                  </button>
-                  <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
-                    <Server size={14} /> SCAN
-                  </button>
-                  <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
-                    <Database size={14} /> BACKUP
-                  </button>
-                  <button className='flex items-center justify-center gap-2 p-3 border border-stone-800 text-stone-500 text-[10px] tracking-widest hover:bg-stone-900/20 transition-colors'>
-                    <Cpu size={14} /> DIAG
-                  </button>
-                </div>
-              </div>
+            <div
+              className={cn(
+                'space-y-6',
+                selectedMission && 'lg:order-2'
+              )}
+            >
+              <LeftPanelContent />
+              {selectedMission && <RightPanelContent />}
             </div>
 
-            <div className='space-y-6'>
+            <div
+              className={cn(
+                'space-y-6',
+                selectedMission && 'lg:col-span-2 lg:order-1'
+              )}
+            >
               {!selectedMission && (
                 <div className='space-y-4'>
                   <div className='flex items-center gap-3 text-[10px] text-stone-500 tracking-widest'>
-                    <div className='w-8 h-px bg-orange-500' /> ACTIVE_MISSIONS
+                    <div className='w-8 h-px bg-emerald-500' /> ACTIVE_LABS
                   </div>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                     {MISSIONS.map((mission) => (
@@ -831,7 +807,7 @@ export default function WarGamesPage() {
                       onClick={resetMission}
                       className='text-[10px] text-stone-400 hover:text-white tracking-widest uppercase'
                     >
-                      ← Missions
+                      ← Labs
                     </button>
                   </div>
 
@@ -849,7 +825,7 @@ export default function WarGamesPage() {
                           {selectedMission.description}
                         </p>
                       </div>
-                      <div className='[&_*]:text-stone-200 [&_*]:font-mono'>
+                      <div className='font-mono text-stone-200'>
                         <AgentSandbox />
                       </div>
                     </div>
@@ -868,7 +844,7 @@ export default function WarGamesPage() {
                           {selectedMission.description}
                         </p>
                       </div>
-                      <div className='[&_*]:text-stone-200 [&_*]:font-mono'>
+                      <div className='font-mono text-stone-200'>
                         <PromptLab />
                       </div>
                     </div>
@@ -887,7 +863,7 @@ export default function WarGamesPage() {
                           {selectedMission.description}
                         </p>
                       </div>
-                      <div className='[&_*]:text-stone-200 [&_*]:font-mono'>
+                      <div className='font-mono text-stone-200'>
                         <DocumentLab />
                       </div>
                     </div>
@@ -895,6 +871,27 @@ export default function WarGamesPage() {
 
                   {selectedMission.id === 'document-pipeline' && (
                     <div className='space-y-4'>
+                      <div className='space-y-2'>
+                        <div className='text-[10px] text-stone-500 tracking-widest'>
+                          LAB OPTIONS
+                        </div>
+                        <div className='flex flex-wrap gap-2'>
+                          {MISSIONS.map((mission) => (
+                            <button
+                              key={mission.id}
+                              type='button'
+                              onClick={() => setSelectedMission(mission)}
+                              className={cn(
+                                'px-3 py-1 text-[10px] uppercase tracking-widest border border-white/10 text-stone-300 hover:border-emerald-500 hover:text-emerald-400 transition-colors',
+                                mission.id === selectedMission.id &&
+                                  'border-emerald-500 text-emerald-400'
+                              )}
+                            >
+                              {mission.title}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <div className='grid grid-cols-1 xl:grid-cols-3 gap-4 items-start'>
                         <div className='xl:col-span-2 space-y-4'>
                           <CardShell
@@ -950,13 +947,22 @@ export default function WarGamesPage() {
                                     : 'bg-orange-500 text-white hover:bg-orange-400'
                                 )}
                               >
-                                <Activity className='w-4 h-4' /> Launch Mission
+                                <Activity className='w-4 h-4' /> Launch Lab
                               </button>
                               {isStreaming && (
                                 <div className='text-[10px] text-emerald-400 uppercase tracking-widest'>
                                   Streaming...
                                 </div>
                               )}
+                            </div>
+                          </CardShell>
+                          <CardShell title='Upload Documents' kicker='DOCUMENT INPUT'>
+                            <p className='text-sm text-stone-300 leading-relaxed'>
+                              Upload PDFs to feed into the operations pipeline. Files are analyzed
+                              in-memory with your configured provider.
+                            </p>
+                            <div className='mt-3 [&_*]:font-sans [&_*]:text-left'>
+                              <UploadZoneWrapper />
                             </div>
                           </CardShell>
                           <CardShell title='Output Stream' kicker='LIVE FEED'>
@@ -1018,7 +1024,7 @@ export default function WarGamesPage() {
                                 </div>
                                 <div className='flex items-center gap-2'>
                                   <span className='w-2 h-2 bg-cyan-400 rounded-full' />{' '}
-                                  Telemetry routed to Activity Feed
+                                  Telemetry stored in session log
                                 </div>
                               </div>
                             </div>
@@ -1085,7 +1091,7 @@ export default function WarGamesPage() {
                                     : 'bg-orange-500 text-white hover:bg-orange-400'
                                 )}
                               >
-                                <Activity className='w-4 h-4' /> Launch Mission
+                                <Activity className='w-4 h-4' /> Launch Lab
                               </button>
                               {isStreaming && (
                                 <div className='text-[10px] text-emerald-400 uppercase tracking-widest'>
@@ -1153,7 +1159,7 @@ export default function WarGamesPage() {
                                 </div>
                                 <div className='flex items-center gap-2'>
                                   <span className='w-2 h-2 bg-cyan-400 rounded-full' />{' '}
-                                  Telemetry routed to Activity Feed
+                                  Telemetry stored in session log
                                 </div>
                               </div>
                             </div>
@@ -1166,47 +1172,13 @@ export default function WarGamesPage() {
               )}
             </div>
 
-            <div className='space-y-6'>
-              <div className='bg-black/40 border border-stone-900 p-4'>
-                <div className='text-[10px] text-stone-500 tracking-widest mb-4'>
-                  GLOBAL_NETWORK
-                </div>
-                <div className='mb-4'>
-                  <HoloGlobe />
-                </div>
-                {GLOBAL_NODES.map((node) => (
-                  <div
-                    key={node.id}
-                    className='flex items-center justify-between py-2 border-b border-stone-900 last:border-0'
-                  >
-                    <div className='flex items-center gap-2'>
-                      <div
-                        className={cn(
-                          'w-2 h-2 rounded-full',
-                          node.status === 'online'
-                            ? 'bg-emerald-500'
-                            : 'bg-yellow-500'
-                        )}
-                      />
-                      <span className='text-xs font-bold'>{node.name}</span>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                      <span className='text-[10px] text-stone-500'>
-                        {node.latency}ms
-                      </span>
-                      <Wifi
-                        size={12}
-                        className={
-                          node.status === 'online'
-                            ? 'text-emerald-600'
-                            : 'text-yellow-600'
-                        }
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <ActivityFeed items={activity} />
+            <div
+              className={cn(
+                'space-y-6',
+                selectedMission && 'hidden'
+              )}
+            >
+              {!selectedMission && <RightPanelContent />}
             </div>
           </div>
 

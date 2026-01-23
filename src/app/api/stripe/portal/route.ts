@@ -14,7 +14,7 @@ export async function POST() {
 
     // Get user's Stripe customer ID
     const users = await sql`
-      SELECT stripe_customer_id FROM "user" WHERE id = ${session.user.id}
+      SELECT stripe_customer_id FROM public."user" WHERE id = ${session.user.id}
     `
 
     if ( users.length === 0 || !users[0].stripe_customer_id ) {

@@ -49,7 +49,10 @@ export function AgentCodePreview({
       <Dialog>
         <DialogTrigger asChild>
           <Button
-            className={cn("gap-2", className)}
+            className={cn(
+              "gap-2 border-stone-800 bg-black/60 text-stone-200 hover:border-orange-500/40 hover:text-orange-300",
+              className
+            )}
             size="sm"
             variant="outline"
           >
@@ -57,24 +60,24 @@ export function AgentCodePreview({
             Preview Code
           </Button>
         </DialogTrigger>
-        <DialogContent className="flex h-[90vh] w-[95vw] max-w-4xl flex-col">
+        <DialogContent className="flex h-[90vh] w-[95vw] max-w-4xl flex-col border border-stone-900 bg-black text-stone-200">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Code className="h-4 w-4" />
               {agentDisplayName} Agent Code
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-stone-400">
               Complete TypeScript implementation with all dependencies and
               imports
             </DialogDescription>
             {/* Action Buttons */}
             <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-0">
-              <div className="text-muted-foreground text-sm">
+              <div className="text-stone-500 text-sm">
                 {code.split("\n").length} lines • {code.length} characters
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
-                  className="gap-2"
+                  className="gap-2 border-stone-800 bg-black/60 text-stone-200 hover:border-orange-500/40 hover:text-orange-300"
                   onClick={downloadCode}
                   size="sm"
                   variant="outline"
@@ -87,7 +90,7 @@ export function AgentCodePreview({
             </div>
           </DialogHeader>
           <div className="min-h-0 flex-1">
-            <div className="h-full w-full rounded-lg border bg-muted/30">
+            <div className="h-full w-full rounded-lg border border-stone-900 bg-black/50">
               <ScrollArea className="h-full">
                 {/* Code Preview */}
                 <div className="relative w-full p-4">

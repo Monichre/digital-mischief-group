@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { href: "/", label: "HQ", icon: Home },
-  { href: "/login", label: "UPLINK", icon: LogIn },
+  { href: "/sign-in", label: "UPLINK", icon: LogIn },
   { href: "/dashboard", label: "CMD", icon: LayoutDashboard },
   { href: "/features", label: "INTEL", icon: Zap },
-  { href: "/pricing", label: "LOADOUT", icon: CreditCard },
+  { href: "/loadout", label: "LOADOUT", icon: CreditCard },
   { href: "/schematics", label: "DOCS", icon: FileCode },
 ]
 

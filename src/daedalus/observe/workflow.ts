@@ -92,6 +92,44 @@ export async function deleteMonitor(monitorId: string, userId: string): Promise<
 }
 
 /**
+ * Get monitors due for checking based on check_interval_seconds
+ */
+export async function getMonitorsDueForCheck(limit = 100): Promise<(Monitor & { user_id: string })[]> {
+  const monitors = await sql`
+    SELECT * FROM monitors
+    WHERE (
+        last_checked_at IS NULL OR
+        last_checked_at <= NOW() - (check_interval_seconds || ' seconds')::interval
+      )
+    ORDER BY last_checked_at ASC NULLS FIRST
+    LIMIT ${limit}
+  `
+
+  return monitors as (Monitor & { user_id: string })[]
+}
+
+/**
+ * Process all due monitors (for cron/background job)
+ */
+export async function processDueMonitors(): Promise<{
+  processed: number
+  results: Array<{ monitorId: string; userId: string; result: CheckMonitorResult }>
+}> {
+  const dueMonitors = await getMonitorsDueForCheck()
+  const results: Array<{ monitorId: string; userId: string; result: CheckMonitorResult }> = []
+
+  for (const monitor of dueMonitors) {
+    const userId = (monitor as Monitor & { user_id: string }).user_id
+    if (!userId) continue
+
+    const result = await checkMonitor(monitor.id, userId)
+    results.push({ monitorId: monitor.id, userId, result })
+  }
+
+  return { processed: results.length, results }
+}
+
+/**
  * Check a monitor for changes - core observe workflow
  * 1. Scrape current content
  * 2. Compare hash with stored hash

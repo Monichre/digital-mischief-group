@@ -301,7 +301,7 @@ async function routingAgent(input: string) {
         type: z.enum(['general', 'technical', 'creative']),
         reasoningText: z.string(),
       }),
-      prompt: `Classify this query: ${input}\n\nProvide the type (general, technical, or creative) and a brief reasoning.`,
+      prompt: `Classify this query: ${input}\n\nProvide the type (general, technical, or creative) and a brief reasoning. Return a json object.`,
     })) as {
       object: {
         type: 'general' | 'technical' | 'creative'
@@ -459,7 +459,7 @@ async function orchestratorWorker(requirements: string, constraints = '') {
         })
       ),
     }),
-    prompt: `Create a plan to address the following:\n\n${prompt}\n\nProvide a list of tasks, each with a name and description.`,
+    prompt: `Create a plan to address the following:\n\n${prompt}\n\nProvide a list of tasks, each with a name and description. Return a json object.`,
   })) as {
     object: {tasks: {name: string; description: string}[]}
     usage: any
@@ -532,7 +532,7 @@ async function evaluatorOptimizer(content: string, criteria: string) {
         quality: z.number().min(0).max(10),
         feedback: z.string(),
       }),
-      prompt: `Evaluate the following content based on these criteria:\n${criteria}\n\nContent:\n${currentContent}\n\nProvide a quality score (0-10) and detailed yet concise feedback.`,
+      prompt: `Evaluate the following content based on these criteria:\n${criteria}\n\nContent:\n${currentContent}\n\nProvide a quality score (0-10) and detailed yet concise feedback. Return a json object.`,
     })) as {object: {quality: number; feedback: string}; usage: any}
 
     if (evaluationUsage) {

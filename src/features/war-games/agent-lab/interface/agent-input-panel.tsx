@@ -57,7 +57,7 @@ export function InputPanel({
   return (
     <motion.div
       animate="animate"
-      className="mx-2 flex h-[calc(100dvh-6rem)] w-full flex-col rounded-t-sm rounded-b-2xl bg-white p-[1px] shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)] md:min-h-0 md:w-1/2 lg:m-2 lg:h-auto lg:w-2/5 lg:rounded-2xl"
+      className="mx-2 flex h-[calc(100dvh-6rem)] w-full flex-col rounded-t-sm rounded-b-2xl border border-stone-900/80 bg-black/50 p-[1px] md:min-h-0 md:w-1/2 lg:m-2 lg:h-auto lg:w-2/5 lg:rounded-2xl"
       exit="exit"
       initial="initial"
       variants={slideInFromRight}
@@ -87,7 +87,7 @@ export function InputPanel({
               <div className="flex items-center gap-1.5">
                 <Label
                   className={cn(
-                    "font-medium text-xs transition-all duration-200"
+                    "font-medium text-xs text-stone-400 tracking-widest uppercase transition-all duration-200"
                   )}
                 >
                   {field.label}
@@ -124,10 +124,10 @@ export function InputPanel({
                 </AnimatePresence>
               </div>
               {field.type === "textarea" ? (
-                <div className="group relative rounded-[9px] p-1 shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)]">
+                <div className="group relative rounded-[9px] border border-stone-800 bg-black/60 p-1">
                   <Textarea
                     className={cn(
-                      "resize-none rounded-[5px] border-none text-[16px] leading-snug caret-blue-400 shadow-[0px_1px_0px_0px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_rgba(255,_255,_255,_0.25)] ring-1 ring-[#F6F6F6] ring-offset-1 ring-offset-neutral-50 transition-all duration-200 ease-out focus-visible:ring-[#2B7BE5] focus-visible:ring-[1px] focus-visible:ring-offset-2 focus-visible:ring-offset-blue-100 md:text-[14px] md:leading-relaxed",
+                      "resize-none rounded-[5px] border border-transparent bg-black/40 text-[16px] text-stone-200 leading-snug caret-orange-400 placeholder:text-stone-600 transition-all duration-200 ease-out focus-visible:border-orange-500/40 focus-visible:ring-1 focus-visible:ring-orange-500/30 md:text-[14px] md:leading-relaxed",
                       hasMultipleTextAreas
                         ? "min-h-[150px] lg:min-h-[130px]"
                         : "min-h-[220px] lg:min-h-[240px]",
@@ -137,13 +137,13 @@ export function InputPanel({
                     placeholder={field.placeholder}
                     value={inputs[field.name] || ""}
                   />
-                  <div className="absolute right-3 bottom-3 rounded-[4px] bg-white/80 px-1.5 py-0.5 text-[11px] text-neutral-400 opacity-0 shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)] transition-opacity duration-200 group-hover:opacity-100">
+                  <div className="absolute right-3 bottom-3 rounded-[4px] border border-stone-800 bg-black/60 px-1.5 py-0.5 text-[11px] text-stone-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     {(inputs[field.name] || "").length} chars
                   </div>
                 </div>
               ) : (
                 <Input
-                  className="border-none text-[13px] shadow-[0px_1px_0px_0px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_rgba(255,_255,_255,_0.25)] ring-1 ring-[#F6F6F6] ring-offset-4 ring-offset-[#F6F6F6] transition-colors duration-200 focus:border-neutral-300 focus:ring-neutral-200 focus-visible:ring-neutral-300"
+                  className="border border-stone-800 bg-black/50 text-[13px] text-stone-200 placeholder:text-stone-600 transition-colors duration-200 focus:border-orange-500/40 focus-visible:ring-orange-500/30"
                   onChange={(e) => onInputChange(field.name, e.target.value)}
                   placeholder={field.placeholder}
                   type="text"
@@ -157,16 +157,16 @@ export function InputPanel({
 
       {/* Agent Info Card */}
       <motion.div
-        className="flex-none border-neutral-100/80 border-t bg-[#FCFCFC]"
+        className="flex-none border-stone-900/80 border-t bg-black/40"
         variants={fadeIn}
       >
         <div className="p-2 sm:p-4">
-          <Card className="relative rounded-lg border-none px-2 pt-2 shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)]">
-            <div className="space-y-3 text-[10px] text-neutral-600">
+          <Card className="relative rounded-lg border border-stone-900/80 bg-black/50 px-2 pt-2">
+            <div className="space-y-3 text-[10px] text-stone-400">
               <div className="space-y-1.5 p-2">
-                <h4 className="flex items-center gap-1 py-[2px] font-medium text-[10px] text-neutral-900">
+                <h4 className="flex items-center gap-1 py-[2px] font-medium text-[10px] text-stone-200">
                   <TextEffect>{selectedAgent.name}</TextEffect>{" "}
-                  <span className="text-neutral-500">pattern is best for</span>
+                  <span className="text-stone-500">pattern is best for</span>
                 </h4>
 
                 <div className="text-[10px] leading-relaxed">
@@ -175,10 +175,10 @@ export function InputPanel({
               </div>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="absolute top-1.5 right-1.5 flex min-w-[100px] items-center gap-1 rounded-md px-[2px] py-[1px] pl-1">
-                  <p className="font-medium text-[9px] text-muted-foreground/60">
+                  <p className="font-medium text-[9px] text-stone-500">
                     Average Processing Time
                   </p>
-                  <div className="inline-block rounded-sm border border-black/10 bg-neutral-50 px-1 py-0.5 text-[9px] text-neutral-800">
+                  <div className="inline-block rounded-sm border border-stone-800 bg-black/60 px-1 py-0.5 text-[9px] text-stone-200">
                     <NumberFlow value={selectedAgent.averageTime ?? 0} />s
                   </div>
                 </div>
@@ -209,7 +209,7 @@ function ExampleButtons({
   return (
     <motion.div
       animate="animate"
-      className="flex-none rounded-t-2xl border-neutral-100/80 border-b bg-[#FAFAFA]/50 p-2 sm:p-3 md:p-4"
+      className="flex-none rounded-t-2xl border-b border-stone-900/80 bg-black/40 p-2 sm:p-3 md:p-4"
       initial="initial"
       variants={fadeIn}
     >
@@ -222,22 +222,22 @@ function ExampleButtons({
             exit: { opacity: 0, y: -10 },
           }}
         >
-          <Label className="font-medium text-[11px] text-neutral-600 sm:text-xs">
+          <Label className="font-medium text-[11px] text-stone-400 tracking-widest uppercase sm:text-xs">
             Quick Examples
           </Label>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <Button
-                className="h-6 w-6 transition-colors duration-200 hover:bg-neutral-100"
+                className="h-6 w-6 text-stone-400 transition-colors duration-200 hover:bg-stone-900"
                 size="icon"
                 variant="ghost"
               >
-                <Info className="h-3 w-3 text-neutral-500 sm:h-3.5 sm:w-3.5" />
+                <Info className="h-3 w-3 text-stone-500 sm:h-3.5 sm:w-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent
               align="end"
-              className="max-w-[200px] p-2 text-[11px] sm:max-w-[250px] sm:p-3 sm:text-xs"
+              className="max-w-[200px] border border-stone-900 bg-black p-2 text-[11px] text-stone-200 sm:max-w-[250px] sm:p-3 sm:text-xs"
               side="bottom"
             >
               <p className="leading-relaxed">
@@ -272,7 +272,7 @@ function ExampleButtons({
             },
           }}
         >
-          <ScrollArea className="w-full whitespace-nowrap rounded-[9px] bg-muted shadow-[0px_1px_0px_0px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_hsla(0,_0%,_0%,_0.02)_inset,_0px_0px_0px_1px_rgba(255,_255,_255,_0.25)] ring-[1px] ring-border">
+          <ScrollArea className="w-full whitespace-nowrap rounded-[9px] border border-stone-900/80 bg-black/40">
             <div
               className="flex w-max space-x-2 p-1.5"
               key={`${selectedAgent.id}-examples-container`}
@@ -280,9 +280,9 @@ function ExampleButtons({
               {examplePrompts.map((example, index) => (
                 <motion.button
                   className={cn(
-                    "group relative min-w-fit touch-manipulation whitespace-nowrap rounded-[6px] bg-white px-2.5 py-1 text-[11px] text-neutral-800 shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)] transition-all duration-200 hover:bg-neutral-50 active:scale-95 sm:text-xs",
+                    "group relative min-w-fit touch-manipulation whitespace-nowrap rounded-[6px] border border-stone-800 bg-black/60 px-2.5 py-1 text-[11px] text-stone-200 transition-all duration-200 hover:border-orange-500/40 hover:text-orange-200 active:scale-95 sm:text-xs",
                     index === selectedExampleIndex &&
-                      "bg-black pr-7 text-white shadow-[0px_1px_2px_0px_rgba(38,_99,_235,_0.3),_0px_1px_1px_0px_rgba(38,_99,_235,_0.1)_inset,_0px_0px_0px_1px_rgba(38,_99,_235,_0.4)_inset] hover:bg-black/90 hover:shadow-[0px_2px_4px_0px_rgba(38,_99,_235,_0.25),_0px_1px_1px_0px_rgba(38,_99,_235,_0.1)_inset,_0px_0px_0px_1px_rgba(38,_99,_235,_0.4)_inset]"
+                      "border-orange-500/50 bg-orange-500/10 pr-7 text-orange-100 shadow-[0_0_16px_rgba(251,146,60,0.2)]"
                   )}
                   key={`${selectedAgent.id}-${index}`}
                   onClick={() => {
@@ -326,7 +326,7 @@ function ExampleButtons({
                           damping: 20,
                         },
                       }}
-                      className="-translate-y-1/2 absolute top-3 right-1.5 cursor-pointer rounded-full bg-white/20 p-0.5 shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.2)] backdrop-blur-[2px] transition-colors duration-200 hover:bg-white/30"
+                      className="-translate-y-1/2 absolute top-3 right-1.5 cursor-pointer rounded-full bg-black/40 p-0.5 text-orange-200 transition-colors duration-200 hover:bg-black/60"
                       exit={{
                         opacity: 0,
                         scale: 0.6,
@@ -360,10 +360,7 @@ function ExampleButtons({
                 </motion.button>
               ))}
             </div>
-            <ScrollBar
-              className="h-1 bg-neutral-100"
-              orientation="horizontal"
-            />
+            <ScrollBar className="h-1 bg-stone-900" orientation="horizontal" />
           </ScrollArea>
         </motion.div>
       </div>
@@ -391,9 +388,9 @@ export function ActionButtons({
   mobileReOpenOutputDrawer: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 bg-[#FAFAFA]/50 px-4 py-4">
+    <div className="flex items-center justify-between gap-3 border-t border-stone-900/80 bg-black/40 px-4 py-4">
       <Button
-        className="group h-9 gap-1.5 rounded-lg border border-[#E0E0E0] bg-[#FFFFFF] text-[#36322F] [box-shadow:inset_0px_-2.108433723449707px_0px_0px_#E0E0E0,_0px_1.2048193216323853px_6.325301647186279px_0px_rgba(0,_0,_0,_10%)] active:bg-[#F0F0F0] hover:enabled:bg-[#F8F8F8] disabled:bg-[#F0F0F0] disabled:shadow-none active:[box-shadow:inset_0px_-1.5px_0px_0px_#D8D8D8,_0px_0.5px_2px_0px_rgba(0,_0,_0,_15%)] hover:enabled:[box-shadow:inset_0px_-2.53012px_0px_0px_#E8E8E8,_0px_1.44578px_7.59036px_0px_rgba(0,_0,_0,_12%)]"
+        className="group h-9 gap-1.5 rounded-lg border border-stone-800 bg-black/60 text-stone-300 hover:border-orange-500/40 hover:text-orange-300 disabled:opacity-40"
         disabled={loading || !Object.values(inputs).some((v) => v.trim())}
         onClick={() => {
           if (isMobile) {
@@ -415,7 +412,7 @@ export function ActionButtons({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              className="group h-9 gap-1.5 rounded-lg border border-[#E0E0E0] bg-[#FFFFFF] text-[#36322F] [box-shadow:inset_0px_-2.108433723449707px_0px_0px_#E0E0E0,_0px_1.2048193216323853px_6.325301647186279px_0px_rgba(0,_0,_0,_10%)] active:bg-[#F0F0F0] hover:enabled:bg-[#F8F8F8] disabled:bg-[#F0F0F0] disabled:shadow-none active:[box-shadow:inset_0px_-1.5px_0px_0px_#D8D8D8,_0px_0.5px_2px_0px_rgba(0,_0,_0,_15%)] hover:enabled:[box-shadow:inset_0px_-2.53012px_0px_0px_#E8E8E8,_0px_1.44578px_7.59036px_0px_rgba(0,_0,_0,_12%)]"
+              className="group h-9 gap-1.5 rounded-lg border border-stone-800 bg-black/60 text-stone-300 hover:border-orange-500/40 hover:text-orange-300 disabled:opacity-40"
               disabled={inputHistory.length === 0}
               size="sm"
               variant="outline"
@@ -426,10 +423,10 @@ export function ActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
-            className="max-h-[400px] w-[320px] overflow-y-auto"
+            className="max-h-[400px] w-[320px] overflow-y-auto border border-stone-900 bg-black text-stone-200"
           >
             {inputHistory.length === 0 ? (
-              <div className="p-4 text-center text-neutral-500 text-sm">
+              <div className="p-4 text-center text-stone-500 text-sm">
                 No history yet
               </div>
             ) : (
@@ -440,7 +437,7 @@ export function ActionButtons({
 
                   return (
                     <DropdownMenuItem
-                      className="cursor-pointer break-all px-3 py-2.5 hover:bg-neutral-50"
+                      className="cursor-pointer break-all px-3 py-2.5 text-stone-200 focus:bg-stone-900"
                       key={index}
                       onClick={() => handleHistorySelect(item)}
                     >
@@ -448,7 +445,7 @@ export function ActionButtons({
                         <div className="flex-1 truncate text-sm">
                           {formatDisplayText(displayText)}
                         </div>
-                        <ArrowRight className="h-3.5 w-3.5 text-neutral-400" />
+                        <ArrowRight className="h-3.5 w-3.5 text-stone-500" />
                       </div>
                     </DropdownMenuItem>
                   );
@@ -472,7 +469,7 @@ export function ActionButtons({
           />
         )}
         <button
-          className="relative inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-[#36322F] px-2.5 py-1.5 text-center text-sm text-zinc-50 outline outline-1 outline-[#fff2f21f] [box-shadow:inset_0px_-2.108433723449707px_0px_0px_#171310,_0px_1.2048193216323853px_6.325301647186279px_0px_rgba(58,_33,_8,_58%)] hover:bg-[#4a4542] hover:[box-shadow:inset_0px_-2.53012px_0px_0px_#171310,_0px_1.44578px_7.59036px_0px_rgba(58,_33,_8,_64%)]"
+          className="relative inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-orange-500 px-2.5 py-1.5 text-center text-sm font-semibold text-black hover:bg-orange-400"
           onClick={handleInputSubmit}
         >
           {loading ? (
@@ -482,7 +479,7 @@ export function ActionButtons({
             </>
           ) : (
             <>
-              <ArtificialIntelligence04Icon className="mr-1.5 size-5 fill-black stroke-1 text-blue-400 transition-all duration-200 ease-in-out group-hover:rotate-12 group-hover:fill-blue-200 group-disabled:fill-white group-disabled:opacity-50" />
+              <ArtificialIntelligence04Icon className="mr-1.5 size-5 fill-black stroke-1 text-black transition-all duration-200 ease-in-out group-hover:rotate-12" />
               <span className="text-xs">
                 {isMobile ? "Run & View Output" : "Run Agent"}
               </span>
@@ -496,7 +493,7 @@ export function ActionButtons({
 
 const ArtificialIntelligence04Icon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
-    color={"#000000"}
+    color="currentColor"
     fill={"none"}
     height={24}
     viewBox="0 0 24 24"
@@ -541,7 +538,7 @@ const ArtificialIntelligence04Icon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const WorkHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
-    color={"#000000"}
+    color="currentColor"
     fill={"none"}
     height={24}
     viewBox="0 0 24 24"
@@ -580,7 +577,7 @@ const WorkHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const DeletePutBackIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
-    color={"#000000"}
+    color="currentColor"
     fill={"none"}
     height={24}
     viewBox="0 0 24 24"

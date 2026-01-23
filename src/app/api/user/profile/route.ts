@@ -10,16 +10,51 @@ export async function GET() {
   }
 
   try {
-    const users = await sql`
-      SELECT
-        id, name, email, image,
-        stripe_customer_id, subscription_status, credits,
-        created_at,
-        city, region, country, country_code,
-        latitude, longitude, timezone, geolocation_updated_at
-      FROM "user"
+    let users = await sql`
+      SELECT *
+      FROM public."user"
       WHERE id = ${session.user.id}
     `
+
+    if ( users.length === 0 ) {
+      const fallbackEmail = session.user.email
+      if ( !fallbackEmail ) {
+        return NextResponse.json( { error: 'User not found' }, { status: 404 } )
+      }
+
+      const fallbackName =
+        session.user.name ||
+        fallbackEmail.split( '@' )[0] ||
+        'User'
+
+      await sql`
+        INSERT INTO public."user" (
+          id,
+          name,
+          email,
+          image,
+          email_verified,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          ${session.user.id},
+          ${fallbackName},
+          ${fallbackEmail},
+          ${session.user.image || null},
+          ${session.user.emailVerified || false},
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO NOTHING
+      `
+
+      users = await sql`
+        SELECT *
+        FROM public."user"
+        WHERE id = ${session.user.id}
+      `
+    }
 
     if ( users.length === 0 ) {
       return NextResponse.json( { error: 'User not found' }, { status: 404 } )
@@ -63,16 +98,6 @@ export async function GET() {
         createdAt: user.created_at,
         hasStripeCustomer: !!user.stripe_customer_id,
       },
-      geolocation: {
-        city: user.city,
-        region: user.region,
-        country: user.country,
-        countryCode: user.country_code,
-        latitude: user.latitude ? parseFloat( user.latitude ) : null,
-        longitude: user.longitude ? parseFloat( user.longitude ) : null,
-        timezone: user.timezone,
-        updatedAt: user.geolocation_updated_at,
-      },
       usage: {
         enrichments: {
           total: parseInt( enrichmentStats?.total_enrichments || '0' ),
@@ -108,7 +133,7 @@ export async function PATCH( request: NextRequest ) {
 
     if ( name !== undefined ) {
       await sql`
-        UPDATE "user"
+        UPDATE public."user"
         SET name = ${name}, updated_at = NOW()
         WHERE id = ${session.user.id}
       `

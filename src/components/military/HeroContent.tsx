@@ -47,7 +47,7 @@ export function HeroContent({ mousePos }: HeroContentProps) {
 
       <div className="mt-10 flex flex-col md:flex-row gap-4 items-center">
         <Link
-          href="/login"
+          href="/sign-in"
           className="group relative px-8 py-4 bg-emerald-700 hover:bg-emerald-600 text-white font-bold tracking-widest uppercase transition-all overflow-hidden"
         >
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -56,7 +56,7 @@ export function HeroContent({ mousePos }: HeroContentProps) {
           </span>
         </Link>
         <Link
-          href="/pricing"
+          href="/loadout"
           className="px-8 py-4 border border-emerald-800 text-emerald-600 hover:text-emerald-400 hover:border-emerald-500 hover:bg-emerald-950/30 font-bold tracking-widest uppercase transition-all"
         >
           View Loadout

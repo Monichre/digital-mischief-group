@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Shield,
   Search,
+  Archive,
   Command as CommandIcon,
 } from 'lucide-react'
 
@@ -78,7 +79,7 @@ export function CommandMenu({
       // Actions
       {
         id: 'start-pro',
-        label: 'Start Pro ($30/mo)',
+        label: 'Start Operator ($30/mo)',
         shortcut: '⌘P',
         icon: Zap,
         action: () => {
@@ -131,6 +132,13 @@ export function CommandMenu({
         label: 'HQ',
         icon: Home,
         action: () => router.push('/'),
+        group: 'navigation',
+      },
+      {
+        id: 'cortex',
+        label: 'Cortex Vault',
+        icon: Archive,
+        action: () => router.push('/cortex'),
         group: 'navigation',
       },
       {

@@ -15,7 +15,7 @@ export async function GET() {
     const [user] = await sql`
       SELECT 
         id, email, subscription_status, stripe_customer_id, credits
-      FROM "user" 
+      FROM public."user" 
       WHERE id = ${session.user.id}
     `
 
@@ -47,7 +47,7 @@ export async function GET() {
     return NextResponse.json({
       plan: {
         status: subscriptionStatus,
-        name: subscriptionStatus === "active" ? "Pro" : "Free",
+        name: subscriptionStatus === "active" ? "Operator" : "Observer",
         hasStripeCustomer: !!user.stripe_customer_id,
       },
       limits,

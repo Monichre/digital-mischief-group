@@ -6,6 +6,7 @@ import {
   X,
   Flame,
   ArrowRight,
+  Archive,
   Sparkles,
   Radar,
   Shield,
@@ -22,6 +23,13 @@ interface FullscreenMenuProps {
 }
 
 const MENU_ITEMS = [
+  {
+    label: 'Cortex Vault',
+    href: '/cortex',
+    number: '00',
+    icon: Archive,
+    description: 'Classified dossier library',
+  },
   {
     label: 'Enrich',
     href: '/enrich',
@@ -274,8 +282,8 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       </Link>
 
       {/* Main menu content */}
-      <div className='relative h-full flex items-center justify-center'>
-        <nav className='flex flex-col items-center space-y-4'>
+      <div className='relative h-full flex items-center justify-center px-4'>
+        <nav className='flex flex-col items-center space-y-3 md:space-y-4 w-full max-w-5xl'>
           {MENU_ITEMS.map((item, index) => {
             const Icon = item.icon
             const isHovered = hoveredIndex === index
@@ -288,7 +296,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 className={cn(
-                  'group relative flex items-center gap-8 py-6 px-12 transition-all duration-700 ease-out',
+                  'group relative flex items-center gap-4 sm:gap-6 md:gap-8 py-4 sm:py-5 md:py-6 px-4 sm:px-6 md:px-10 transition-all duration-700 ease-out w-full',
                   isOpen
                     ? 'opacity-100 translate-y-0'
                     : 'opacity-0 translate-y-12'
@@ -303,7 +311,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 {/* Number */}
                 <span
                   className={cn(
-                    'text-[0.65rem] tracking-[0.2em] font-mono w-8 transition-all duration-300',
+                    'text-[0.55rem] sm:text-[0.6rem] md:text-[0.65rem] tracking-[0.2em] font-mono w-6 sm:w-8 transition-all duration-300',
                     isHovered ? 'text-orange-500' : 'text-orange-500/30'
                   )}
                 >
@@ -313,7 +321,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 {/* Icon */}
                 <div
                   className={cn(
-                    'relative w-12 h-12 flex items-center justify-center border transition-all duration-500',
+                    'relative w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border transition-all duration-500',
                     isHovered
                       ? 'border-orange-500 bg-orange-500/10 scale-110'
                       : 'border-zinc-700 bg-zinc-900/50'
@@ -321,7 +329,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 >
                   <Icon
                     className={cn(
-                      'w-5 h-5 transition-all duration-300',
+                      'w-4 h-4 md:w-5 md:h-5 transition-all duration-300',
                       isHovered ? 'text-orange-500' : 'text-zinc-500'
                     )}
                   />
@@ -334,7 +342,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 <div className='flex flex-col'>
                   <span
                     className={cn(
-                      'text-5xl md:text-7xl font-extralight tracking-tight transition-all duration-300',
+                      'text-[clamp(2.25rem,6vw,4.75rem)] font-extralight tracking-tight transition-all duration-300 leading-[1.05]',
                       isHovered ? 'text-orange-500' : 'text-zinc-200'
                     )}
                   >
@@ -342,7 +350,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                   </span>
                   <span
                     className={cn(
-                      'text-[0.65rem] tracking-[0.15em] uppercase mt-1 transition-all duration-300',
+                      'text-[0.6rem] sm:text-[0.65rem] md:text-[0.7rem] tracking-[0.15em] uppercase mt-1 transition-all duration-300',
                       isHovered
                         ? 'text-orange-500/70 translate-x-0 opacity-100'
                         : 'text-zinc-600 -translate-x-2 opacity-0'
@@ -355,7 +363,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 {/* Arrow */}
                 <ArrowRight
                   className={cn(
-                    'w-8 h-8 transition-all duration-500',
+                    'w-6 h-6 md:w-8 md:h-8 transition-all duration-500',
                     isHovered
                       ? 'text-orange-500 opacity-100 translate-x-0'
                       : 'text-orange-500/30 opacity-0 -translate-x-8'
@@ -365,7 +373,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 {/* Hover line */}
                 <div
                   className={cn(
-                    'absolute bottom-0 left-20 right-0 h-px bg-gradient-to-r from-orange-500/50 to-transparent transition-all duration-500',
+                    'absolute bottom-0 left-16 sm:left-20 right-0 h-px bg-gradient-to-r from-orange-500/50 to-transparent transition-all duration-500',
                     isHovered
                       ? 'opacity-100 scale-x-100'
                       : 'opacity-0 scale-x-0'

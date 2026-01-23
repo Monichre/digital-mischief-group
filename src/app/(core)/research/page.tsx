@@ -27,6 +27,7 @@ import {Badge} from '@/components/ui/badge'
 import {ScrollReveal} from '@/components/scroll-animations'
 import type {ResearchMission, ResearchDepth} from '@/daedalus/agent/research/types'
 import {ProGate} from '@/components/pro-gate'
+import {AuthLinks} from '@/components/AuthLinks'
 
 const DEPTH_OPTIONS: {
   value: ResearchDepth
@@ -180,6 +181,10 @@ export default function ResearchPage() {
             </span>
             <span className='text-orange-500 font-mono text-xs'>]</span>
           </div>
+          <AuthLinks
+            linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+            ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+          />
         </div>
       </header>
 

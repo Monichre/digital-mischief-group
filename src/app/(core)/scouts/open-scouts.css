@@ -1,0 +1,311 @@
+.open-scouts {
+  --heat-100: #fa5d19;
+  --heat-90: rgba(250, 93, 25, 0.9);
+  --heat-80: rgba(250, 93, 25, 0.8);
+  --heat-200: #ff6600;
+  --accent-black: #262626;
+  --accent-white: #ffffff;
+
+  --black-alpha-1: rgba(0, 0, 0, 0.012);
+  --black-alpha-2: rgba(0, 0, 0, 0.02);
+  --black-alpha-3: rgba(0, 0, 0, 0.031);
+  --black-alpha-4: rgba(0, 0, 0, 0.039);
+  --black-alpha-5: rgba(0, 0, 0, 0.051);
+  --black-alpha-6: rgba(0, 0, 0, 0.059);
+  --black-alpha-7: rgba(0, 0, 0, 0.071);
+  --black-alpha-8: rgba(0, 0, 0, 0.078);
+  --black-alpha-16: rgba(0, 0, 0, 0.161);
+  --black-alpha-24: rgba(0, 0, 0, 0.239);
+  --black-alpha-32: rgba(38, 38, 38, 0.322);
+  --black-alpha-40: rgba(38, 38, 38, 0.4);
+  --black-alpha-48: rgba(38, 38, 38, 0.478);
+  --black-alpha-56: rgba(38, 38, 38, 0.561);
+  --black-alpha-64: rgba(38, 38, 38, 0.639);
+  --black-alpha-72: rgba(38, 38, 38, 0.722);
+
+  --white-alpha-72: rgba(255, 255, 255, 0.72);
+
+  --border-faint: #ededed;
+  --border-muted: #e8e8e8;
+  --border-loud: #e6e6e6;
+
+  --background-base: #f9f9f9;
+  --background-lighter: #fbfbfb;
+
+  --foreground: #262626;
+
+  --font-sans: var(--font-suisse), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  font-family: var(--font-sans);
+  color: var(--accent-black);
+  background: var(--background-base);
+  min-height: 100vh;
+}
+
+.open-scouts .font-mono {
+  font-family: var(--font-mono);
+}
+
+.open-scouts .text-title-h2 {
+  font-size: 52px;
+  line-height: 56px;
+  letter-spacing: -0.52px;
+  font-weight: 500;
+}
+
+.open-scouts .text-title-h3 {
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: -0.4px;
+  font-weight: 500;
+}
+
+.open-scouts .text-title-h4 {
+  font-size: 32px;
+  line-height: 36px;
+  letter-spacing: -0.32px;
+  font-weight: 500;
+}
+
+.open-scouts .text-title-h5 {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.24px;
+  font-weight: 500;
+}
+
+.open-scouts .text-body-x-large {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+  font-weight: 400;
+}
+
+.open-scouts .text-body-large {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  font-weight: 400;
+}
+
+.open-scouts .text-body-medium {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.14px;
+  font-weight: 400;
+}
+
+.open-scouts .text-body-small {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  font-weight: 400;
+}
+
+.open-scouts .text-body-input {
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  font-weight: 400;
+}
+
+.open-scouts .text-label-large {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  font-weight: 450;
+}
+
+.open-scouts .text-label-medium {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  font-weight: 450;
+}
+
+.open-scouts .text-label-small {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  font-weight: 450;
+}
+
+.open-scouts .text-mono-x-small {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0px;
+  font-weight: 400;
+}
+
+.open-scouts .bg-background-base {
+  background-color: var(--background-base);
+}
+
+.open-scouts .bg-background-lighter {
+  background-color: var(--background-lighter);
+}
+
+.open-scouts .bg-black-alpha-2 {
+  background-color: var(--black-alpha-2);
+}
+
+.open-scouts .bg-black-alpha-3 {
+  background-color: var(--black-alpha-3);
+}
+
+.open-scouts .bg-black-alpha-4 {
+  background-color: var(--black-alpha-4);
+}
+
+.open-scouts .bg-black-alpha-6 {
+  background-color: var(--black-alpha-6);
+}
+
+.open-scouts .bg-black-alpha-7 {
+  background-color: var(--black-alpha-7);
+}
+
+.open-scouts .bg-black-alpha-8 {
+  background-color: var(--black-alpha-8);
+}
+
+.open-scouts .bg-black-alpha-64 {
+  background-color: var(--black-alpha-64);
+}
+
+.open-scouts .bg-heat-100 {
+  background-color: var(--heat-100);
+}
+
+.open-scouts .bg-accent-black {
+  background-color: var(--accent-black);
+}
+
+.open-scouts .bg-border-faint {
+  background-color: var(--border-faint);
+}
+
+.open-scouts .text-accent-black {
+  color: var(--accent-black);
+}
+
+.open-scouts .text-accent-white {
+  color: var(--accent-white);
+}
+
+.open-scouts .text-heat-100 {
+  color: var(--heat-100);
+}
+
+.open-scouts .text-black-alpha-32 {
+  color: var(--black-alpha-32);
+}
+
+.open-scouts .text-black-alpha-24 {
+  color: var(--black-alpha-24);
+}
+
+.open-scouts .text-black-alpha-40 {
+  color: var(--black-alpha-40);
+}
+
+.open-scouts .text-black-alpha-48 {
+  color: var(--black-alpha-48);
+}
+
+.open-scouts .text-black-alpha-56 {
+  color: var(--black-alpha-56);
+}
+
+.open-scouts .text-black-alpha-64 {
+  color: var(--black-alpha-64);
+}
+
+.open-scouts .text-black-alpha-72 {
+  color: var(--black-alpha-72);
+}
+
+.open-scouts .text-white-alpha-72 {
+  color: var(--white-alpha-72);
+}
+
+.open-scouts .border-border-faint {
+  border-color: var(--border-faint);
+}
+
+.open-scouts .border-border-muted {
+  border-color: var(--border-muted);
+}
+
+.open-scouts .border-black-alpha-16 {
+  border-color: var(--black-alpha-16);
+}
+
+.open-scouts .line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.open-scouts .flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.open-scouts .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.open-scouts .inside-border {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.open-scouts .inside-border-x {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-left: 1px solid;
+  border-right: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.open-scouts .inside-border-y {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+body[data-open-scouts] {
+  background: #f9f9f9;
+  color-scheme: light;
+  cursor: auto !important;
+}
+
+body[data-open-scouts] .dmg-menu-toggle,
+body[data-open-scouts] .dmg-dynamic-island {
+  display: none;
+}
+
+body[data-open-scouts] .target-cursor-wrapper {
+  display: none;
+}

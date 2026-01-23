@@ -280,6 +280,24 @@ Keep it under 100 words. Be direct and actionable.`
   }
 }
 
+async function hasColumn( table: string, column: string ): Promise<boolean> {
+  try {
+    const rows = await sql`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = ${table}
+          AND column_name = ${column}
+      ) AS exists
+    `
+    return Boolean( rows[0]?.exists )
+  } catch ( error ) {
+    console.error( "[Batch Stream] Column check failed:", error )
+    return false
+  }
+}
+
 export async function POST( request: NextRequest ) {
   const session = await auth.api.getSession( { headers: await headers() } )
   if ( !session?.user?.id ) {
@@ -311,6 +329,8 @@ export async function POST( request: NextRequest ) {
     console.error( "[Batch Stream] Failed to create batch:", error )
     return new Response( JSON.stringify( { error: "Failed to create batch" } ), { status: 500 } )
   }
+
+  const hasSynthesisColumn = await hasColumn( "enrichment_jobs", "synthesis" )
 
   const encoder = new TextEncoder()
 
@@ -486,24 +506,16 @@ export async function POST( request: NextRequest ) {
                   RETURNING id
                 `
                 jobId = insertResult[0]?.id || null
-
-                await sql`
-                  UPDATE enrichment_batches 
-                  SET completed_rows = completed_rows + 1, updated_at = NOW()
-                  WHERE id = ${batchId}
-                `
               } catch ( cacheInsertError ) {
                 console.error( "[Batch Stream] Cache persistence error:", cacheInsertError )
-                await markRowFailed( {
-                  row,
-                  rowIndex: i,
-                  errorMessage: "Failed to save cached enrichment results",
-                  contact: contactFromRow,
-                } )
-                continue
               }
 
               completedCount++
+              await sql`
+                UPDATE enrichment_batches 
+                SET completed_rows = completed_rows + 1, updated_at = NOW()
+                WHERE id = ${batchId}
+              `
               send( "row_completed", {
                 rowId: row.id,
                 rowIndex: i,
@@ -571,58 +583,93 @@ export async function POST( request: NextRequest ) {
 
             // Save to DB
             try {
-              const insertResult = await sql`
-                INSERT INTO enrichment_jobs (
-                  input_type, input_value, normalized_url, domain,
-                  company_name, company_description, industry,
-                  employee_count, founded_year, headquarters, website,
-                  funding_total, technologies, leadership,
-                  discovery_data, profile_data, funding_data, 
-                  tech_stack_data, custom_fields_data, sources,
-                  icp_fit_score, icp_fit_reasons, buying_signals,
-                  synthesis, completed_phases, status, batch_id, user_id
-                ) VALUES (
-                  ${Object.keys( enrichmentInput )[0]},
-                  ${inputDetails.inputValue},
-                  ${discovery.website},
-                  ${discovery.domain},
-                  ${discovery.company_name},
-                  ${profile.description},
-                  ${profile.industry},
-                  ${profile.employee_count},
-                  ${profile.year_founded},
-                  ${profile.headquarters},
-                  ${discovery.website},
-                  ${funding.total_funding},
-                  ${JSON.stringify( result.technologies )},
-                  ${JSON.stringify( customFields.key_executives )},
-                  ${JSON.stringify( discovery )},
-                  ${JSON.stringify( profile )},
-                  ${JSON.stringify( funding )},
-                  ${JSON.stringify( techStack )},
-                  ${JSON.stringify( customFieldsWithContact )},
-                  ${JSON.stringify( sources )},
-                  ${customFields.icp_fit_score},
-                  ${customFields.icp_fit_reasons},
-                  ${JSON.stringify( customFields.buying_signals )},
-                  ${result.synthesis || null},
-                  ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
-                  'completed',
-                  ${batchId},
-                  ${userId}
-                )
-                RETURNING id
-              `
+              const insertResult = hasSynthesisColumn
+                ? await sql`
+                    INSERT INTO enrichment_jobs (
+                      input_type, input_value, normalized_url, domain,
+                      company_name, company_description, industry,
+                      employee_count, founded_year, headquarters, website,
+                      funding_total, technologies, leadership,
+                      discovery_data, profile_data, funding_data,
+                      tech_stack_data, custom_fields_data, sources,
+                      icp_fit_score, icp_fit_reasons, buying_signals,
+                      synthesis, completed_phases, status, batch_id, user_id
+                    ) VALUES (
+                      ${Object.keys( enrichmentInput )[0]},
+                      ${inputDetails.inputValue},
+                      ${discovery.website},
+                      ${discovery.domain},
+                      ${discovery.company_name},
+                      ${profile.description},
+                      ${profile.industry},
+                      ${profile.employee_count},
+                      ${profile.year_founded},
+                      ${profile.headquarters},
+                      ${discovery.website},
+                      ${funding.total_funding},
+                      ${JSON.stringify( result.technologies )},
+                      ${JSON.stringify( customFields.key_executives )},
+                      ${JSON.stringify( discovery )},
+                      ${JSON.stringify( profile )},
+                      ${JSON.stringify( funding )},
+                      ${JSON.stringify( techStack )},
+                      ${JSON.stringify( customFieldsWithContact )},
+                      ${JSON.stringify( sources )},
+                      ${customFields.icp_fit_score},
+                      ${customFields.icp_fit_reasons},
+                      ${JSON.stringify( customFields.buying_signals )},
+                      ${result.synthesis || null},
+                      ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
+                      'completed',
+                      ${batchId},
+                      ${userId}
+                    )
+                    RETURNING id
+                  `
+                : await sql`
+                    INSERT INTO enrichment_jobs (
+                      input_type, input_value, normalized_url, domain,
+                      company_name, company_description, industry,
+                      employee_count, founded_year, headquarters, website,
+                      funding_total, technologies, leadership,
+                      discovery_data, profile_data, funding_data,
+                      tech_stack_data, custom_fields_data, sources,
+                      icp_fit_score, icp_fit_reasons, buying_signals,
+                      completed_phases, status, batch_id, user_id
+                    ) VALUES (
+                      ${Object.keys( enrichmentInput )[0]},
+                      ${inputDetails.inputValue},
+                      ${discovery.website},
+                      ${discovery.domain},
+                      ${discovery.company_name},
+                      ${profile.description},
+                      ${profile.industry},
+                      ${profile.employee_count},
+                      ${profile.year_founded},
+                      ${profile.headquarters},
+                      ${discovery.website},
+                      ${funding.total_funding},
+                      ${JSON.stringify( result.technologies )},
+                      ${JSON.stringify( customFields.key_executives )},
+                      ${JSON.stringify( discovery )},
+                      ${JSON.stringify( profile )},
+                      ${JSON.stringify( funding )},
+                      ${JSON.stringify( techStack )},
+                      ${JSON.stringify( customFieldsWithContact )},
+                      ${JSON.stringify( sources )},
+                      ${customFields.icp_fit_score},
+                      ${customFields.icp_fit_reasons},
+                      ${JSON.stringify( customFields.buying_signals )},
+                      ${['discovery', 'company_profile', 'funding', 'tech_stack', 'custom_fields']},
+                      'completed',
+                      ${batchId},
+                      ${userId}
+                    )
+                    RETURNING id
+                  `
               jobId = insertResult[0]?.id || null
             } catch ( dbError ) {
               console.error( "[Batch Stream] DB save error:", dbError )
-              await markRowFailed( {
-                row,
-                rowIndex: i,
-                errorMessage: "Failed to save enrichment results",
-                contact: contactFromRow,
-              } )
-              continue
             }
           }
 

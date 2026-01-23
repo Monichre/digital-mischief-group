@@ -6,6 +6,7 @@ import {ArrowLeft, Search, Loader2, Target, Zap} from 'lucide-react'
 import {ThinkingPanel} from '@/components/research/ThinkingPanel'
 import {SourcePanel} from '@/components/research/SourcePanel'
 import {SynthesisPanel} from '@/components/research/SynthesisPanel'
+import {AuthLinks} from '@/components/AuthLinks'
 import type {
   ResearchStreamEvent,
   SourceFoundEvent,
@@ -122,9 +123,15 @@ export default function LiveResearchPage() {
             <span className='text-orange-500 font-mono text-xs'>]</span>
           </div>
 
-          <div className='flex items-center gap-2'>
-            <Zap className='w-4 h-4 text-orange-500' />
-            <span className='text-xs font-mono text-zinc-500'>LIVE MODE</span>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <Zap className='w-4 h-4 text-orange-500' />
+              <span className='text-xs font-mono text-zinc-500'>LIVE MODE</span>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </header>

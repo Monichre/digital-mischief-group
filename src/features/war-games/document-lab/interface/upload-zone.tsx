@@ -96,16 +96,23 @@ export function UploadZoneWrapper() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="size-5 text-green-600" />
-            <span className="font-medium">{uploadState.fileName}</span>
+            <FileText className="size-5 text-emerald-400" />
+            <span className="font-medium text-stone-200">
+              {uploadState.fileName}
+            </span>
           </div>
-          <Button variant="outline" size="sm" onClick={reset}>
+          <Button
+            className="border-stone-800 bg-black/60 text-stone-200 hover:border-orange-500/40 hover:text-orange-300"
+            variant="outline"
+            size="sm"
+            onClick={reset}
+          >
             Analyze another document
           </Button>
         </div>
-        <div className="rounded-xl border bg-card p-6">
+        <div className="rounded-xl border border-stone-900/80 bg-black/50 p-6 text-stone-200">
           <h3 className="font-semibold mb-2">Question:</h3>
-          <p className="text-muted-foreground mb-4">{question}</p>
+          <p className="text-stone-400 mb-4">{question}</p>
           <h3 className="font-semibold mb-2">Answer:</h3>
           <MarkdownRenderer content={uploadState.result} />
         </div>
@@ -116,14 +123,14 @@ export function UploadZoneWrapper() {
   // Show uploaded state with question input
   if (uploadState.status === "uploaded" || uploadState.status === "analyzing") {
     return (
-      <div className="space-y-4 rounded-3xl border p-6">
+      <div className="space-y-4 rounded-3xl border border-stone-900/80 bg-black/40 p-6 text-stone-200">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-red-100 p-2">
-            <FileText className="size-6 text-red-600" />
+          <div className="rounded-lg border border-orange-500/40 bg-orange-500/10 p-2">
+            <FileText className="size-6 text-orange-300" />
           </div>
           <div>
-            <p className="font-medium">{uploadState.fileName}</p>
-            <p className="text-sm text-muted-foreground">PDF ready for analysis</p>
+            <p className="font-medium text-stone-200">{uploadState.fileName}</p>
+            <p className="text-sm text-stone-500">PDF ready for analysis</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -133,8 +140,13 @@ export function UploadZoneWrapper() {
             onChange={(e) => setQuestion(e.target.value)}
             disabled={uploadState.status === "analyzing"}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+            className="border-stone-800 bg-black/60 text-stone-200 placeholder:text-stone-600"
           />
-          <Button onClick={handleAnalyze} disabled={uploadState.status === "analyzing" || !question.trim()}>
+          <Button
+            onClick={handleAnalyze}
+            disabled={uploadState.status === "analyzing" || !question.trim()}
+            className="bg-orange-500 text-black hover:bg-orange-400"
+          >
             {uploadState.status === "analyzing" ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -142,7 +154,12 @@ export function UploadZoneWrapper() {
             )}
           </Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={reset}>
+        <Button
+          className="text-stone-400 hover:text-orange-300"
+          variant="ghost"
+          size="sm"
+          onClick={reset}
+        >
           Choose different file
         </Button>
       </div>
@@ -152,38 +169,44 @@ export function UploadZoneWrapper() {
   // Show error state
   if (uploadState.status === "error") {
     return (
-      <div className="rounded-3xl border border-destructive/50 bg-destructive/5 p-6 text-center space-y-4">
-        <AlertCircle className="size-8 text-destructive mx-auto" />
+      <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6 text-center space-y-4 text-red-200">
+        <AlertCircle className="size-8 text-red-300 mx-auto" />
         <div>
-          <h3 className="font-medium text-destructive">Error</h3>
-          <p className="text-sm text-muted-foreground">{uploadState.error}</p>
+          <h3 className="font-medium text-red-200">Error</h3>
+          <p className="text-sm text-red-200/80">{uploadState.error}</p>
         </div>
-        <Button variant="outline" onClick={reset}>Try again</Button>
+        <Button
+          className="border-red-500/40 bg-black/40 text-red-200 hover:border-red-400"
+          variant="outline"
+          onClick={reset}
+        >
+          Try again
+        </Button>
       </div>
     )
   }
 
   // Show idle/upload state
   return (
-    <div className="relative p-1 rounded-[1.65rem] shadow-sm border">
+    <div className="relative rounded-[1.65rem] border border-stone-900/80 bg-black/40 p-1">
       <div {...getRootProps()}>
         <div className={cn(
-          "relative rounded-3xl border-2 border-dashed p-12 text-center transition-colors cursor-pointer",
-          isDragActive && !isDragReject && "border-primary bg-primary/5",
-          isDragReject && "border-destructive bg-destructive/5",
-          !isDragActive && "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/[0.02]"
+          "relative rounded-3xl border-2 border-dashed p-12 text-center transition-colors cursor-pointer text-stone-200",
+          isDragActive && !isDragReject && "border-orange-500/60 bg-orange-500/10",
+          isDragReject && "border-red-500/60 bg-red-500/10",
+          !isDragActive && "border-stone-800 hover:border-orange-500/40 hover:bg-orange-500/5"
         )}>
           <input {...getInputProps()} />
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-full bg-primary/10 p-4">
-              <Upload className="size-8 text-primary" />
+            <div className="rounded-full border border-orange-500/40 bg-orange-500/10 p-4">
+              <Upload className="size-8 text-orange-300" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Upload a PDF</h3>
-              <p className="text-sm text-muted-foreground">
-                Drag and drop or <span className="text-primary font-medium">browse</span>
+              <h3 className="text-lg font-semibold text-stone-100">Upload a PDF</h3>
+              <p className="text-sm text-stone-400">
+                Drag and drop or <span className="text-orange-300 font-medium">browse</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Max 1MB</p>
+              <p className="text-xs text-stone-500 mt-1">Max 1MB</p>
             </div>
           </div>
         </div>
@@ -216,4 +239,3 @@ export const Doc01Icon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M20 12.9999V10.6568C20 9.83929 20 9.43054 19.8478 9.063C19.6955 8.69546 19.4065 8.40643 18.8284 7.82837L14.0919 3.09182C13.593 2.59294 13.3436 2.34349 13.0345 2.19568C12.9702 2.16494 12.9044 2.13766 12.8372 2.11395C12.5141 1.99994 12.1614 1.99994 11.4558 1.99994C8.21082 1.99994 6.58831 1.99994 5.48933 2.88601C5.26731 3.06502 5.06508 3.26725 4.88607 3.48927C4 4.58825 4 6.21076 4 9.45578V12.9999M13 2.49994V2.99994C13 5.82837 13 7.24258 13.8787 8.12126C14.7574 8.99994 16.1716 8.99994 19 8.99994H19.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
-

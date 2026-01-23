@@ -22,21 +22,21 @@ export function PricingPage() {
         {/* Header */}
         <div className='text-center space-y-4'>
           <h1 className='text-4xl md:text-5xl font-bold text-white font-mono tracking-tight'>
-            PRICING_MATRIX
+            LOADOUT_MATRIX
           </h1>
           <p className='text-zinc-400 max-w-xl mx-auto font-mono'>
-            Unlock the full potential of the DMG Intelligence Suite.
+            Select your clearance level in the DMG Intelligence Suite.
           </p>
         </div>
 
         {/* Cards */}
         <div className='grid gap-8 lg:grid-cols-2 w-full'>
-          {/* Free Plan */}
+          {/* Observer Loadout */}
           <Card className='flex flex-col bg-zinc-900/50 border-zinc-800'>
             <CardHeader>
-              <CardTitle className='text-white font-mono'>FREE</CardTitle>
+              <CardTitle className='text-white font-mono'>OBSERVER</CardTitle>
               <CardDescription className='font-mono'>
-                For individuals just getting started.
+                For operators getting started.
               </CardDescription>
             </CardHeader>
             <CardContent className='flex-1'>
@@ -65,25 +65,25 @@ export function PricingPage() {
                 variant='outline'
                 className='w-full font-mono border-zinc-700 text-zinc-500'
               >
-                CURRENT PLAN
+                CURRENT LOADOUT
               </Button>
             </CardFooter>
           </Card>
 
-          {/* Pro Plan */}
+          {/* Operator Loadout */}
           <Card className='flex flex-col border-orange-500/50 bg-zinc-900/80 shadow-lg shadow-orange-500/10 relative overflow-hidden'>
             <div className='absolute top-0 right-0 bg-orange-500 text-black px-4 py-1 text-xs font-bold font-mono'>
               RECOMMENDED
             </div>
             <CardHeader>
-              <CardTitle className='text-white font-mono'>PRO</CardTitle>
+              <CardTitle className='text-white font-mono'>OPERATOR</CardTitle>
               <CardDescription className='font-mono'>
-                For power users who need more.
+                For operators who need full clearance.
               </CardDescription>
             </CardHeader>
             <CardContent className='flex-1'>
               <div className='text-4xl font-bold text-white'>
-                $29
+                $30
                 <span className='text-base font-normal text-zinc-500'>/mo</span>
               </div>
               <ul className='mt-6 space-y-3 text-zinc-300'>

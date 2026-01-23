@@ -17,6 +17,7 @@ import {
 import {useState} from 'react'
 import {cn} from '@/lib/utils'
 import {authClient} from '@/platform/auth/client'
+import {AuthLinks} from '@/components/AuthLinks'
 
 // =============================================================================
 // CONSTANTS
@@ -51,7 +52,7 @@ const TIERS = [
     price: '$30',
     period: '/mo',
     description:
-      'Pro is the DMG Arsenal: field-tested templates, teardown reports, and deployable system protocols—built for operators.',
+      'Operator is the DMG Arsenal: field-tested templates, teardown reports, and deployable system protocols—built for operators.',
     features: [
       'Unlimited Intel Missions (Brand/Research/Observe)',
       'Lead Enrich runs + exports',
@@ -60,7 +61,7 @@ const TIERS = [
       'API access',
     ],
     cta: {
-      label: 'DEPLOY PRO',
+      label: 'DEPLOY OPERATOR',
       href: 'https://buy.stripe.com/9B67sM6JF2jWght0gcgMw00',
       variant: 'primary' as const,
       isExternal: true,
@@ -168,15 +169,21 @@ export default function LoadoutPage() {
             <span className='font-bold tracking-tighter text-lg'>[ DMG ]</span>
           </Link>
           <div className='flex items-center gap-4'>
-            <span className='text-[10px] text-zinc-600 tracking-widest'>
-              SELECT_LOADOUT
-            </span>
-            <Link
-              href='/'
-              className='text-xs text-zinc-500 hover:text-orange-500 transition-colors'
-            >
-              ← Back
-            </Link>
+            <div className='flex items-center gap-4'>
+              <span className='text-[10px] text-zinc-600 tracking-widest'>
+                SELECT_LOADOUT
+              </span>
+              <Link
+                href='/'
+                className='text-xs text-zinc-500 hover:text-orange-500 transition-colors'
+              >
+                ← Back
+              </Link>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </nav>

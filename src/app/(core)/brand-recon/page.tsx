@@ -21,6 +21,7 @@ import {SpacingCard} from '@/components/brand-recon/SpacingCard'
 import {ScreenshotPreview} from '@/components/brand-recon/ScreenshotPreview'
 import {ProGate} from '@/components/pro-gate'
 import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
+import {AuthLinks} from '@/components/AuthLinks'
 
 export default function BrandReconPage() {
   const [input, setInput] = useState('')
@@ -90,11 +91,17 @@ export default function BrandReconPage() {
             <ArrowLeft className='w-4 h-4' />
             <span className='text-sm'>Back to HQ</span>
           </Link>
-          <div className='flex items-center gap-2'>
-            <Radar className='w-4 h-4 text-orange-500 animate-pulse' />
-            <span className='font-mono font-bold tracking-tighter text-lg'>
-              [ BRAND RECON ]
-            </span>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <Radar className='w-4 h-4 text-orange-500 animate-pulse' />
+              <span className='font-mono font-bold tracking-tighter text-lg'>
+                [ BRAND RECON ]
+              </span>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </nav>

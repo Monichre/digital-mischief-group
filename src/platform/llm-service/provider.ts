@@ -4,13 +4,11 @@
  * Creates and configures LLM providers with consistent interface
  */
 
-import { anthropic } from "@ai-sdk/anthropic"
-import { openai } from "@ai-sdk/openai"
-import { perplexity } from "@ai-sdk/perplexity"
+import { gateway } from "@ai-sdk/gateway"
 import { type LLMProvider, SUPPORTED_MODELS } from "./types"
 
 // Use string type for model since AI SDK uses opaque model refs
-type LanguageModel = ReturnType<typeof anthropic> | ReturnType<typeof openai> | ReturnType<typeof perplexity>
+type LanguageModel = ReturnType<typeof gateway>
 
 export interface LLMProviderConfig {
   provider: LLMProvider
@@ -45,25 +43,7 @@ export function createLLMProvider(config: LLMProviderConfig): ProviderInstance {
     throw new Error(`Unsupported model: ${modelKey}`)
   }
 
-  let model: LanguageModel
-
-  switch (config.provider) {
-    case "anthropic":
-      model = anthropic(modelConfig.modelId)
-      break
-    case "openai":
-      model = openai(modelConfig.modelId)
-      break
-    case "groq":
-      // Groq uses OpenAI-compatible API
-      model = openai(modelConfig.modelId)
-      break
-    case "perplexity":
-      model = perplexity(modelConfig.modelId)
-      break
-    default:
-      throw new Error(`Unsupported provider: ${config.provider}`)
-  }
+  const model = gateway(modelKey)
 
   return {
     provider: config.provider,

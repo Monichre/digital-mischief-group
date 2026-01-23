@@ -12,6 +12,7 @@ interface IntelCardProps {
   description: string
   classification?: 'classified' | 'secret' | 'top-secret' | 'restricted'
   className?: string
+  children?: React.ReactNode
 }
 
 /**
@@ -25,6 +26,7 @@ export const IntelCard = memo(function IntelCard({
   description,
   classification,
   className,
+  children,
 }: IntelCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({x: 0, y: 0})
@@ -137,6 +139,8 @@ export const IntelCard = memo(function IntelCard({
 
         {/* Description */}
         <p className='text-lg leading-relaxed text-zinc-400'>{description}</p>
+
+        {children}
 
         {/* Bottom fade overlay */}
         <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-zinc-900/50 to-transparent' />

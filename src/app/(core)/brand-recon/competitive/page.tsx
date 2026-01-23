@@ -4,6 +4,7 @@ import {useState} from 'react'
 import Link from 'next/link'
 import {ArrowLeft, Crosshair} from 'lucide-react'
 import {BrandReconDashboard} from '@/components/brand-recon/BrandReconDashboard'
+import {AuthLinks} from '@/components/AuthLinks'
 
 export default function CompetitiveIntelPage() {
   const [enrichmentJobId, setEnrichmentJobId] = useState('')
@@ -17,10 +18,9 @@ export default function CompetitiveIntelPage() {
   }
 
   return (
-    <div className='min-h-screen bg-black p-8'>
-      <div className='max-w-7xl mx-auto space-y-8'>
-        {/* Header */}
-        <div className='flex items-center justify-between'>
+    <div className='min-h-screen bg-black text-zinc-200 font-mono'>
+      <nav className='fixed top-0 w-full border-b border-white/10 bg-black/80 backdrop-blur-md z-50'>
+        <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
           <Link
             href='/enrich'
             className='flex items-center gap-2 text-zinc-500 hover:text-orange-500 transition-colors'
@@ -29,13 +29,22 @@ export default function CompetitiveIntelPage() {
             <span className='text-sm'>Back to Enrich</span>
           </Link>
 
-          <div className='flex items-center gap-3'>
-            <Crosshair className='w-6 h-6 text-red-500 animate-pulse' />
-            <h1 className='text-2xl font-bold text-zinc-100 font-mono tracking-wider'>
-              COMPETITIVE INTELLIGENCE SYSTEM
-            </h1>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-3'>
+              <Crosshair className='w-6 h-6 text-red-500 animate-pulse' />
+              <h1 className='text-lg font-bold text-zinc-100 tracking-wider'>
+                COMPETITIVE INTELLIGENCE SYSTEM
+              </h1>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
+      </nav>
+
+      <div className='max-w-7xl mx-auto space-y-8 pt-28 px-6 pb-10'>
 
         {!showDashboard ? (
           // Input Form

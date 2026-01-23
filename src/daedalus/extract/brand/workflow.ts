@@ -14,6 +14,7 @@ export interface BrandExtractionOutput {
     domain: string
   }
   screenshot: string | null
+  sources: string[]
 }
 
 export async function extractBrandIdentity(
@@ -59,6 +60,7 @@ export async function extractBrandIdentity(
         domain,
       },
       screenshot: branding.screenshot || null,
+      sources: [normalizedUrl],
     },
     meta: result.meta,
   }

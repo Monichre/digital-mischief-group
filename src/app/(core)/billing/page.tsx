@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import {AuthLinks} from '@/components/AuthLinks'
 
 interface UsageData {
   plan: {
@@ -156,33 +157,48 @@ export default function BillingPage() {
   const periodEnd = new Date(data.billingPeriod.end)
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className='min-h-screen bg-zinc-950 text-zinc-200 font-mono'>
+      <nav className='fixed top-0 w-full border-b border-white/10 bg-zinc-950/90 backdrop-blur-md z-50'>
+        <div className='max-w-4xl mx-auto px-6 h-16 flex items-center justify-between'>
+          <Link
+            href='/'
+            className='flex items-center gap-2 text-zinc-400 hover:text-orange-500 transition-colors'
+          >
+            <ArrowLeft className='h-4 w-4' />
+            <span className='text-sm'>Back to HQ</span>
+          </Link>
+          <div className='flex items-center gap-4'>
+            <span className='text-[10px] tracking-widest text-zinc-500'>
+              LOADOUT // BILLING
+            </span>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
+          </div>
+        </div>
+      </nav>
+
+      <div className="container max-w-4xl pt-28 pb-8">
       {/* Header */}
       <div className="mb-8">
-        <Link
-          href="/"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </Link>
-        <h1 className="text-3xl font-bold">Plans & Billing</h1>
+        <h1 className="text-3xl font-bold">Loadout & Billing</h1>
         <p className="mt-1 text-muted-foreground">
-          Manage your subscription and monitor usage across all primitives
+          Manage your loadout and monitor usage across all primitives
         </p>
       </div>
 
-      {/* Current Plan */}
+      {/* Current Loadout */}
       <Card className="mb-8">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5" />
-                Current Plan
+                Current Loadout
               </CardTitle>
               <CardDescription>
-                Your subscription and billing details
+                Your loadout and billing details
               </CardDescription>
             </div>
             <Badge variant={isPro ? 'default' : 'secondary'} className="text-sm">
@@ -196,7 +212,7 @@ export default function BillingPage() {
               {isPro ? (
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle2 className="h-5 w-5" />
-                  <span>Active subscription</span>
+                  <span>Active loadout</span>
                 </div>
               ) : (
                 <div className="text-muted-foreground">
@@ -228,7 +244,7 @@ export default function BillingPage() {
                   ) : (
                     <Zap className="mr-2 h-4 w-4" />
                   )}
-                  Upgrade to Pro
+                  Upgrade to Operator
                 </Button>
               )}
             </div>
@@ -288,19 +304,19 @@ export default function BillingPage() {
         </CardContent>
       </Card>
 
-      {/* Plan Comparison */}
+      {/* Loadout Comparison */}
       <Card>
         <CardHeader>
-          <CardTitle>Plan Comparison</CardTitle>
+          <CardTitle>Loadout Comparison</CardTitle>
           <CardDescription>
-            See what&apos;s included in each plan
+            See what&apos;s included in each loadout
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Free Plan */}
+            {/* Observer Loadout */}
             <div className="rounded-lg border p-4">
-              <h3 className="font-semibold">Free</h3>
+              <h3 className="font-semibold">Observer</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Get started with basic access
               </p>
@@ -328,10 +344,10 @@ export default function BillingPage() {
               </ul>
             </div>
 
-            {/* Pro Plan */}
+            {/* Operator Loadout */}
             <div className="rounded-lg border border-primary/50 bg-primary/5 p-4">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">Pro</h3>
+                <h3 className="font-semibold">Operator</h3>
                 <Badge variant="secondary" className="text-xs">
                   Popular
                 </Badge>
@@ -376,13 +392,14 @@ export default function BillingPage() {
                   ) : (
                     <Zap className="mr-2 h-4 w-4" />
                   )}
-                  Upgrade to Pro
+                  Upgrade to Operator
                 </Button>
               )}
             </div>
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

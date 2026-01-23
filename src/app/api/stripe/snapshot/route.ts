@@ -44,7 +44,7 @@ export async function POST( req: Request ) {
         }
 
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             stripe_customer_id = ${session.customer as string},
             subscription_status = 'active',
@@ -61,7 +61,7 @@ export async function POST( req: Request ) {
         const customerId = subscription.customer as string
 
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             subscription_status = 'active',
             updated_at = NOW()
@@ -97,7 +97,7 @@ export async function POST( req: Request ) {
         }
 
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             subscription_status = ${status},
             updated_at = NOW()
@@ -113,7 +113,7 @@ export async function POST( req: Request ) {
         const customerId = subscription.customer as string
 
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             subscription_status = 'inactive',
             updated_at = NOW()
@@ -130,7 +130,7 @@ export async function POST( req: Request ) {
 
         // Ensure subscription stays active on successful payment
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             subscription_status = 'active',
             updated_at = NOW()
@@ -146,7 +146,7 @@ export async function POST( req: Request ) {
         const customerId = invoice.customer as string
 
         await sql`
-          UPDATE "user"
+          UPDATE public."user"
           SET 
             subscription_status = 'past_due',
             updated_at = NOW()

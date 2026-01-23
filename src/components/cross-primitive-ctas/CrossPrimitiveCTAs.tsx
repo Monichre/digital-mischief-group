@@ -33,7 +33,7 @@ export interface CrossPrimitiveContext {
   industry?: string
   description?: string
   // For asset generation - extended brand identity
-  brandColors?: string[]
+  brandColors?: string[] | Record<string, string | undefined>
   logo?: string
   // Additional brand context for better asset generation
   primaryColor?: string
@@ -43,7 +43,7 @@ export interface CrossPrimitiveContext {
   textColor?: string
   primaryFont?: string
   headingFont?: string
-  tone?: string[]
+  tone?: string[] | string
   targetAudience?: string
 }
 
@@ -400,14 +400,27 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
     setError(null)
 
     try {
+      const normalizedBrandColors = Array.isArray(context.brandColors)
+        ? context.brandColors
+        : context.brandColors && typeof context.brandColors === 'object'
+          ? Object.values(context.brandColors).filter(
+              (color): color is string => typeof color === 'string'
+            )
+          : []
+      const normalizedTone = Array.isArray(context.tone)
+        ? context.tone
+        : typeof context.tone === 'string' && context.tone.trim()
+          ? [context.tone.trim()]
+          : undefined
+
       // Build brand context from available data
       const brandContext = {
         companyName: context.companyName || 'Unknown Company',
         description: context.description,
         colors: {
-          primary: context.primaryColor || context.brandColors?.[0] || '#FF6B00',
-          secondary: context.secondaryColor || context.brandColors?.[1],
-          accent: context.accentColor || context.brandColors?.[2],
+          primary: context.primaryColor || normalizedBrandColors[0] || '#FF6B00',
+          secondary: context.secondaryColor || normalizedBrandColors[1],
+          accent: context.accentColor || normalizedBrandColors[2],
           background: context.backgroundColor,
           textPrimary: context.textColor,
         },
@@ -418,7 +431,7 @@ function GenerateAssetDialog({open, onOpenChange, context}: GenerateAssetDialogP
           },
         },
         personality: {
-          tone: context.tone,
+          tone: normalizedTone,
           targetAudience: context.targetAudience,
         },
         logo: context.logo,

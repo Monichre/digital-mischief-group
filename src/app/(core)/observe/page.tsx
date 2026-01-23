@@ -16,6 +16,7 @@ import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import type {Monitor} from '@/daedalus/scout/types'
 import {BotProtection} from '@/components/effects'
+import {AuthLinks} from '@/components/AuthLinks'
 
 export default function ObservePage() {
   const [monitors, setMonitors] = useState<
@@ -88,11 +89,17 @@ export default function ObservePage() {
             <ArrowLeft className='w-4 h-4' />
             <span>Back to HQ</span>
           </Link>
-          <div className='flex items-center gap-1 text-orange-500'>
-            <span className='text-zinc-600'>{'<'}</span>
-            <Crosshair className='w-4 h-4' />
-            <span className='font-bold'>[ RECON ]</span>
-            <span className='text-zinc-600'>{'>'}</span>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-1 text-orange-500'>
+              <span className='text-zinc-600'>{'<'}</span>
+              <Crosshair className='w-4 h-4' />
+              <span className='font-bold'>[ RECON ]</span>
+              <span className='text-zinc-600'>{'>'}</span>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </header>
@@ -104,7 +111,7 @@ export default function ObservePage() {
             <span>// CHANGE DETECTION</span>
           </div>
           <h1 className='text-4xl md:text-5xl font-black mb-4'>
-            Fire-<span className='text-orange-500'>Recon</span>
+            Perimeter <span className='text-orange-500'>Watch</span>
           </h1>
           <p className='text-zinc-500 max-w-xl mx-auto'>
             Deploy recon targets to monitor websites for changes. Get AI-powered

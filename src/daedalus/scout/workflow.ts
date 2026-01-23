@@ -10,6 +10,7 @@
 import { sql } from "@/platform/db/neon"
 import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import type { Scout, ScoutResult } from "./types"
+import { sendScoutEmailNotification } from "./notifications"
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY
 const EXA_API_KEY = process.env.EXA_API_KEY
@@ -35,6 +36,7 @@ export interface ScoutRunResult {
   total_searched: number
   duplicates_removed: number
   findings: SearchResult[]
+  notification_sent?: boolean
   error?: string
 }
 
@@ -250,12 +252,25 @@ export async function runScout(scoutId: string, userId: string): Promise<ScoutRu
     WHERE id = ${scoutId}
   `
 
+  let notificationSent = false
+
+  // Notify user when new findings are available
+  if (newResults.length > 0 && scout.notification_email) {
+    notificationSent = await sendScoutEmailNotification(scout.notification_email, {
+      scoutId,
+      scoutName: scout.name,
+      query: scout.search_query,
+      newResults,
+    })
+  }
+
   return {
     success: true,
     new_results: newResults.length,
     total_searched: allResults.length,
     duplicates_removed: duplicates,
     findings: newResults,
+    notification_sent: notificationSent,
   }
 }
 

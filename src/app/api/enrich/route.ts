@@ -9,7 +9,7 @@ import {
   validateEnrichmentResult,
   EnrichInputSchema,
 } from "@/daedalus/enrich/schemas"
-import { sanitizeEnrichmentData } from "@/daedalus/enrich/guardrails"
+import { sanitizeEnrichmentData, detectEnrichmentType } from "@/daedalus/enrich/guardrails"
 
 export async function POST( request: NextRequest ) {
   try {
@@ -56,10 +56,21 @@ export async function POST( request: NextRequest ) {
       )
     }
 
+    const enrichmentType = detectEnrichmentType( enrichmentInput )
+
+    if ( includeCompetitive && enrichmentType === "profile" ) {
+      return NextResponse.json(
+        { success: false, error: "Competitive analysis is only available for company enrichment." },
+        { status: 400 },
+      )
+    }
+
+    const competitiveEnabled = includeCompetitive === true && enrichmentType === "company"
+
     // Run multi-agent orchestration
     // Note: competitive analysis is OFF by default per T-003 guardrails
     const result = await runEnrichment( enrichmentInput, {
-      competitive: includeCompetitive === true, // Must be explicitly true
+      competitive: competitiveEnabled, // Must be explicitly true for company enrichment
       onProgress: ( progress ) => {
         console.log( `[Enrich] ${progress.phase}: ${progress.status} - ${progress.message}` )
       },
@@ -185,6 +196,8 @@ export async function POST( request: NextRequest ) {
     // Return enriched data in a compatible format
     return NextResponse.json( {
       success: true,
+      enrichmentType,
+      competitiveRun: competitiveEnabled,
       data: {
         id: savedJob?.id,
         input_type: Object.keys( enrichmentInput )[0],

@@ -9,6 +9,7 @@ import {MenuToggle} from '@/components/MenuToggle'
 import {CommandMenuProvider} from '@/components/CommandMenu'
 import {GoogleAnalytics} from '@/components/analytics/GoogleAnalytics'
 import {AnalyticsProvider} from '@/components/analytics/AnalyticsProvider'
+import { Agentation } from "agentation";
 
 const shareTechMono = Share_Tech_Mono({
   weight: '400',
@@ -20,6 +21,7 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 })
+
 
 export const metadata: Metadata = {
   title: 'Digital Mischief Group',
@@ -51,14 +53,15 @@ export default function RootLayout({
           <MenuProvider>
             <CommandMenuProvider>
               <TargetCursor targetSelector="button, a, [role='button'], [role='link'], [role='tab'], [role='menuitem'], [role='option'], input, textarea, select, label[for], [tabindex]:not([tabindex='-1']), .cursor-target, [onclick], summary, [data-clickable], .card, [class*='Card'], [class*='btn'], [class*='Btn'], [class*='link'], [class*='Link']" />
-              <MenuToggle />
+              <MenuToggle className='dmg-menu-toggle' />
               {children}
-              <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50'>
+              <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 dmg-dynamic-island'>
                 <DynamicIsland showControls={true} />
               </div>
             </CommandMenuProvider>
           </MenuProvider>
         </AnalyticsProvider>
+        {process.env.NODE_ENV === "development" && <Agentation clientId="dmg-client" />}
       </body>
     </html>
   )

@@ -11,9 +11,9 @@ import { useTacticalToast } from "./TacticalToast"
 
 const SHORTCUTS = [
   { key: "g", label: "HQ (Home)", href: "/", icon: Home },
-  { key: "u", label: "UPLINK (Login)", href: "/login", icon: LogIn },
+  { key: "u", label: "UPLINK (Sign In)", href: "/sign-in", icon: LogIn },
   { key: "c", label: "CMD (Dashboard)", href: "/dashboard", icon: LayoutDashboard },
-  { key: "l", label: "LOADOUT (Pricing)", href: "/pricing", icon: CreditCard },
+  { key: "l", label: "LOADOUT", href: "/loadout", icon: CreditCard },
   { key: "s", label: "SCHEMATICS", href: "/schematics", icon: FileCode },
 ]
 

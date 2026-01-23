@@ -130,20 +130,20 @@ export function PdfContainer() {
   }
 
   return (
-    <div className='flex  flex-col items-center justify-center w-full'>
+    <div className='flex w-full flex-col items-center justify-center text-stone-200'>
       <motion.div
         initial={{opacity: 0, y: 10}}
         animate={{opacity: 1, y: 0}}
         transition={{duration: 0.4, ease: [0.23, 1, 0.32, 1]}}
         className='w-full max-w-2xl'
       >
-        <Card className='w-full overflow-hidden border-none bg-card shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)]'>
+        <Card className='w-full overflow-hidden border border-stone-900/80 bg-black/50'>
           <form onSubmit={handleSubmit} className='p-6 space-y-5'>
             <div className='space-y-3'>
               <div className='flex items-center justify-between'>
                 <Label
                   htmlFor='pdf-upload'
-                  className='text-xs font-medium text-foreground'
+                  className='text-xs font-medium text-stone-300 tracking-widest uppercase'
                 >
                   PDF Document
                 </Label>
@@ -151,7 +151,7 @@ export function PdfContainer() {
                   <button
                     type='button'
                     onClick={handleRemoveFile}
-                    className='text-xs text-muted-foreground hover:text-foreground transition-colors'
+                    className='text-xs text-stone-500 hover:text-orange-300 transition-colors'
                   >
                     Remove
                   </button>
@@ -164,26 +164,26 @@ export function PdfContainer() {
                   className={cn(
                     'relative group cursor-pointer',
                     isDragging &&
-                      'ring-2 ring-primary/30 ring-offset-2 ring-offset-background'
+                      'ring-2 ring-orange-500/30 ring-offset-2 ring-offset-black'
                   )}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <div
                     className={cn(
-                      'flex flex-col items-center justify-center h-24 rounded-md border border-dashed border-border/60 bg-muted/40 px-4 py-5 text-center transition-all',
+                      'flex flex-col items-center justify-center h-24 rounded-md border border-dashed border-stone-800 bg-black/40 px-4 py-5 text-center transition-all',
                       isDragging
-                        ? 'border-primary/50 bg-primary/5'
-                        : 'hover:bg-muted/60'
+                        ? 'border-orange-500/50 bg-orange-500/10'
+                        : 'hover:bg-orange-500/5'
                     )}
                   >
-                    <UploadIcon className='h-5 w-5 text-muted-foreground mb-2' />
-                    <div className='text-xs text-muted-foreground'>
-                      <span className='font-medium text-foreground'>
+                    <UploadIcon className='mb-2 h-5 w-5 text-stone-500' />
+                    <div className='text-xs text-stone-500'>
+                      <span className='font-medium text-stone-200'>
                         Click to upload
                       </span>{' '}
                       or drag and drop
                     </div>
-                    <p className='text-xs text-muted-foreground/70 mt-1'>
+                    <p className='mt-1 text-xs text-stone-600'>
                       PDF (max 1MB)
                     </p>
                   </div>
@@ -201,32 +201,32 @@ export function PdfContainer() {
                   initial={{opacity: 0, y: 5}}
                   animate={{opacity: 1, y: 0}}
                   className={cn(
-                    'flex items-center p-3 rounded-md border border-border/40',
+                    'flex items-center rounded-md border border-stone-900/80 p-3',
                     success
-                      ? 'border-green-500/30 bg-green-50 dark:bg-green-950/20'
-                      : 'bg-muted/30'
+                      ? 'border-emerald-500/30 bg-emerald-500/10'
+                      : 'bg-black/40'
                   )}
                 >
-                  <div className='flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 mr-3'>
-                    <FileIcon className='h-4 w-4 text-primary' />
+                  <div className='mr-3 flex h-8 w-8 items-center justify-center rounded-md border border-orange-500/40 bg-orange-500/10'>
+                    <FileIcon className='h-4 w-4 text-orange-300' />
                   </div>
                   <div className='flex-1 min-w-0'>
                     <p
-                      className='text-xs font-medium text-foreground truncate max-w-[180px]'
+                      className='max-w-[180px] truncate text-xs font-medium text-stone-200'
                       title={file.name}
                     >
                       {file.name}
                     </p>
-                    <p className='text-xs text-muted-foreground'>
+                    <p className='text-xs text-stone-500'>
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
                   <button
                     type='button'
                     onClick={handleRemoveFile}
-                    className='ml-2 p-1 rounded-full hover:bg-muted/60 transition-colors'
+                    className='ml-2 rounded-full p-1 text-stone-500 hover:bg-stone-900 transition-colors'
                   >
-                    <XIcon className='h-3.5 w-3.5 text-muted-foreground' />
+                    <XIcon className='h-3.5 w-3.5 text-stone-500' />
                   </button>
                 </motion.div>
               )}
@@ -235,7 +235,7 @@ export function PdfContainer() {
             <div className='space-y-3'>
               <Label
                 htmlFor='question'
-                className='text-xs font-medium text-foreground'
+                className='text-xs font-medium text-stone-300 tracking-widest uppercase'
               >
                 Question
               </Label>
@@ -244,7 +244,7 @@ export function PdfContainer() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 rows={2}
-                className='resize-none min-h-[40px] text-sm bg-muted/30 border-border/40 focus-visible:ring-primary/30'
+                className='min-h-[40px] resize-none border-stone-800 bg-black/40 text-sm text-stone-200 placeholder:text-stone-600 focus-visible:ring-orange-500/30'
                 placeholder='What would you like to know about this document?'
               />
             </div>
@@ -260,15 +260,15 @@ export function PdfContainer() {
                   <div
                     className={`px-3 py-2 rounded-md ${
                       error.type === 'rateLimit'
-                        ? 'bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30'
-                        : 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30'
+                        ? 'bg-yellow-500/10 border border-yellow-500/30'
+                        : 'bg-red-500/10 border border-red-500/30'
                     }`}
                   >
                     <p
                       className={`text-xs ${
                         error.type === 'rateLimit'
-                          ? 'text-yellow-600 dark:text-yellow-400'
-                          : 'text-red-600 dark:text-red-400'
+                          ? 'text-yellow-200'
+                          : 'text-red-200'
                       }`}
                     >
                       {error.message}
@@ -280,7 +280,7 @@ export function PdfContainer() {
 
             <Button
               type='submit'
-              className='w-full font-medium text-sm h-9'
+              className='h-9 w-full bg-orange-500 text-sm font-medium text-black hover:bg-orange-400'
               disabled={loading || !file}
             >
               {loading ? (
@@ -303,11 +303,11 @@ export function PdfContainer() {
                 transition={{duration: 0.3, ease: [0.23, 1, 0.32, 1]}}
                 className='overflow-hidden'
               >
-                <div className='px-6 py-5 border-t border-border/30 bg-muted/20'>
-                  <h2 className='text-sm font-medium text-foreground'>
+                <div className='border-t border-stone-900/80 bg-black/40 px-6 py-5'>
+                  <h2 className='text-sm font-medium text-stone-200'>
                     Response
                   </h2>
-                  <div className='rounded-md space-y-6 p-4 bg-card shadow-[0px_1px_1px_0px_rgba(0,_0,_0,_0.05),_0px_1px_1px_0px_rgba(255,_252,_240,_0.5)_inset,_0px_0px_0px_1px_hsla(0,_0%,_100%,_0.1)_inset,_0px_0px_1px_0px_rgba(28,_27,_26,_0.5)'>
+                  <div className='space-y-6 rounded-md border border-stone-900/80 bg-black/50 p-4'>
                     <MarkdownRenderer content={response} />
                   </div>
                 </div>

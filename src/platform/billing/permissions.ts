@@ -10,7 +10,7 @@ export async function isProMember( userId: string ): Promise<boolean> {
   try {
     const result = await sql`
       SELECT email, subscription_status 
-      FROM "user" 
+      FROM public."user" 
       WHERE id = ${userId}
     `
 

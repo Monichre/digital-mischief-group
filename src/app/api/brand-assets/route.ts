@@ -9,6 +9,15 @@ import {
   type AssetGenerationOutput,
 } from '@/daedalus/extract/brand/asset-generation'
 
+const ToneSchema = z.preprocess(
+  (value) => {
+    if (Array.isArray(value)) return value
+    if (typeof value === 'string' && value.trim()) return [value.trim()]
+    return undefined
+  },
+  z.array(z.string()).optional()
+)
+
 // Input validation schema
 const BrandAssetInputSchema = z.object({
   brandContext: z.object({
@@ -33,7 +42,7 @@ const BrandAssetInputSchema = z.object({
       .optional(),
     personality: z
       .object({
-        tone: z.array(z.string()).optional(),
+        tone: ToneSchema,
         targetAudience: z.string().optional(),
       })
       .optional(),

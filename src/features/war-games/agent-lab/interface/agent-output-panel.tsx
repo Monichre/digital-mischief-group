@@ -29,7 +29,7 @@ interface TabContentProps {
 function ResponseTab({ parsedOutput }: TabContentProps) {
   return (
     <TabsContent className="mt-4 space-y-4" value="response">
-      <Card className="p-4">
+      <Card className="border border-stone-900/80 bg-black/50 p-4 text-stone-200">
         <CompletionIndicator
           className="mb-4"
           message={
@@ -60,7 +60,7 @@ function StepsTab({ parsedOutput }: TabContentProps) {
   return (
     <TabsContent className="mt-4 space-y-4" value="steps">
       {parsedOutput.steps.map((step: any, index: number) => (
-        <Card className="p-4" key={index}>
+        <Card className="border border-stone-900/80 bg-black/50 p-4 text-stone-200" key={index}>
           <CompletionIndicator
             className="mb-2"
             message={`${step.step || `Step ${index + 1}`}: ${step.output ? "completed" : "success"}`}
@@ -79,12 +79,14 @@ function ClassificationTab({ parsedOutput }: TabContentProps) {
   if (!parsedOutput.classification) return null;
   return (
     <TabsContent className="mt-4 space-y-4" value="classification">
-      <Card className="p-4">
+      <Card className="border border-stone-900/80 bg-black/50 p-4 text-stone-200">
         <div className="space-y-4">
           <div>
             <h4 className="mb-2 font-medium text-sm">Query Classification</h4>
-            <Badge className="mb-2">{parsedOutput.classification.type}</Badge>
-            <p className="text-neutral-600 text-sm">
+            <Badge className="mb-2 border border-stone-800 bg-black/60 text-stone-200">
+              {parsedOutput.classification.type}
+            </Badge>
+            <p className="text-stone-400 text-sm">
               {parsedOutput.classification.reasoningText}
             </p>
           </div>
@@ -105,20 +107,20 @@ function ToolsTab({ parsedOutput }: TabContentProps) {
   return (
     <TabsContent className="mt-4 space-y-4" value="tools">
       {parsedOutput.toolCalls.map((tool: any, index: number) => (
-        <Card className="p-4" key={index}>
+        <Card className="border border-stone-900/80 bg-black/50 p-4 text-stone-200" key={index}>
           <CompletionIndicator
             className="mb-2"
             message={`${tool.name || `Tool ${index + 1}`}`}
             status="success"
           />
           <div className="space-y-2">
-            <div className="text-neutral-600 text-sm">
+            <div className="text-stone-400 text-sm">
               <MemoizedReactMarkdown>
                 {tool.input || tool.args || tool.parameters}
               </MemoizedReactMarkdown>
             </div>
             {tool.output && (
-              <div className="border-t pt-2">
+              <div className="border-t border-stone-900/80 pt-2">
                 <h4 className="mb-1 font-medium text-xs">Output</h4>
                 <MemoizedReactMarkdown>{tool.output}</MemoizedReactMarkdown>
               </div>
@@ -135,7 +137,7 @@ function IterationsTab({ parsedOutput }: TabContentProps) {
   return (
     <TabsContent className="mt-4 space-y-4" value="iterations">
       {parsedOutput.iterations.map((iteration: any, index: number) => (
-        <Card className="p-4" key={index}>
+        <Card className="border border-stone-900/80 bg-black/50 p-4 text-stone-200" key={index}>
           <CompletionIndicator
             className="mb-2"
             message={`Iteration ${index + 1}`}
@@ -208,7 +210,7 @@ export function OutputPanel({
     return (
       <Tabs className="w-full" defaultValue="response">
         <TabsList
-          className="grid w-full"
+          className="grid w-full border border-stone-900/80 bg-black/40"
           style={{
             gridTemplateColumns: `repeat(${availableTabs.length}, 1fr)`,
           }}
@@ -220,6 +222,7 @@ export function OutputPanel({
                 (tab === "tools" && !parsedOutput.toolCalls?.length) ||
                 (tab === "iterations" && !parsedOutput.iterations?.length)
               }
+              className="text-stone-400 data-[state=active]:bg-orange-500/10 data-[state=active]:text-orange-200 data-[state=active]:shadow-[0_0_12px_rgba(251,146,60,0.18)]"
               key={tab}
               value={tab}
             >
@@ -241,17 +244,17 @@ export function OutputPanel({
   return (
     <motion.div
       className={cn(
-        "flex min-h-0 flex-col overflow-hidden bg-muted",
+        "flex min-h-0 flex-col overflow-hidden bg-black/30",
         "h-full w-full",
         "md:w-1/2 lg:w-3/5"
       )}
       variants={slideInFromRight}
     >
-      <h2 className="absolute top-4 right-4 hidden font-medium text-[9px] text-neutral-400 md:block">
+      <h2 className="absolute top-4 right-4 hidden font-medium text-[9px] text-stone-500 md:block">
         {loading ? "Processing..." : "Output"}
       </h2>
       {/* Header with Indicators */}
-      <div className="flex w-full flex-none items-center justify-between border-border/50 border-b px-4 py-2">
+      <div className="flex w-full flex-none items-center justify-between border-b border-stone-900/80 px-4 py-2">
         {!loading && parsedOutput && (
           <CompletionIndicator
             className="mb-0 hidden items-center md:flex"

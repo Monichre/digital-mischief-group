@@ -1,5 +1,5 @@
-import {PricingPage} from '@/components/pricing-page'
+import {redirect} from 'next/navigation'
 
 export default function PricingRoute() {
-  return <PricingPage />
+  redirect('/loadout')
 }

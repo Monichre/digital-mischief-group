@@ -53,3 +53,50 @@ export async function DELETE( request: NextRequest, { params }: { params: Promis
     return NextResponse.json( { error: "Failed to delete scout" }, { status: 500 } )
   }
 }
+
+export async function PATCH( request: NextRequest, { params }: { params: Promise<{ id: string }> } ) {
+  try {
+    const session = await auth.api.getSession( { headers: await headers() } )
+    if ( !session?.user?.id ) {
+      return NextResponse.json( { error: "Unauthorized" }, { status: 401 } )
+    }
+    const userId = session.user.id
+
+    const { id } = await params
+    const body = await request.json()
+
+    const name = typeof body.name === "string" ? body.name : null
+    const searchQuery = typeof body.search_query === "string" ? body.search_query : null
+    const isActive = typeof body.is_active === "boolean" ? body.is_active : null
+    const schedule = typeof body.schedule === "string" ? body.schedule : null
+
+    if ( schedule && !["manual", "hourly", "daily", "weekly"].includes( schedule ) ) {
+      return NextResponse.json( { error: "Invalid schedule" }, { status: 400 } )
+    }
+
+    if ( name === null && searchQuery === null && isActive === null && schedule === null ) {
+      return NextResponse.json( { error: "No updates provided" }, { status: 400 } )
+    }
+
+    const [scout] = await sql`
+      UPDATE scouts
+      SET
+        name = COALESCE(${name}, name),
+        search_query = COALESCE(${searchQuery}, search_query),
+        is_active = COALESCE(${isActive}, is_active),
+        schedule = COALESCE(${schedule}, schedule),
+        updated_at = NOW()
+      WHERE id = ${id} AND user_id = ${userId}
+      RETURNING *
+    `
+
+    if ( !scout ) {
+      return NextResponse.json( { error: "Scout not found" }, { status: 404 } )
+    }
+
+    return NextResponse.json( { scout } )
+  } catch ( error ) {
+    console.error( "Failed to update scout:", error )
+    return NextResponse.json( { error: "Failed to update scout" }, { status: 500 } )
+  }
+}

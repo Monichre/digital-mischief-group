@@ -174,7 +174,7 @@ export function AgentSandbox() {
   }
 
   return (
-    <div className='flex h-screen flex-col overflow-x-hidden'>
+    <div className='flex h-screen flex-col overflow-x-hidden text-stone-200'>
       {/* Header component with agent selection and input controls */}
       <AgentHeader
         agentTypes={agentTypes}
@@ -186,8 +186,8 @@ export function AgentSandbox() {
       />
 
       {/* Main content area with input and output panels */}
-      <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden bg-muted pb-4'>
-        <h2 className='hidden px-2 pt-4 font-medium text-[9px] text-neutral-400 sm:px-4 md:block'>
+      <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden bg-black/30 pb-4'>
+        <h2 className='hidden px-2 pt-4 font-medium text-[9px] text-stone-500 sm:px-4 md:block'>
           Input
         </h2>
         <div className='flex min-h-0 w-[calc(100vw-1rem)] flex-1 flex-col py-2 md:flex-row lg:w-full'>

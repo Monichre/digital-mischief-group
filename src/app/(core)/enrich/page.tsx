@@ -19,6 +19,7 @@ import {
   Check,
   Sparkles,
   Download,
+  Archive,
   RefreshCw,
   ChevronDown,
   ChevronUp,
@@ -43,6 +44,12 @@ import {EnrichHistory} from '@/components/enrich/EnrichHistory'
 import {BatchHistory} from '@/components/enrich/BatchHistory'
 import {useEnrichStream} from '@/hooks/useEnrichStream'
 import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
+import {AuthLinks} from '@/components/AuthLinks'
+import {
+  CORTEX_DIRECTIVES,
+  CORTEX_DIRECTIVE_LABELS,
+  type CortexDirective,
+} from '@/lib/cortex-directives'
 
 type EnrichStatus = 'idle' | 'loading' | 'success' | 'error'
 type BulkStep = 'input' | 'mapping' | 'processing' | 'complete'
@@ -177,6 +184,11 @@ interface EnrichedRow {
   error?: string
 }
 
+type CompetitorEntry = {
+  name: string
+  domain: string
+}
+
 export default function EnrichPage() {
   // Streaming enrichment state
   const stream = useEnrichStream()
@@ -189,6 +201,19 @@ export default function EnrichPage() {
   const [loadingHistoryItem, setLoadingHistoryItem] = useState(false)
   const [historicalResult, setHistoricalResult] =
     useState<EnrichmentResult | null>(null)
+  const [directive, setDirective] = useState<CortexDirective>('kill_chain')
+  const [archiveStatus, setArchiveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle')
+  const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [cortexId, setCortexId] = useState<string | null>(null)
+  const [showArchiveModal, setShowArchiveModal] = useState(false)
+  const [competitorsLoading, setCompetitorsLoading] = useState(false)
+  const [competitors, setCompetitors] = useState<CompetitorEntry[]>([])
+  const [competitorDraft, setCompetitorDraft] = useState<CompetitorEntry>({
+    name: '',
+    domain: '',
+  })
 
   // Bulk enrichment state
   const [bulkStep, setBulkStep] = useState<BulkStep>('input')
@@ -238,14 +263,101 @@ export default function EnrichPage() {
           : 'pending',
     }))
 
+  const fetchCompetitors = useCallback(async () => {
+    if (!result?.id) return
+    setCompetitorsLoading(true)
+    try {
+      const res = await fetch('/api/cortex/competitors', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({enrichmentJobId: result.id}),
+      })
+      if (!res.ok) {
+        throw new Error('Failed to discover competitors')
+      }
+      const data = await res.json()
+      const list = Array.isArray(data.competitors) ? data.competitors : []
+      setCompetitors(
+        list.map((item: any) => ({
+          name: item.name || '',
+          domain: item.domain || item.website || '',
+        }))
+      )
+    } catch (err) {
+      setArchiveError(
+        err instanceof Error ? err.message : 'Failed to discover competitors'
+      )
+    } finally {
+      setCompetitorsLoading(false)
+    }
+  }, [result?.id])
+
+  const archiveToCortex = useCallback(
+    async (override?: CompetitorEntry[]) => {
+      if (!result?.id) return
+      setArchiveStatus('saving')
+      setArchiveError(null)
+
+      try {
+        const res = await fetch('/api/cortex', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            enrichmentJobId: result.id,
+            directive,
+            logoUrl: result.company_logo || null,
+            competitorsOverride:
+              override && override.length > 0
+                ? override.filter((item) => item.domain.trim())
+                : undefined,
+          }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to archive dossier')
+        }
+
+        setCortexId(data.id)
+        setArchiveStatus('saved')
+        setShowArchiveModal(false)
+      } catch (err) {
+        setArchiveStatus('error')
+        setArchiveError(
+          err instanceof Error ? err.message : 'Failed to archive dossier'
+        )
+      }
+    },
+    [directive, result?.id, result?.company_logo]
+  )
+
+  const handleArchiveClick = useCallback(() => {
+    if (!result?.id) return
+    if (directive === 'market_teardown') {
+      setShowArchiveModal(true)
+      if (competitors.length === 0) {
+        fetchCompetitors()
+      }
+      return
+    }
+    archiveToCortex()
+  }, [archiveToCortex, competitors.length, directive, fetchCompetitors, result?.id])
+
   const handleTextSubmit = async (input: string) => {
     setBulkStep('input')
     setShowHistory(false)
+    setArchiveStatus('idle')
+    setArchiveError(null)
+    setCortexId(null)
+    setCompetitors([])
     stream.enrich(input)
   }
 
   const handleHistorySelect = async (id: string) => {
     setLoadingHistoryItem(true)
+    setArchiveStatus('idle')
+    setArchiveError(null)
+    setCortexId(null)
     try {
       const res = await fetch(`/api/enrich/${id}`)
       if (!res.ok) throw new Error('Failed to load')
@@ -455,6 +567,12 @@ export default function EnrichPage() {
     setEnrichedRows([])
     setBatchId(null)
     setHistoricalResult(null)
+    setArchiveStatus('idle')
+    setArchiveError(null)
+    setCortexId(null)
+    setShowArchiveModal(false)
+    setCompetitors([])
+    setCompetitorDraft({name: '', domain: ''})
     stream.reset()
   }
 
@@ -544,6 +662,10 @@ export default function EnrichPage() {
                 [ FIRE-ENRICH ]
               </span>
             </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </nav>
@@ -571,6 +693,35 @@ export default function EnrichPage() {
             status !== 'loading' &&
             status !== 'success' && (
               <div className='mb-12'>
+                <div className='mb-6 border border-zinc-800 bg-zinc-900/40 p-4'>
+                  <div className='text-xs text-zinc-500 tracking-widest mb-3'>
+                    DIRECTIVE // MISSION PROFILE
+                  </div>
+                  <div className='grid md:grid-cols-3 gap-3'>
+                    {CORTEX_DIRECTIVES.map((item) => (
+                      <button
+                        key={item.id}
+                        type='button'
+                        onClick={() => setDirective(item.id)}
+                        className={`p-4 border text-left transition-colors ${
+                          directive === item.id
+                            ? 'border-orange-500/60 bg-orange-500/10 text-orange-300'
+                            : 'border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-600'
+                        }`}
+                      >
+                        <div className='text-xs tracking-widest text-zinc-500 mb-1'>
+                          {item.purpose}
+                        </div>
+                        <div className='font-bold text-sm mb-2'>
+                          {item.label}
+                        </div>
+                        <p className='text-xs text-zinc-500'>
+                          {item.focus}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <UnifiedInput
                   onTextSubmit={handleTextSubmit}
                   onCsvUpload={handleCsvUpload}
@@ -613,8 +764,8 @@ export default function EnrichPage() {
             <div className='space-y-8 animate-in fade-in duration-500'>
               {/* Action Bar with Brand Recon */}
               <div className='flex flex-col gap-4'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-4'>
+                <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+                  <div className='flex flex-wrap items-center gap-4'>
                     <button
                       onClick={resetAll}
                       className='flex items-center gap-2 text-sm text-zinc-500 hover:text-orange-500 transition-colors'
@@ -628,16 +779,52 @@ export default function EnrichPage() {
                         className='flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-mono'
                       >
                         <Crosshair className='w-4 h-4 animate-pulse' />
-                        <span>COMPETITIVE INTEL</span>
+                        <span>RUN COMPETITIVE INTEL</span>
                       </Link>
                     )}
                   </div>
-                  {result.duration_ms && (
-                    <span className='text-xs text-zinc-500'>
-                      Completed in {(result.duration_ms / 1000).toFixed(1)}s
+                  <div className='flex flex-wrap items-center gap-3'>
+                    <span className='px-2 py-1 text-[10px] tracking-widest border border-orange-500/30 text-orange-400 bg-orange-500/10'>
+                      {CORTEX_DIRECTIVE_LABELS[directive]}
                     </span>
-                  )}
+                    {result.id && (
+                      <>
+                        {archiveStatus === 'saved' && cortexId ? (
+                          <Link
+                            href={`/cortex/${cortexId}`}
+                            className='flex items-center gap-2 px-4 py-2 border border-orange-500/60 text-orange-400 hover:text-white hover:bg-orange-500 transition-colors text-xs btn-glow'
+                          >
+                            <Archive className='w-4 h-4' />
+                            OPEN DOSSIER
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={handleArchiveClick}
+                            disabled={archiveStatus === 'saving'}
+                            className='flex items-center gap-2 px-4 py-2 border border-orange-500/60 text-orange-400 hover:text-white hover:bg-orange-500 transition-colors text-xs btn-glow disabled:opacity-50 disabled:cursor-not-allowed'
+                          >
+                            <Archive className='w-4 h-4' />
+                            {archiveStatus === 'saving'
+                              ? 'ARCHIVING...'
+                              : 'ARCHIVE TO CORTEX'}
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {result.duration_ms && (
+                      <span className='text-xs text-zinc-500'>
+                        Completed in {(result.duration_ms / 1000).toFixed(1)}s
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {archiveError && (
+                  <div className='flex items-center gap-3 p-3 border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>
+                    <AlertCircle className='w-4 h-4' />
+                    <span>{archiveError}</span>
+                  </div>
+                )}
 
                 {/* Cross-Primitive CTAs - T-009 */}
                 <CrossPrimitiveCTAs
@@ -1003,6 +1190,150 @@ export default function EnrichPage() {
           )}
         </div>
       </main>
+
+      {showArchiveModal && (
+        <>
+          <div
+            className='fixed inset-0 bg-black/60 z-50'
+            onClick={() => setShowArchiveModal(false)}
+          />
+          <div className='fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl px-4'>
+            <div className='border border-orange-500/40 bg-zinc-950 p-6'>
+              <div className='flex items-start justify-between mb-4'>
+                <div>
+                  <div className='text-xs text-orange-500 tracking-widest mb-1'>
+                    CORTEX ARCHIVE
+                  </div>
+                  <h3 className='text-lg font-bold text-zinc-100'>
+                    Market Teardown: Confirm Competitors
+                  </h3>
+                  <p className='text-xs text-zinc-500 mt-1'>
+                    Auto-discovered competitors. Edit before archiving.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowArchiveModal(false)}
+                  className='text-zinc-500 hover:text-zinc-200 transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              {competitorsLoading ? (
+                <div className='text-sm text-zinc-500'>Discovering competitors...</div>
+              ) : (
+                <div className='space-y-3'>
+                  {competitors.length === 0 && (
+                    <div className='text-sm text-zinc-500'>
+                      No competitors found. Add manually to proceed.
+                    </div>
+                  )}
+                  {competitors.map((comp, idx) => (
+                    <div key={`${comp.domain}-${idx}`} className='flex gap-2'>
+                      <input
+                        value={comp.name}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setCompetitors((prev) =>
+                            prev.map((item, index) =>
+                              index === idx ? {...item, name: value} : item
+                            )
+                          )
+                        }}
+                        placeholder='Competitor name'
+                        className='flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-600'
+                      />
+                      <input
+                        value={comp.domain}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setCompetitors((prev) =>
+                            prev.map((item, index) =>
+                              index === idx ? {...item, domain: value} : item
+                            )
+                          )
+                        }}
+                        placeholder='domain.com'
+                        className='flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-600'
+                      />
+                      <button
+                        onClick={() =>
+                          setCompetitors((prev) =>
+                            prev.filter((_, index) => index !== idx)
+                          )
+                        }
+                        className='px-3 border border-zinc-800 text-zinc-500 hover:text-red-400 hover:border-red-500/40'
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+
+                  <div className='flex gap-2'>
+                    <input
+                      value={competitorDraft.name}
+                      onChange={(e) =>
+                        setCompetitorDraft((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder='Competitor name'
+                      className='flex-1 bg-zinc-900 border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-400 placeholder:text-zinc-600'
+                    />
+                    <input
+                      value={competitorDraft.domain}
+                      onChange={(e) =>
+                        setCompetitorDraft((prev) => ({
+                          ...prev,
+                          domain: e.target.value,
+                        }))
+                      }
+                      placeholder='domain.com'
+                      className='flex-1 bg-zinc-900 border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-400 placeholder:text-zinc-600'
+                    />
+                    <button
+                      onClick={() => {
+                        if (!competitorDraft.domain.trim()) return
+                        setCompetitors((prev) => [
+                          ...prev,
+                          {
+                            name: competitorDraft.name.trim(),
+                            domain: competitorDraft.domain.trim(),
+                          },
+                        ])
+                        setCompetitorDraft({name: '', domain: ''})
+                      }}
+                      className='px-4 border border-orange-500/40 text-orange-400 text-xs hover:bg-orange-500 hover:text-white transition-colors'
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className='mt-6 flex items-center justify-between'>
+                <button
+                  onClick={() => setShowArchiveModal(false)}
+                  className='text-xs text-zinc-500 hover:text-zinc-200'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => archiveToCortex(competitors)}
+                  disabled={archiveStatus === 'saving'}
+                  className='flex items-center gap-2 px-4 py-2 border border-orange-500/60 text-orange-400 hover:bg-orange-500 hover:text-white transition-colors text-xs btn-glow disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  <Archive className='w-4 h-4' />
+                  {archiveStatus === 'saving'
+                    ? 'ARCHIVING...'
+                    : 'ARCHIVE TO CORTEX'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* History Panel - T-008: Session continuity with batch history */}
       {showHistory && (

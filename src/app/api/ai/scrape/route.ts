@@ -119,7 +119,7 @@ URL: ${url}
 Title: ${title}
 Content preview: ${content.slice( 0, 2000 )}
 
-Extract the main topic, author if mentioned, publish date if available, and categorize the content.`,
+Extract the main topic, author if mentioned, publish date if available, and categorize the content. Return a json object.`,
         } )
         structuredData = object
       } catch {

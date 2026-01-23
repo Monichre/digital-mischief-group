@@ -26,6 +26,7 @@ import {
   Crown,
 } from 'lucide-react'
 import {authClient} from '@/platform/auth/client'
+import {AuthLinks} from '@/components/AuthLinks'
 
 interface UserProfile {
   id: string
@@ -116,11 +117,11 @@ export default function ProfilePage() {
       if (data.url) {
         window.location.href = data.url
       } else if (data.error) {
-        // No subscription yet - redirect to pricing
-        router.push('/pricing')
+        // No subscription yet - redirect to loadout
+        router.push('/loadout')
       }
     } catch {
-      router.push('/pricing')
+      router.push('/loadout')
     } finally {
       setBillingLoading(false)
     }
@@ -196,9 +197,15 @@ export default function ProfilePage() {
             <ArrowLeft className='w-4 h-4' />
             <span className='text-sm'>Back to HQ</span>
           </Link>
-          <div className='flex items-center gap-2'>
-            <User className='w-4 h-4 text-orange-500' />
-            <span className='font-bold tracking-tighter'>[ PROFILE ]</span>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <User className='w-4 h-4 text-orange-500' />
+              <span className='font-bold tracking-tighter'>[ PROFILE ]</span>
+            </div>
+            <AuthLinks
+              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
+              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
+            />
           </div>
         </div>
       </nav>
@@ -210,14 +217,14 @@ export default function ProfilePage() {
             <div className='flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded'>
               <CheckCircle2 className='w-5 h-5 text-green-500' />
               <span className='text-green-400'>
-                Subscription activated successfully!
+                Loadout activated successfully!
               </span>
             </div>
           )}
           {canceled && (
             <div className='flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded'>
               <AlertCircle className='w-5 h-5 text-yellow-500' />
-              <span className='text-yellow-400'>Checkout was canceled.</span>
+              <span className='text-yellow-400'>Loadout upgrade canceled.</span>
             </div>
           )}
 
@@ -294,12 +301,12 @@ export default function ProfilePage() {
                   {isPro ? (
                     <div className='flex items-center gap-1 text-orange-400'>
                       <Crown className='w-3 h-3' />
-                      <span>PRO</span>
+                      <span>OPERATOR</span>
                     </div>
                   ) : (
                     <div className='flex items-center gap-1 text-zinc-500'>
                       <Zap className='w-3 h-3' />
-                      <span>FREE</span>
+                      <span>OBSERVER</span>
                     </div>
                   )}
                 </div>
@@ -307,12 +314,12 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Subscription Card */}
+          {/* Loadout Card */}
           <div className='border border-zinc-800 bg-zinc-900/30 p-6'>
             <div className='flex items-center justify-between mb-6'>
               <div className='flex items-center gap-3'>
                 <CreditCard className='w-5 h-5 text-orange-500' />
-                <h2 className='text-lg font-bold'>Subscription</h2>
+                <h2 className='text-lg font-bold'>Loadout</h2>
               </div>
               <div
                 className={`px-3 py-1 rounded text-xs font-bold ${
@@ -321,7 +328,7 @@ export default function ProfilePage() {
                     : 'bg-zinc-800 text-zinc-400'
                 }`}
               >
-                {isPro ? 'PRO PLAN' : 'FREE PLAN'}
+                {isPro ? 'OPERATOR LOADOUT' : 'OBSERVER LOADOUT'}
               </div>
             </div>
 
@@ -329,7 +336,7 @@ export default function ProfilePage() {
               <div className='space-y-4'>
                 <div className='flex items-center gap-2 text-green-400'>
                   <CheckCircle2 className='w-5 h-5' />
-                  <span>Your subscription is active</span>
+                  <span>Your loadout is active</span>
                 </div>
                 <ul className='grid grid-cols-2 gap-2 text-sm text-zinc-400'>
                   <li className='flex items-center gap-2'>
@@ -368,7 +375,7 @@ export default function ProfilePage() {
             ) : (
               <div className='space-y-4'>
                 <p className='text-zinc-400'>
-                  Upgrade to PRO for unlimited access to all features.
+                  Upgrade to Operator for unlimited access to all features.
                 </p>
                 <div className='flex items-center gap-4'>
                   <button
@@ -381,15 +388,15 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         <Crown className='w-4 h-4' />
-                        Upgrade to PRO - $29/mo
+                        Upgrade to Operator - $30/mo
                       </>
                     )}
                   </button>
                   <Link
-                    href='/pricing'
+                    href='/loadout'
                     className='text-sm text-zinc-400 hover:text-orange-500 transition-colors'
                   >
-                    View pricing details
+                    View loadout details
                   </Link>
                 </div>
               </div>
@@ -468,7 +475,7 @@ export default function ProfilePage() {
                 className='flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded hover:border-orange-500/50 transition-colors'
               >
                 <Building2 className='w-5 h-5 text-orange-500' />
-                <span>Fire-Enrich</span>
+                <span>Target Research</span>
                 <ChevronRight className='w-4 h-4 text-zinc-600 ml-auto' />
               </Link>
               <Link
@@ -492,7 +499,7 @@ export default function ProfilePage() {
                 className='flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded hover:border-cyan-500/50 transition-colors'
               >
                 <Zap className='w-5 h-5 text-cyan-500' />
-                <span>Fire-Scouts</span>
+                <span>Active Recon</span>
                 <ChevronRight className='w-4 h-4 text-zinc-600 ml-auto' />
               </Link>
             </div>

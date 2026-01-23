@@ -53,7 +53,7 @@ export async function checkUsageLimits(
 ): Promise<{ allowed: boolean; remaining: number; limit: number; used: number }> {
   // Get user's subscription status
   const [user] = await sql`
-    SELECT subscription_status FROM "user" WHERE id = ${userId}
+    SELECT subscription_status FROM public."user" WHERE id = ${userId}
   `
 
   const plan = user?.subscription_status || "inactive"
@@ -111,7 +111,7 @@ export async function getUsageStats(
 ): Promise<Record<ModuleType, { used: number; limit: number; remaining: number }>> {
   // Get user's subscription status
   const [user] = await sql`
-    SELECT subscription_status FROM "user" WHERE id = ${userId}
+    SELECT subscription_status FROM public."user" WHERE id = ${userId}
   `
 
   const plan = user?.subscription_status || "inactive"

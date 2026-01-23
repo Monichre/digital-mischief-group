@@ -42,7 +42,7 @@ export default function ProSuccessPage() {
           </div>
 
           <h1 className='text-display-md mb-6'>
-            Welcome to <span className='text-orange-500'>PRO</span>
+            Welcome to <span className='text-orange-500'>OPERATOR</span>
           </h1>
 
           <p className='text-body-xl text-zinc-400 mb-12'>
@@ -149,7 +149,7 @@ export default function ProSuccessPage() {
             className='inline-flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all'
           >
             <Zap className='w-5 h-5' />
-            <span>START USING PRO</span>
+            <span>START USING OPERATOR</span>
             <ArrowRight className='w-5 h-5' />
           </Link>
 

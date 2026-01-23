@@ -18,26 +18,26 @@ export const TokenCounter: FC<TokenCounterProps> = ({
 }) => {
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <div className="flex items-center gap-2 divide-x divide-neutral-200">
+      <div className="flex items-center gap-2 divide-x divide-stone-800">
         <div className="flex items-center gap-1 pr-2">
-          <span className="text-[10px] text-neutral-500">Prompt</span>
-          <span className="font-medium font-mono text-[10px] text-neutral-700">
+          <span className="text-[10px] text-stone-500">Prompt</span>
+          <span className="font-medium font-mono text-[10px] text-stone-200">
             <NumberFlow value={promptTokens} />
           </span>
         </div>
         <div className="flex items-center gap-1 px-2">
-          <span className="text-[10px] text-neutral-500">Completion</span>
-          <span className="font-medium font-mono text-[10px] text-neutral-700">
+          <span className="text-[10px] text-stone-500">Completion</span>
+          <span className="font-medium font-mono text-[10px] text-stone-200">
             <NumberFlow value={completionTokens} />
           </span>
         </div>
         <div className="flex items-center gap-1 px-2">
           <TokenCircleIcon className="h-4 w-4" />
 
-          <span className="font-semibold text-[10px] text-neutral-500">
+          <span className="font-semibold text-[10px] text-stone-500">
             Total
           </span>
-          <span className="font-mono font-semibold text-[10px] text-neutral-800">
+          <span className="font-mono font-semibold text-[10px] text-stone-200">
             <NumberFlow value={totalTokens} />
           </span>
         </div>
@@ -48,7 +48,7 @@ export const TokenCounter: FC<TokenCounterProps> = ({
 
 const TokenCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
-    color={"#000000"}
+    color="currentColor"
     fill={"none"}
     height={24}
     viewBox="0 0 24 24"

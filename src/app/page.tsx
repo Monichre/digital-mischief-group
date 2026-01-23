@@ -23,6 +23,7 @@ import {SignupForm, useSignupForm} from '@/components/SignupForm'
 import {MeetTheTeam} from '@/components/MeetTheTeam'
 import {HeroTicker} from '@/components/HeroTicker'
 import {CapabilitiesStrip} from '@/components/CapabilitiesStrip'
+import {AuthLinks} from '@/components/AuthLinks'
 import {TypeWriter} from '@/components/TypeWriter'
 import {DotPattern} from '@/components/DotPattern'
 import {
@@ -50,7 +51,7 @@ import {
   RealtimeCollaboration,
 } from '@/components/effects'
 
-// Stripe buy link for PRO ($30/mo)
+// Stripe buy link for Operator ($30/mo)
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/9B67sM6JF2jWght0gcgMw00'
 const CALENDLY_AUDIT_URL =
   'https://calendly.com/liam-liamellis/digital-mischief-group'
@@ -149,6 +150,23 @@ export default function Home() {
                     </span>
                   </div>
                   <div className='py-2'>
+                    <Link
+                      href='/cortex'
+                      onClick={() => setDaedalusOpen(false)}
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
+                    >
+                      <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
+                        <Layers className='w-4 h-4 text-orange-500' />
+                      </div>
+                      <div>
+                        <div className='text-sm text-zinc-200 group-hover:text-white'>
+                          Cortex Vault
+                        </div>
+                        <div className='text-[10px] text-zinc-500'>
+                          Classified Dossier Library
+                        </div>
+                      </div>
+                    </Link>
                     <Link
                       href='/enrich'
                       onClick={() => setDaedalusOpen(false)}
@@ -249,14 +267,17 @@ export default function Home() {
               )}
             </div>
           </div>
-          <Magnetic strength={0.15}>
-            <Link
-              href='/loadout'
-              className='px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300 btn-glow'
-            >
-              LOADOUT →
-            </Link>
-          </Magnetic>
+          <div className='flex items-center gap-4'>
+            <AuthLinks />
+            <Magnetic strength={0.15}>
+              <Link
+                href='/loadout'
+                className='px-4 py-2 border border-orange-500/50 text-orange-500 text-sm hover:bg-orange-500 hover:text-white transition-all duration-300 btn-glow'
+              >
+                LOADOUT →
+              </Link>
+            </Magnetic>
+          </div>
         </div>
       </nav>
 
@@ -389,7 +410,7 @@ export default function Home() {
                 className='group flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm'
               >
                 <Zap className='w-5 h-5' />
-                <span>[ START PRO — $30/mo ]</span>
+                <span>[ START OPERATOR — $30/mo ]</span>
                 <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
               </a>
             </Magnetic>
@@ -637,7 +658,11 @@ export default function Home() {
               subtitle='Action'
               description='Workflow agents that act on signals 24/7. No sleep, no breaks, no excuses.'
               classification='classified'
-            />
+            >
+              <div className='mt-4 text-sm font-mono font-bold text-red-500 tracking-wide'>
+                {'>'} PERMISSION GRANTED: SHOOT TO KILL.
+              </div>
+            </IntelCard>
             <IntelCard
               icon={Shield}
               title='The Relay'
@@ -748,7 +773,7 @@ export default function Home() {
                 className='inline-flex items-center gap-3 px-8 py-4 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors btn-glow rounded-sm'
               >
                 <Zap className='w-5 h-5' />
-                [ ACTIVATE PRO ]
+                [ ACTIVATE OPERATOR ]
                 <ArrowRight className='w-5 h-5' />
               </Link>
             </Magnetic>
@@ -833,7 +858,7 @@ export default function Home() {
                   className='inline-flex items-center gap-3 px-10 py-5 bg-orange-500 text-white font-bold hover:bg-orange-400 transition-all duration-300 btn-glow rounded-sm text-lg'
                 >
                   <Zap className='w-6 h-6' />
-                  <span>[ DEPLOY PRO ]</span>
+                  <span>[ DEPLOY OPERATOR ]</span>
                   <ArrowRight className='w-6 h-6' />
                 </a>
               </Magnetic>

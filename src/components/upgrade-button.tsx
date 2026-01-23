@@ -60,7 +60,7 @@ export function UpgradeButton({className}: {className?: string}) {
       ) : (
         <>
           <Zap className='w-4 h-4 mr-2' />
-          UPGRADE TO PRO
+          UPGRADE TO OPERATOR
         </>
       )}
     </Button>
