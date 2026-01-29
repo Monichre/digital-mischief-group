@@ -7,12 +7,10 @@ import {
   Zap,
   Users,
   ScanEye,
-  Telescope,
   Home,
   Radar,
   User,
   MessageSquare,
-  Shield,
   Search,
   Archive,
   Command as CommandIcon,
@@ -99,22 +97,6 @@ export function CommandMenu({
         group: 'actions',
       },
       {
-        id: 'field-report',
-        label: 'Field Reports',
-        shortcut: '⌘A',
-        icon: Shield,
-        action: () => router.push('/field-reports'),
-        group: 'actions',
-      },
-      {
-        id: 'intel',
-        label: 'Field Reports',
-        shortcut: '⌘I',
-        icon: Telescope,
-        action: () => router.push('/intel'),
-        group: 'actions',
-      },
-      {
         id: 'audit',
         label: 'Request Audit',
         icon: MessageSquare,
@@ -181,55 +163,65 @@ export function CommandMenu({
       open={open}
       onOpenChange={setOpen}
       label='Command Menu'
-      className='fixed inset-0 z-[200]'
+      className='fixed inset-0 z-[200] flex items-start justify-center pt-24'
     >
       {/* Backdrop */}
       <div
-        className='fixed inset-0 bg-zinc-950/80 backdrop-blur-sm'
+        className='fixed inset-0 bg-zinc-950/70 backdrop-blur-[2px]'
         onClick={() => setOpen(false)}
       />
 
       {/* Dialog */}
-      <div className='fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-xl'>
-        <div className='relative mx-4 bg-zinc-900 border border-zinc-800 shadow-2xl shadow-black/50 overflow-hidden'>
-          {/* HUD corners */}
-          <div className='absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-orange-500' />
-          <div className='absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-orange-500' />
-          <div className='absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-orange-500' />
-          <div className='absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-orange-500' />
+      <div className='w-full max-w-md'>
+        <div className='relative mx-4'>
+          <div className='relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/95 shadow-2xl shadow-black/60 backdrop-blur-xl'>
+            {/* Top trace */}
+            <div className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent' />
+            {/* Micro scanlines */}
+            <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(255,255,255,0.025)_50%)] bg-[size:100%_4px] opacity-30' />
 
-          {/* Header */}
-          <div className='flex items-center gap-3 px-4 py-3 border-b border-zinc-800'>
-            <CommandIcon className='w-4 h-4 text-orange-500' />
-            <span className='text-[10px] text-zinc-500 font-mono tracking-widest'>
-              COMMAND_INTERFACE
-            </span>
-          </div>
+            {/* Header */}
+            <div className='flex items-center justify-between border-b border-zinc-800/60 bg-zinc-900/50 px-4 py-3'>
+              <div className='flex items-center gap-2'>
+                <CommandIcon className='h-4 w-4 text-orange-500' />
+                <span className='text-[10px] font-mono uppercase tracking-[0.28em] text-orange-500'>
+                  Daedalus Command
+                </span>
+              </div>
+              <div className='flex items-center gap-1.5'>
+                <div className='h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse' />
+                <span className='text-[10px] font-mono text-zinc-500'>ACTIVE</span>
+              </div>
+            </div>
 
-          {/* Search input */}
-          <div className='flex items-center gap-3 px-4 py-4 border-b border-zinc-800/50'>
-            <Search className='w-4 h-4 text-zinc-500' />
-            <Command.Input
-              placeholder='Type a command or search...'
-              className='flex-1 bg-transparent text-white placeholder:text-zinc-600 outline-none font-mono text-sm'
-            />
-            <kbd className='px-2 py-1 text-[10px] font-mono text-zinc-500 bg-zinc-800 border border-zinc-700 rounded'>
-              ESC
-            </kbd>
-          </div>
+            {/* Search input */}
+            <div className='border-b border-zinc-800/50 px-4 py-4'>
+              <div className='flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2 transition-colors focus-within:border-orange-500/40'>
+                <Search className='h-4 w-4 text-zinc-500' />
+                <Command.Input
+                  placeholder='Type a command or search...'
+                  className='flex-1 bg-transparent text-sm font-mono text-white placeholder:text-zinc-600 outline-none'
+                />
+                <kbd className='rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500'>
+                  ESC
+                </kbd>
+              </div>
+            </div>
 
-          {/* Results */}
-          <Command.List className='max-h-[60vh] overflow-y-auto p-2'>
-            <Command.Empty className='py-6 text-center text-sm text-zinc-500'>
-              No results found.
-            </Command.Empty>
+            {/* Results */}
+            <Command.List className='max-h-[60vh] overflow-y-auto px-3 py-3'>
+              <Command.Empty className='py-6 text-center text-sm text-zinc-500'>
+                No results found.
+              </Command.Empty>
 
             {/* Actions */}
             <Command.Group
+              className='space-y-2'
               heading={
-                <span className='px-2 py-2 text-[10px] font-mono text-orange-500 tracking-widest'>
-                  // ACTIONS
-                </span>
+                <div className='flex items-center gap-3 px-2 py-2 text-[10px] font-mono uppercase tracking-[0.28em] text-zinc-500'>
+                  <span className='text-zinc-500'>Actions</span>
+                  <span className='h-px flex-1 border-t border-dashed border-zinc-800/80' />
+                </div>
               }
             >
               {actionItems.map((item) => {
@@ -239,14 +231,15 @@ export function CommandMenu({
                     key={item.id}
                     value={item.label}
                     onSelect={() => handleSelect(item.action)}
-                    className='flex items-center gap-3 px-3 py-3 rounded cursor-pointer data-[selected=true]:bg-orange-500/10 data-[selected=true]:text-white text-zinc-400 hover:text-white transition-colors'
+                    className='group relative flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-400 transition-all hover:border-zinc-700 hover:text-white data-[selected=true]:border-orange-500/50 data-[selected=true]:bg-orange-500/10 data-[selected=true]:text-white'
                   >
-                    <div className='w-8 h-8 flex items-center justify-center border border-zinc-700 bg-zinc-800 data-[selected=true]:border-orange-500'>
-                      <Icon className='w-4 h-4' />
+                    <span className='absolute left-0 top-2 bottom-2 w-px bg-gradient-to-b from-transparent via-orange-500/70 to-transparent opacity-0 data-[selected=true]:opacity-100 data-[selected=true]:animate-pulse' />
+                    <div className='flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950/60 group-hover:border-zinc-700 data-[selected=true]:border-orange-500/60'>
+                      <Icon className='h-4 w-4 text-orange-400 group-hover:text-orange-300' />
                     </div>
-                    <span className='flex-1 text-sm'>{item.label}</span>
+                    <span className='flex-1 text-sm font-medium'>{item.label}</span>
                     {item.shortcut && (
-                      <kbd className='px-2 py-1 text-[10px] font-mono text-zinc-600 bg-zinc-800 border border-zinc-700 rounded'>
+                      <kbd className='rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500'>
                         {item.shortcut}
                       </kbd>
                     )}
@@ -257,10 +250,12 @@ export function CommandMenu({
 
             {/* Navigation */}
             <Command.Group
+              className='mt-4 space-y-2'
               heading={
-                <span className='px-2 py-2 text-[10px] font-mono text-zinc-500 tracking-widest'>
-                  // NAVIGATION
-                </span>
+                <div className='flex items-center gap-3 px-2 py-2 text-[10px] font-mono uppercase tracking-[0.28em] text-zinc-500'>
+                  <span className='text-zinc-500'>Navigation</span>
+                  <span className='h-px flex-1 border-t border-dashed border-zinc-800/80' />
+                </div>
               }
             >
               {navItems.map((item) => {
@@ -270,35 +265,45 @@ export function CommandMenu({
                     key={item.id}
                     value={item.label}
                     onSelect={() => handleSelect(item.action)}
-                    className='flex items-center gap-3 px-3 py-3 rounded cursor-pointer data-[selected=true]:bg-orange-500/10 data-[selected=true]:text-white text-zinc-400 hover:text-white transition-colors'
+                    className='group relative flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-400 transition-all hover:border-zinc-700 hover:text-white data-[selected=true]:border-orange-500/50 data-[selected=true]:bg-orange-500/10 data-[selected=true]:text-white'
                   >
-                    <div className='w-8 h-8 flex items-center justify-center border border-zinc-700 bg-zinc-800'>
-                      <Icon className='w-4 h-4' />
+                    <span className='absolute left-0 top-2 bottom-2 w-px bg-gradient-to-b from-transparent via-orange-500/70 to-transparent opacity-0 data-[selected=true]:opacity-100 data-[selected=true]:animate-pulse' />
+                    <div className='flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950/60 group-hover:border-zinc-700 data-[selected=true]:border-orange-500/60'>
+                      <Icon className='h-4 w-4 text-orange-400 group-hover:text-orange-300' />
                     </div>
-                    <span className='flex-1 text-sm'>{item.label}</span>
+                    <span className='flex-1 text-sm font-medium'>{item.label}</span>
                   </Command.Item>
                 )
               })}
             </Command.Group>
           </Command.List>
 
-          {/* Footer */}
-          <div className='flex items-center justify-between px-4 py-3 border-t border-zinc-800 bg-zinc-900/50'>
-            <div className='flex items-center gap-4 text-[10px] font-mono text-zinc-600'>
-              <span className='flex items-center gap-1'>
-                <kbd className='px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-500'>
-                  ↑↓
-                </kbd>
-                navigate
-              </span>
-              <span className='flex items-center gap-1'>
-                <kbd className='px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-500'>
-                  ↵
-                </kbd>
-                select
-              </span>
+            {/* Footer */}
+            <div className='flex items-center justify-between border-t border-zinc-800/60 bg-zinc-900/60 px-4 py-3'>
+              <div className='flex items-center gap-4 text-[10px] font-mono text-zinc-500'>
+                <span className='flex items-center gap-1'>
+                  <kbd className='rounded border border-zinc-800 bg-zinc-950 px-1.5 py-0.5 text-zinc-500'>
+                    ↑↓
+                  </kbd>
+                  navigate
+                </span>
+                <span className='flex items-center gap-1'>
+                  <kbd className='rounded border border-zinc-800 bg-zinc-950 px-1.5 py-0.5 text-zinc-500'>
+                    ↵
+                  </kbd>
+                  select
+                </span>
+              </div>
+              <div className='h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse' />
             </div>
-            <div className='w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse' />
+          </div>
+
+          {/* HUD corners (inset to respect radius) */}
+          <div className='pointer-events-none absolute inset-2'>
+            <div className='absolute top-0 left-0 h-3 w-3 border-l-2 border-t-2 border-orange-500/70' />
+            <div className='absolute top-0 right-0 h-3 w-3 border-r-2 border-t-2 border-orange-500/70' />
+            <div className='absolute bottom-0 left-0 h-3 w-3 border-l-2 border-b-2 border-orange-500/70' />
+            <div className='absolute bottom-0 right-0 h-3 w-3 border-r-2 border-b-2 border-orange-500/70' />
           </div>
         </div>
       </div>

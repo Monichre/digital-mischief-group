@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import {ScanEye, Users, Telescope, Cog} from 'lucide-react'
+import {ScanEye, Users} from 'lucide-react'
 
 // =============================================================================
 // TYPES
@@ -20,20 +20,6 @@ type Capability = {
 // =============================================================================
 
 const CAPABILITIES: Capability[] = [
-  {
-    tag: 'ARSENAL',
-    label: 'Templates + Blueprints',
-    description: 'deploy today',
-  href: '/field-reports',
-    icon: Cog,
-  },
-  {
-    tag: 'INTEL',
-    label: 'Field Reports',
-    description: 'teardowns + diagrams',
-    href: '/intel',
-    icon: Telescope,
-  },
   {
     tag: 'SUITE',
     label: 'Live Recon Tools',

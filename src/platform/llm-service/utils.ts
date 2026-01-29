@@ -105,6 +105,7 @@ export function isQuotaError(error: unknown): boolean {
   const errorMessage = error instanceof Error ? error.message : String(error)
   const creditIndicators = [
     "credit balance",
+    "insufficient funds",
     "insufficient_quota",
     "quota exceeded",
     "billing",

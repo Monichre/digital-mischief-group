@@ -2,7 +2,7 @@
 
 import {useState, useCallback} from 'react'
 import Link from 'next/link'
-import {ArrowLeft, Search, Loader2, Target, Zap} from 'lucide-react'
+import {ArrowLeft, Search, Loader2, Brain, Zap} from 'lucide-react'
 import {ThinkingPanel} from '@/components/research/ThinkingPanel'
 import {SourcePanel} from '@/components/research/SourcePanel'
 import {SynthesisPanel} from '@/components/research/SynthesisPanel'
@@ -116,9 +116,9 @@ export default function LiveResearchPage() {
 
           <div className='flex items-center gap-2'>
             <span className='text-orange-500 font-mono text-xs'>[</span>
-            <Target className='w-4 h-4 text-orange-500' />
+            <Brain className='w-4 h-4 text-orange-500' />
             <span className='font-mono text-sm tracking-wider'>
-              OPEN-RESEARCHER
+              DEEP INTEL
             </span>
             <span className='text-orange-500 font-mono text-xs'>]</span>
           </div>

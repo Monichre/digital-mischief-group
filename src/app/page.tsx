@@ -15,7 +15,7 @@ import {
   Swords,
   ScanEye,
   Radio,
-  Telescope,
+  Brain,
   MessageSquare,
 } from 'lucide-react'
 import {useState, useRef, useEffect} from 'react'
@@ -122,13 +122,6 @@ export default function Home() {
               War Games
               <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
             </Link>
-            <Link
-              href='/field-reports'
-              className='hover:text-white transition-colors relative group'
-            >
-              Field Reports
-              <span className='absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full' />
-            </Link>
             <div className='relative' ref={dropdownRef}>
               <button
                 onClick={() => setDaedalusOpen(!daedalusOpen)}
@@ -190,14 +183,14 @@ export default function Home() {
                       className='flex items-center gap-3 px-4 py-3 hover:bg-orange-500/10 transition-colors group'
                     >
                       <div className='w-8 h-8 rounded border border-orange-500/30 flex items-center justify-center bg-zinc-900'>
-                        <Telescope className='w-4 h-4 text-orange-400' />
+                        <Brain className='w-4 h-4 text-orange-400' />
                       </div>
                       <div>
                         <div className='text-sm text-zinc-200 group-hover:text-white'>
-                          Open-Researcher
+                          Deep Intel
                         </div>
                         <div className='text-[10px] text-zinc-500'>
-                          Autonomous Research Missions
+                          Intelligence Synthesis Missions
                         </div>
                       </div>
                     </Link>

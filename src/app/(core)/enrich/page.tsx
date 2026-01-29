@@ -659,7 +659,7 @@ export default function EnrichPage() {
             <div className='flex items-center gap-2'>
               <Sparkles className='w-4 h-4 text-orange-500 animate-pulse' />
               <span className='font-mono font-bold tracking-tighter text-lg'>
-                [ FIRE-ENRICH ]
+                [ TARGET ENRICH ]
               </span>
             </div>
             <AuthLinks
@@ -679,7 +679,7 @@ export default function EnrichPage() {
               <span>// MULTI-AGENT INTELLIGENCE</span>
             </div>
             <h1 className='text-4xl md:text-5xl font-bold tracking-tight mb-4'>
-              <span className='text-zinc-100'>Fire</span>
+              <span className='text-zinc-100'>Target</span>
               <span className='text-orange-500'>-Enrich</span>
             </h1>
             <p className='text-zinc-400 max-w-xl mx-auto'>

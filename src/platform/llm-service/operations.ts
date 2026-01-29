@@ -11,7 +11,7 @@ import {
   type ToolSet,
 } from "ai"
 import type { z } from "zod"
-import { getLLMProvider } from "./provider"
+import { getLLMProvider, canUseDirectProvider } from "./provider"
 import {
   type LLMProvider,
   type LLMResponse,
@@ -118,70 +118,88 @@ export async function generateText(
   for (let providerIndex = 0; providerIndex < providersToTry.length; providerIndex++) {
     const providerName = providersToTry[providerIndex]
     const modelOverride = resolveModelForProvider(providerName, options.model)
-    const { model, modelId } = getLLMProvider(providerName, modelOverride)
     const providerStart = Date.now()
     let providerError: unknown
     let providerErrorCode: LLMErrorCode = "unknown"
 
-    lastProvider = providerName
-    lastModelId = modelId
+    const attemptGenerate = async (channel: "gateway" | "direct") => {
+      const { model, modelId } = getLLMProvider(providerName, modelOverride, channel)
+      lastProvider = providerName
+      lastModelId = modelId
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await aiGenerateText({
-          model: model as any,
-          system: options.systemPrompt,
-          prompt: options.prompt,
-          temperature: options.temperature,
-          maxOutputTokens: options.maxTokens,
-          tools: options.tools,
-          ...(options.maxSteps ? { maxSteps: options.maxSteps } : {}),
-        } as Parameters<typeof aiGenerateText>[0])
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result = await aiGenerateText({
+            model: model as any,
+            system: options.systemPrompt,
+            prompt: options.prompt,
+            temperature: options.temperature,
+            maxOutputTokens: options.maxTokens,
+            tools: options.tools,
+            ...(options.maxSteps ? { maxSteps: options.maxSteps } : {}),
+          } as Parameters<typeof aiGenerateText>[0])
 
-        const text = stripMarkdownFences(result.text)
-        const durationMs = Date.now() - providerStart
+          const text = stripMarkdownFences(result.text)
+          const durationMs = Date.now() - providerStart
 
-        recordLLMRequest("enrich", true, {
-          provider: providerName,
-          model: modelId,
-          durationMs,
-          usedSafeMode: false,
-        })
+          recordLLMRequest("enrich", true, {
+            provider: providerName,
+            model: modelId,
+            durationMs,
+            usedSafeMode: false,
+          })
 
-        return {
-          data: text,
-          provider: providerName,
-          model: modelId,
-          usage: result.usage
-            ? {
-                promptTokens: result.usage.inputTokens ?? 0,
-                completionTokens: result.usage.outputTokens ?? 0,
-                totalTokens: result.usage.totalTokens ?? 0,
-              }
-            : undefined,
-          durationMs: Date.now() - requestStart,
-        }
-      } catch (error) {
-        providerError = error
-        lastError = error
+          return {
+            data: text,
+            provider: providerName,
+            model: modelId,
+            usage: result.usage
+              ? {
+                  promptTokens: result.usage.inputTokens ?? 0,
+                  completionTokens: result.usage.outputTokens ?? 0,
+                  totalTokens: result.usage.totalTokens ?? 0,
+                }
+              : undefined,
+            durationMs: Date.now() - requestStart,
+          }
+        } catch (error) {
+          providerError = error
+          lastError = error
 
-        if (isQuotaError(error)) {
-          providerErrorCode = "quota_exceeded"
-          break
-        }
+          if (isQuotaError(error)) {
+            providerErrorCode = "quota_exceeded"
+            break
+          }
 
-        if (attempt < maxRetries) {
-          await sleep(getBackoffDelay(attempt))
+          if (attempt < maxRetries) {
+            await sleep(getBackoffDelay(attempt))
+          }
         }
       }
+
+      recordLLMRequest("enrich", false, {
+        provider: providerName,
+        model: modelId,
+        durationMs: Date.now() - providerStart,
+      })
+
+      return null
     }
 
-    recordLLMRequest("enrich", false, {
-      provider: providerName,
-      model: modelId,
-      durationMs: Date.now() - providerStart,
-    })
+    const gatewayResult = await attemptGenerate("gateway")
+    if (gatewayResult) return gatewayResult
+
+    if (providerErrorCode === "quota_exceeded" && canUseDirectProvider(providerName)) {
+      recordLLMFallback("enrich", {
+        reason: "gateway_quota",
+        originalProvider: primaryProvider,
+        fallbackProvider: providerName,
+      })
+
+      const directResult = await attemptGenerate("direct")
+      if (directResult) return directResult
+    }
 
     lastErrorCode = providerErrorCode
 
@@ -227,125 +245,143 @@ export async function generateObject<T extends z.ZodTypeAny>(
   for (let providerIndex = 0; providerIndex < providersToTry.length; providerIndex++) {
     const providerName = providersToTry[providerIndex]
     const modelOverride = resolveModelForProvider(providerName, options.model)
-    const { model, modelId } = getLLMProvider(providerName, modelOverride)
     const providerStart = Date.now()
     let providerError: unknown
     let providerErrorCode: LLMErrorCode = "unknown"
     let usedSafeMode = false
 
-    lastProvider = providerName
-    lastModelId = modelId
+    const attemptGenerate = async (channel: "gateway" | "direct") => {
+      const { model, modelId } = getLLMProvider(providerName, modelOverride, channel)
+      lastProvider = providerName
+      lastModelId = modelId
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const prepared = ensureJsonInstruction(providerName, options.prompt, options.systemPrompt)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await aiGenerateObject({
-          model: model as any,
-          schema: options.schema,
-          system: prepared.systemPrompt,
-          prompt: prepared.prompt,
-          temperature: options.temperature,
-          maxOutputTokens: options.maxTokens,
-          tools: options.tools,
-          maxSteps: options.maxSteps,
-        })
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const prepared = ensureJsonInstruction(providerName, options.prompt, options.systemPrompt)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result = await aiGenerateObject({
+            model: model as any,
+            schema: options.schema,
+            system: prepared.systemPrompt,
+            prompt: prepared.prompt,
+            temperature: options.temperature,
+            maxOutputTokens: options.maxTokens,
+            tools: options.tools,
+            maxSteps: options.maxSteps,
+          })
 
-        const durationMs = Date.now() - providerStart
-        recordLLMRequest("enrich", true, {
-          provider: providerName,
-          model: modelId,
-          durationMs,
-          usedSafeMode: false,
-        })
+          const durationMs = Date.now() - providerStart
+          recordLLMRequest("enrich", true, {
+            provider: providerName,
+            model: modelId,
+            durationMs,
+            usedSafeMode: false,
+          })
 
-        return {
-          data: result.object,
-          provider: providerName,
-          model: modelId,
-          usage: result.usage
-            ? {
-                promptTokens: result.usage.inputTokens ?? 0,
-                completionTokens: result.usage.outputTokens ?? 0,
-                totalTokens: result.usage.totalTokens ?? 0,
+          return {
+            data: result.object,
+            provider: providerName,
+            model: modelId,
+            usage: result.usage
+              ? {
+                  promptTokens: result.usage.inputTokens ?? 0,
+                  completionTokens: result.usage.outputTokens ?? 0,
+                  totalTokens: result.usage.totalTokens ?? 0,
+                }
+              : undefined,
+            durationMs: Date.now() - requestStart,
+          }
+        } catch (error) {
+          providerError = error
+          lastError = error
+
+          if (isQuotaError(error)) {
+            providerErrorCode = "quota_exceeded"
+            break
+          }
+
+          // On validation failure, try safe mode schema if provided
+          if (
+            attempt === maxRetries &&
+            options.safeModeSchema &&
+            error instanceof Error &&
+            error.message.includes("validation")
+          ) {
+            try {
+              const prepared = ensureJsonInstruction(providerName, options.prompt, options.systemPrompt)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const safeResult = await aiGenerateObject({
+                model: model as any,
+                schema: options.safeModeSchema,
+                system: prepared.systemPrompt,
+                prompt: prepared.prompt,
+                temperature: options.temperature,
+                maxOutputTokens: options.maxTokens,
+              })
+
+              usedSafeMode = true
+              console.warn(`[LLM] Used safe mode fallback for ${modelId}`)
+
+              const fallbackDurationMs = Date.now() - providerStart
+              recordLLMFallback("enrich", {
+                reason: "validation_failure",
+                originalProvider: providerName,
+                fallbackProvider: providerName,
+              })
+              recordLLMRequest("enrich", true, {
+                provider: providerName,
+                model: modelId,
+                durationMs: fallbackDurationMs,
+                usedSafeMode: true,
+              })
+
+              return {
+                data: safeResult.object as z.infer<T>,
+                provider: providerName,
+                model: modelId,
+                usage: safeResult.usage
+                  ? {
+                      promptTokens: safeResult.usage.inputTokens ?? 0,
+                      completionTokens: safeResult.usage.outputTokens ?? 0,
+                      totalTokens: safeResult.usage.totalTokens ?? 0,
+                    }
+                  : undefined,
+                durationMs: Date.now() - requestStart,
               }
-            : undefined,
-          durationMs: Date.now() - requestStart,
-        }
-      } catch (error) {
-        providerError = error
-        lastError = error
-
-        if (isQuotaError(error)) {
-          providerErrorCode = "quota_exceeded"
-          break
-        }
-
-        // On validation failure, try safe mode schema if provided
-        if (
-          attempt === maxRetries &&
-          options.safeModeSchema &&
-          error instanceof Error &&
-          error.message.includes("validation")
-        ) {
-          try {
-            const prepared = ensureJsonInstruction(providerName, options.prompt, options.systemPrompt)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const safeResult = await aiGenerateObject({
-              model: model as any,
-              schema: options.safeModeSchema,
-              system: prepared.systemPrompt,
-              prompt: prepared.prompt,
-              temperature: options.temperature,
-              maxOutputTokens: options.maxTokens,
-            })
-
-            usedSafeMode = true
-            console.warn(`[LLM] Used safe mode fallback for ${modelId}`)
-
-            const fallbackDurationMs = Date.now() - providerStart
-            recordLLMFallback("enrich", {
-              reason: "validation_failure",
-              originalProvider: providerName,
-              fallbackProvider: providerName,
-            })
-            recordLLMRequest("enrich", true, {
-              provider: providerName,
-              model: modelId,
-              durationMs: fallbackDurationMs,
-              usedSafeMode: true,
-            })
-
-            return {
-              data: safeResult.object as z.infer<T>,
-              provider: providerName,
-              model: modelId,
-              usage: safeResult.usage
-                ? {
-                    promptTokens: safeResult.usage.inputTokens ?? 0,
-                    completionTokens: safeResult.usage.outputTokens ?? 0,
-                    totalTokens: safeResult.usage.totalTokens ?? 0,
-                  }
-                : undefined,
-              durationMs: Date.now() - requestStart,
+            } catch {
+              // Continue to throw primary error
             }
-          } catch {
-            // Continue to throw primary error
+          }
+
+          if (attempt < maxRetries) {
+            await sleep(getBackoffDelay(attempt))
           }
         }
-
-        if (attempt < maxRetries) {
-          await sleep(getBackoffDelay(attempt))
-        }
       }
+
+      recordLLMRequest("enrich", false, {
+        provider: providerName,
+        model: modelId,
+        durationMs: Date.now() - providerStart,
+        usedSafeMode,
+      })
+
+      return null
     }
 
-    recordLLMRequest("enrich", false, {
-      provider: providerName,
-      model: modelId,
-      durationMs: Date.now() - providerStart,
-      usedSafeMode,
-    })
+    const gatewayResult = await attemptGenerate("gateway")
+    if (gatewayResult) return gatewayResult
+
+    if (providerErrorCode === "quota_exceeded" && canUseDirectProvider(providerName)) {
+      recordLLMFallback("enrich", {
+        reason: "gateway_quota",
+        originalProvider: primaryProvider,
+        fallbackProvider: providerName,
+      })
+
+      const directResult = await attemptGenerate("direct")
+      if (directResult) return directResult
+    }
 
     lastErrorCode = providerErrorCode
 
@@ -382,17 +418,30 @@ export async function streamText(
   fullText: Promise<string>
 }> {
   const providerName = options.provider ?? "anthropic"
-  const { model, modelId } = getLLMProvider(providerName, options.model)
+  const attemptStream = (channel: "gateway" | "direct") => {
+    const { model } = getLLMProvider(providerName, options.model, channel)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return aiStreamText({
+      model: model as any,
+      system: options.systemPrompt,
+      prompt: options.prompt,
+      temperature: options.temperature,
+      maxOutputTokens: options.maxTokens,
+      tools: options.tools,
+    })
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = aiStreamText({
-    model: model as any,
-    system: options.systemPrompt,
-    prompt: options.prompt,
-    temperature: options.temperature,
-    maxOutputTokens: options.maxTokens,
-    tools: options.tools,
-  })
+  let result: ReturnType<typeof aiStreamText>
+
+  try {
+    result = attemptStream("gateway")
+  } catch (error) {
+    if (isQuotaError(error) && canUseDirectProvider(providerName)) {
+      result = attemptStream("direct")
+    } else {
+      throw error
+    }
+  }
 
   // Create async iterable for streaming chunks
   async function* streamChunks(): AsyncIterable<string> {

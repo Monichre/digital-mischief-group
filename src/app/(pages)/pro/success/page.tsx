@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import {Check, Zap, ArrowRight, User, FileText, Radar} from 'lucide-react'
+import {Check, Zap, ArrowRight, User, Radar} from 'lucide-react'
 import {motion} from 'framer-motion'
 
 export default function ProSuccessPage() {
@@ -114,27 +114,6 @@ export default function ProSuccessPage() {
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className='flex items-start gap-4'>
-              <div className='w-10 h-10 flex-shrink-0 flex items-center justify-center border border-zinc-700 bg-zinc-800 text-orange-500 font-bold'>
-                03
-              </div>
-              <div>
-                <h3 className='font-bold text-white flex items-center gap-2'>
-                  <FileText className='w-4 h-4 text-orange-500' />
-                  Browse Field Reports
-                </h3>
-                <p className='text-sm text-zinc-500 mt-1'>
-                  Access teardown briefs, templates, and deployment playbooks.
-                </p>
-                <Link
-                  href='/intel'
-                  className='inline-flex items-center gap-2 mt-2 text-sm text-orange-500 hover:text-orange-400'
-                >
-                  View Intel <ArrowRight className='w-3 h-3' />
-                </Link>
-              </div>
-            </div>
           </div>
         </motion.div>
 

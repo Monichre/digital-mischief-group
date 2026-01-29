@@ -18,7 +18,7 @@ interface SearchProgressIndicatorProps {
 const engineLabels: Record<SearchEngine, string> = {
   serper: "Google Search",
   exa: "Exa AI",
-  firecrawl: "Firecrawl",
+  firecrawl: "Deep Crawl",
 }
 
 export function SearchProgressIndicator({ searchProgress }: SearchProgressIndicatorProps) {

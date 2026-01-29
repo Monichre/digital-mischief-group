@@ -62,7 +62,7 @@ export function ThinkingPanel({events, isComplete}: ThinkingPanelProps) {
             {getEventIcon(event.type)}
             <div className='flex-1'>
               <div className='text-xs text-orange-500 font-mono mb-1'>
-                Thinking Block #{event.data.blockNumber}
+                Synthesizing Intelligence... (Block #{event.data.blockNumber})
               </div>
               <p className='text-sm text-zinc-300'>{event.data.content}</p>
             </div>

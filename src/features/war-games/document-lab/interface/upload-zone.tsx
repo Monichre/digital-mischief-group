@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 import { analyzePdf } from "../lib/actions"
 import { MarkdownRenderer } from "./markdown"
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1MB for OpenAI
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB for analysis
 
 interface UploadState {
   status: "idle" | "uploaded" | "analyzing" | "error" | "success"
@@ -48,6 +48,27 @@ export function UploadZoneWrapper() {
     }
   }, [])
 
+  const onDropRejected = useCallback((fileRejections: { file: File; errors: { code: string }[] }[]) => {
+    const rejection = fileRejections[0]
+    if (!rejection) return
+
+    const hasTypeError = rejection.errors.some((e) => e.code === "file-invalid-type")
+    const hasSizeError = rejection.errors.some((e) => e.code === "file-too-large")
+
+    const errorMessage = hasTypeError
+      ? "Only PDF files are supported."
+      : hasSizeError
+        ? "PDF file size exceeds 10MB limit."
+        : "Unable to accept this file."
+
+    setUploadState({
+      status: "error",
+      fileName: rejection.file?.name,
+      error: errorMessage,
+    })
+    toast.error("Upload failed", { description: errorMessage })
+  }, [])
+
   const handleAnalyze = async () => {
     if (!uploadState.fileBuffer || !question.trim()) return
 
@@ -79,6 +100,7 @@ export function UploadZoneWrapper() {
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: { "application/pdf": [".pdf"] },
     maxSize: MAX_FILE_SIZE,
     multiple: false,
@@ -206,7 +228,7 @@ export function UploadZoneWrapper() {
               <p className="text-sm text-stone-400">
                 Drag and drop or <span className="text-orange-300 font-medium">browse</span>
               </p>
-              <p className="text-xs text-stone-500 mt-1">Max 1MB</p>
+              <p className="text-xs text-stone-500 mt-1">Max 10MB</p>
             </div>
           </div>
         </div>

@@ -1,9 +1,12 @@
 "use server"
 
 import { generateText } from "ai"
+import { openai } from "@ai-sdk/openai"
 import { headers } from "next/headers"
 import { checkRateLimit } from "./rate-limit"
 import { MODELS } from "@/ai/models"
+import { isQuotaError } from "@/platform/llm-service"
+import { SUPPORTED_MODELS } from "@/platform/llm-service/types"
 
 
 interface AnalyzePdfParams {
@@ -39,10 +42,10 @@ export async function analyzePdf( { pdfBuffer, question }: AnalyzePdfParams ): P
       }
     }
 
-    // Check file size (1MB limit)
-    if ( pdfBuffer.byteLength > 1 * 1024 * 1024 ) {
+    // Check file size (10MB limit)
+    if ( pdfBuffer.byteLength > 10 * 1024 * 1024 ) {
       return {
-        error: new Error( "PDF file size exceeds 1MB limit" ),
+        error: new Error( "PDF file size exceeds 10MB limit" ),
       }
     }
 
@@ -92,6 +95,50 @@ export async function analyzePdf( { pdfBuffer, question }: AnalyzePdfParams ): P
         stack: aiError.stack,
         cause: aiError.cause,
       } )
+
+      // If AI Gateway is out of credits, fall back to direct OpenAI if available
+      if ( isQuotaError( aiError ) ) {
+        if ( process.env.OPENAI_API_KEY ) {
+          try {
+            const fallbackModelId =
+              SUPPORTED_MODELS[ "openai/gpt-4.1" ]?.modelId ?? "gpt-4.1"
+            const directModel = openai( fallbackModelId )
+            const fallbackResult = await generateText( {
+              model: directModel,
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    {
+                      type: "text",
+                      text: `Please analyze this PDF document and answer the following question: ${question}`,
+                    },
+                    {
+                      type: "file",
+                      data: buffer,
+                      mediaType: "application/pdf",
+                      filename: "document.pdf",
+                    },
+                  ],
+                },
+              ],
+              maxOutputTokens: 1000,
+            } )
+
+            console.log( "Direct OpenAI fallback succeeded" )
+            return fallbackResult.text
+          } catch ( fallbackError: any ) {
+            console.error( "Direct OpenAI fallback failed:", fallbackError )
+            return {
+              error: new Error( "AI gateway credits exhausted and direct fallback failed. Please verify your OpenAI API key or top up Vercel AI credits." ),
+            }
+          }
+        }
+
+        return {
+          error: new Error( "AI gateway credits exhausted. Please top up Vercel AI credits or set OPENAI_API_KEY for direct fallback." ),
+        }
+      }
 
       // Handle specific AI SDK errors
       if ( aiError.message?.includes( "API key" ) ) {

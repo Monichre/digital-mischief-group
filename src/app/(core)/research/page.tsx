@@ -15,7 +15,6 @@ import {
   Clock,
   Zap,
   Brain,
-  Target,
   ChevronDown,
   Play,
   Sparkles,
@@ -175,9 +174,9 @@ export default function ResearchPage() {
           </Link>
           <div className='flex items-center gap-2'>
             <span className='text-orange-500 font-mono text-xs'>[</span>
-            <Target className='w-4 h-4 text-orange-500' />
+            <Brain className='w-4 h-4 text-orange-500' />
             <span className='font-mono text-sm tracking-wider'>
-              OPEN-RESEARCHER
+              DEEP INTEL
             </span>
             <span className='text-orange-500 font-mono text-xs'>]</span>
           </div>
@@ -201,7 +200,7 @@ export default function ResearchPage() {
                 // AUTONOMOUS INTELLIGENCE
               </Badge>
               <h1 className='text-4xl md:text-5xl font-mono mb-4'>
-                Open-<span className='text-orange-500'>Researcher</span>
+                Deep <span className='text-orange-500'>Intelligence Analysis</span>
               </h1>
               <p className='text-zinc-400 max-w-2xl mx-auto mb-6'>
                 Deploy autonomous research missions across multiple intelligence
