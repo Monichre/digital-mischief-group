@@ -1,4 +1,5 @@
 import type React from 'react'
+import { Suspense } from 'react'
 import type {Metadata} from 'next'
 import {Share_Tech_Mono, Inter} from 'next/font/google'
 import './globals.css'
@@ -10,6 +11,7 @@ import {CommandMenuProvider} from '@/components/CommandMenu'
 import {GoogleAnalytics} from '@/components/analytics/GoogleAnalytics'
 import {AnalyticsProvider} from '@/components/analytics/AnalyticsProvider'
 import { Agentation } from "agentation";
+import { Analytics } from '@vercel/analytics/react'
 
 const shareTechMono = Share_Tech_Mono({
   weight: '400',
@@ -48,7 +50,9 @@ export default function RootLayout({
       <body
         className={`${shareTechMono.variable} ${inter.variable} font-mono antialiased bg-[#050507] text-gray-300 overflow-x-hidden`}
       >
-        <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         <AnalyticsProvider>
           <MenuProvider>
             <CommandMenuProvider>
@@ -61,6 +65,7 @@ export default function RootLayout({
             </CommandMenuProvider>
           </MenuProvider>
         </AnalyticsProvider>
+        <Analytics />
         {process.env.NODE_ENV === "development" && <Agentation clientId="dmg-client" />}
       </body>
     </html>
