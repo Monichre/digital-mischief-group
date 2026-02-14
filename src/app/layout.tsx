@@ -9,7 +9,7 @@ import {MenuToggle} from '@/components/MenuToggle'
 import {CommandMenuProvider} from '@/components/CommandMenu'
 import {GoogleAnalytics} from '@/components/analytics/GoogleAnalytics'
 import {AnalyticsProvider} from '@/components/analytics/AnalyticsProvider'
-import { Agentation } from "agentation";
+import {DevAgentation} from '@/components/DevAgentation'
 import { Analytics } from '@vercel/analytics/react'
 
 const shareTechMono = Share_Tech_Mono({
@@ -62,7 +62,7 @@ export default function RootLayout({
           </MenuProvider>
         </AnalyticsProvider>
         <Analytics />
-        {process.env.NODE_ENV === "development" && <Agentation clientId="dmg-client" />}
+        <DevAgentation />
       </body>
     </html>
   )

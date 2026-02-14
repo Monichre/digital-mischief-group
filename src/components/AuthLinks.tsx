@@ -1,6 +1,6 @@
 'use client'
 
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import Link from 'next/link'
 import {useRouter} from 'next/navigation'
 import {authClient} from '@/platform/auth/client'
@@ -20,6 +20,11 @@ export function AuthLinks({
   const router = useRouter()
   const {data: session, isPending} = authClient.useSession()
   const [signingOut, setSigningOut] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const baseLinkClass = cn(
     'text-xs text-zinc-400 hover:text-white transition-colors',
@@ -41,7 +46,7 @@ export function AuthLinks({
     }
   }
 
-  if (isPending) return null
+  if (!mounted || isPending) return null
 
   if (!session?.user) {
     return (

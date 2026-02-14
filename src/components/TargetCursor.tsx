@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef, useCallback, useMemo } from "react"
+import { useEffect, useRef, useCallback, useMemo, useState } from "react"
 import { gsap } from "gsap"
 
 export interface TargetCursorProps {
@@ -28,9 +28,9 @@ export const TargetCursor: React.FC<TargetCursorProps> = ({
   const targetCornerPositionsRef = useRef<{ x: number; y: number }[] | null>(null)
   const tickerFnRef = useRef<(() => void) | null>(null)
   const activeStrengthRef = useRef({ current: 0 })
+  const [isEnabled, setIsEnabled] = useState(false)
 
-  const isMobile = useMemo(() => {
-    if (typeof window === "undefined") return true
+  const isMobileDevice = useCallback(() => {
     const hasTouchScreen = "ontouchstart" in window || navigator.maxTouchPoints > 0
     const isSmallScreen = window.innerWidth <= 768
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
@@ -38,6 +38,12 @@ export const TargetCursor: React.FC<TargetCursorProps> = ({
     const isMobileUserAgent = mobileRegex.test(userAgent.toLowerCase())
     return (hasTouchScreen && isSmallScreen) || isMobileUserAgent
   }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const isAutomatedBrowser = navigator.webdriver
+    setIsEnabled(!isAutomatedBrowser && !isMobileDevice())
+  }, [isMobileDevice])
 
   const constants = useMemo(() => ({ borderWidth: 3, cornerSize: 12 }), [])
 
@@ -47,7 +53,7 @@ export const TargetCursor: React.FC<TargetCursorProps> = ({
   }, [])
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current) return
+    if (!isEnabled || !cursorRef.current) return
 
     const originalCursor = document.body.style.cursor
     if (hideDefaultCursor) {
@@ -267,19 +273,19 @@ export const TargetCursor: React.FC<TargetCursorProps> = ({
       targetCornerPositionsRef.current = null
       activeStrengthRef.current.current = 0
     }
-  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isMobile, hoverDuration, parallaxOn])
+  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isEnabled, hoverDuration, parallaxOn])
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current || !spinTl.current) return
+    if (!isEnabled || !cursorRef.current || !spinTl.current) return
     if (spinTl.current.isActive()) {
       spinTl.current.kill()
       spinTl.current = gsap
         .timeline({ repeat: -1 })
         .to(cursorRef.current, { rotation: "+=360", duration: spinDuration, ease: "none" })
     }
-  }, [spinDuration, isMobile])
+  }, [spinDuration, isEnabled])
 
-  if (isMobile) {
+  if (!isEnabled) {
     return null
   }
 
