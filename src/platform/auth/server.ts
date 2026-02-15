@@ -26,14 +26,40 @@ const pool =
 
 if ( process.env.NODE_ENV !== "production" ) global.__dmgPgPool = pool
 
+const baseURL =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://localhost:3000"
+
+const toOrigin = ( value: string ) => {
+  try {
+    return new URL( value ).origin
+  } catch {
+    return value.replace( /\/+$/, "" )
+  }
+}
+
+const trustedOrigins = Array.from(
+  new Set(
+    [
+      baseURL,
+      process.env.BETTER_AUTH_URL,
+      process.env.NEXT_PUBLIC_APP_URL,
+      ...( process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split( "," ) ?? [] ),
+      process.env.NODE_ENV !== "production" ? "http://localhost:3000" : undefined,
+      process.env.NODE_ENV !== "production" ? "http://127.0.0.1:3000" : undefined,
+    ]
+      .filter( ( value ): value is string => Boolean( value?.trim() ) )
+      .map( ( value ) => toOrigin( value.trim() ) )
+  )
+)
+
 export const auth = betterAuth( {
   // Provide an explicit Kysely dialect so Better Auth doesn't rely on runtime detection
   database: { dialect: new PostgresDialect( { pool } ), type: "postgres" },
   secret: process.env.BETTER_AUTH_SECRET,
-  baseURL:
-    process.env.BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "http://localhost:3000",
+  baseURL,
+  trustedOrigins,
   emailAndPassword: { enabled: true },
   user: {
     fields: {

@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<audit version="0.0.38">
+<site url="https://www.digitalmischiefgroup.com" crawled="13" date="2026-02-15T00:00:40.572Z"/>
+<score overall="30" grade="F">
+ <cat name="Accessibility" score="79"/>
+ <cat name="Crawlability" score="61"/>
+ <cat name="Links" score="70"/>
+ <cat name="Core SEO" score="67"/>
+ <cat name="Performance" score="91"/>
+ <cat name="Content" score="74"/>
+ <cat name="E-E-A-T" score="57"/>
+ <cat name="Security" score="84"/>
+ <cat name="Images" score="86"/>
+ <cat name="Legal Compliance" score="44"/>
+ <cat name="Internationalization" score="100"/>
+ <cat name="Mobile" score="100"/>
+ <cat name="URL Structure" score="100"/>
+</score>
+<summary passed="843" warnings="212" failed="47"/>
+<issues>
+ <category name="Crawlability" errors="1" warnings="7">
+  <rule id="crawl/sitemap-exists" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/crawl/sitemap-exists">
+   No XML sitemap found
+  </rule>
+  <rule id="crawl/robots-txt" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/crawl/robots-txt">
+   No robots.txt found
+  </rule>
+  <rule id="crawl/canonical-chain" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/crawl/canonical-chain">
+   Page redirects before content is served
+   Pages (5/6): /brand-recon, /enrich, /observe, /profile, /scouts
+   Items (5/6):
+    - /enrich (https://www.digitalmischiefgroup.com/enrich (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich (200)) [finalUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/enrich&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/enrich&quot;…]
+    - /brand-recon (https://www.digitalmischiefgroup.com/brand-recon (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon (200)) [finalUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/brand-recon&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.c…]
+    - /scouts (https://www.digitalmischiefgroup.com/scouts (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts (200)) [finalUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/scouts&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/scouts&quot;…]
+    - /observe (https://www.digitalmischiefgroup.com/observe (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve (200)) [finalUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/observe&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/obser…]
+    - /profile (https://www.digitalmischiefgroup.com/profile (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile (200)) [finalUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/profile&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/profi…]
+  </rule>
+ </category>
+ <category name="Core SEO" errors="0" warnings="97">
+  <rule id="core/meta-title" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/core/meta-title">
+   Title too short
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (5/12):
+    - / (Digital Mischief Group (22 chars))
+    - /enrich (Digital Mischief Group (22 chars))
+    - /cortex (Digital Mischief Group (22 chars))
+    - /brand-recon (Digital Mischief Group (22 chars))
+    - /scouts (Digital Mischief Group (22 chars))
+  </rule>
+  <rule id="core/meta-description" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/core/meta-description">
+   Description too short
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (5/12):
+    - / (Creative Technology Studio - Experimental interfac (101 chars))
+    - /enrich (Creative Technology Studio - Experimental interfac (101 chars))
+    - /cortex (Creative Technology Studio - Experimental interfac (101 chars))
+    - /brand-recon (Creative Technology Studio - Experimental interfac (101 chars))
+    - /scouts (Creative Technology Studio - Experimental interfac (101 chars))
+  </rule>
+  <rule id="core/canonical" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/core/canonical">
+   Missing canonical URL
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+  </rule>
+  <rule id="core/og-tags" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/core/og-tags">
+   Missing og:title; Missing og:description; Missing og:image - social shares will lack imagery
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+  </rule>
+  <rule id="core/title-unique" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/core/title-unique">
+   1 duplicate title(s) affecting 12 pages
+   Items (1):
+    - digital mischief group (&quot;digital mischief group...&quot; (12 pages)) [pageCount: 12] (from: /, /enrich, /cortex, /brand-recon, /scouts; +7 more)
+  </rule>
+  <rule id="core/favicon" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/core/favicon">
+   No favicon found
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+  </rule>
+  <rule id="core/twitter-cards" severity="info" status="warn" docs="https://docs.squirrelscan.com/rules/core/twitter-cards">
+   No Twitter card or Open Graph tags for Twitter sharing
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+  </rule>
+ </category>
+ <category name="Security" errors="0" warnings="3">
+  <rule id="security/csp" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/csp">
+   No Content-Security-Policy header
+  </rule>
+  <rule id="security/x-frame-options" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/x-frame-options">
+   No clickjacking protection
+  </rule>
+  <rule id="security/http-to-https" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/http-to-https">
+   12 HTTP URL(s) redirect to HTTPS
+   Items (5/12):
+    - http://www.digitalmischiefgroup.com/ (http://www.digitalmischiefgroup.com/ → https://www.digitalmischiefgroup.com/ (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.digitalmischiefgroup.com/&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.digitalmischiefgroup.com/&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;ht…]
+    - http://www.digitalmischiefgroup.com/enrich (http://www.digitalmischiefgroup.com/enrich → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.digitalmischiefgroup.com/enrich&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.digitalmischiefgroup.com/enrich&quot;,&quot;…]
+    - http://www.digitalmischiefgroup.com/cortex (http://www.digitalmischiefgroup.com/cortex → https://www.digitalmischiefgroup.com/cortex (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.digitalmischiefgroup.com/cortex&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/cortex&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.digitalmischiefgroup.com/cortex&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:…]
+    - http://www.digitalmischiefgroup.com/brand-recon (http://www.digitalmischiefgroup.com/brand-recon → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.digitalmischiefgroup.com/brand-recon&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.digitalmischiefgroup.com…]
+    - http://www.digitalmischiefgroup.com/scouts (http://www.digitalmischiefgroup.com/scouts → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.digitalmischiefgroup.com/scouts&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.digitalmischiefgroup.com/scouts&quot;,&quot;…]
+  </rule>
+ </category>
+ <category name="Links" errors="1" warnings="5">
+  <rule id="links/broken-links" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/links/broken-links">
+   1 broken internal link(s) (4xx/5xx)
+   Items (1):
+    - /schematics (https://www.digitalmischiefgroup.com/schematics (404)) [statusCode: 404, linkedFrom: 1] (from: /war-games)
+  </rule>
+  <rule id="links/orphan-pages" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/links/orphan-pages">
+   3 orphan page(s) with &lt;2 incoming links
+   Items (3):
+    - /war-games
+    - /sign-in
+    - /schematics
+  </rule>
+  <rule id="links/redirect-chains" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/links/redirect-chains">
+   6 page(s) redirect to another URL; 6 link target(s) point to redirecting URLs
+   Items (5/12):
+    - /enrich (https://www.digitalmischiefgroup.com/enrich (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich (200)) [targetUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/enrich&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fenrich&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/enrich&quot;…]
+    - /brand-recon (https://www.digitalmischiefgroup.com/brand-recon (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon (200)) [targetUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/brand-recon&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fbrand-recon&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.c…]
+    - /scouts (https://www.digitalmischiefgroup.com/scouts (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts (200)) [targetUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/scouts&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fscouts&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/scouts&quot;…]
+    - /observe (https://www.digitalmischiefgroup.com/observe (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve (200)) [targetUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/observe&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fobserve&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/obser…]
+    - /profile (https://www.digitalmischiefgroup.com/profile (307) → https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile (200)) [targetUrl: https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile, chain: {&quot;sourceUrl&quot;:&quot;https://www.digitalmischiefgroup.com/profile&quot;,&quot;finalUrl&quot;:&quot;https://www.digitalmischiefgroup.com/sign-in?callbackUrl=%2Fprofile&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;https://www.digitalmischiefgroup.com/profi…]
+  </rule>
+  <rule id="links/weak-internal-links" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/links/weak-internal-links">
+   3 page(s) have only 1 internal link
+   Items (3):
+    - /war-games
+    - /sign-in
+    - /schematics
+  </rule>
+  <rule id="links/tel-mailto" severity="info" status="warn" docs="https://docs.squirrelscan.com/rules/links/tel-mailto">
+   3 mailto link(s) have mismatched email in href vs display text
+   Pages (1): /
+   Items (3):
+    - mailto:liam@liamellis.dev?subject=DMG%20Bug%20Report (href &quot;liam@liamellis.dev&quot; ≠ text &quot;liam@liamellis.dev →&quot;) | &lt;a href=&quot;mailto:liam@liamellis.dev?subject=DMG%20Bug%20Report&quot; class=&quot;text-sm text-orange-500 hover:text-orange-400 transition-colors&quot;&gt;liam@liamellis.dev →&lt;/a&gt;
+    - mailto:liam@liamellis.dev?subject=DMG%20Feature%20Suggestion (href &quot;liam@liamellis.dev&quot; ≠ text &quot;liam@liamellis.dev →&quot;) | &lt;a href=&quot;mailto:liam@liamellis.dev?subject=DMG%20Feature%20Suggestion&quot; class=&quot;text-sm text-orange-500 hover:text-orange-400 transition-colors&quot;&gt;liam@liamellis.dev →&lt;/a&gt;
+    - mailto:liam@liamellis.dev?subject=DMG%20Inquiry (href &quot;liam@liamellis.dev&quot; ≠ text &quot;liam@liamellis.dev →&quot;) | &lt;a href=&quot;mailto:liam@liamellis.dev?subject=DMG%20Inquiry&quot; class=&quot;text-sm text-orange-500 hover:text-orange-400 transition-colors&quot;&gt;liam@liamellis.dev →&lt;/a&gt;
+  </rule>
+ </category>
+ <category name="Content" errors="0" warnings="14">
+  <rule id="content/duplicate-title" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/duplicate-title">
+   1 duplicate title(s) found across 12 pages
+   Items (1):
+    - digital mischief group (&quot;digital mischief group...&quot; (12 pages)) [pageCount: 12] (from: /, /enrich, /cortex, /brand-recon, /scouts; +7 more)
+  </rule>
+  <rule id="content/duplicate-description" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/duplicate-description">
+   1 duplicate description(s) found across 12 pages
+   Items (1):
+    - creative technology studio - experimental interfaces, audio- (&quot;creative technology studio - experimenta...&quot; (12 pages)) [pageCount: 12] (from: /, /enrich, /cortex, /brand-recon, /scouts; +7 more)
+  </rule>
+  <rule id="content/keyword-stuffing" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/keyword-stuffing">
+   1 word(s) may be overused
+   Pages (1): /loadout
+   Items (1):
+    - intel (&quot;intel&quot; (3.4%)) [count: 6, density: 3.35195530726257]
+  </rule>
+  <rule id="content/word-count" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/word-count">
+   Thin content: N words (min N)
+   Pages (5/11): /brand-recon, /cortex, /enrich, /loadout, /observe
+   Items (5/11):
+    - /enrich (Thin content: 27 words (min 300))
+    - /cortex (Thin content: 44 words (min 300))
+    - /brand-recon (Thin content: 27 words (min 300))
+    - /scouts (Thin content: 27 words (min 300))
+    - /observe (Thin content: 27 words (min 300))
+  </rule>
+ </category>
+ <category name="Images" errors="0" warnings="2">
+  <rule id="images/image-file-size" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/images/image-file-size">
+   1 image(s) exceed 200.0 KB
+   Items (1):
+    - /images/liam-face.png [sizeBytes: 588645, size: 574.8 KB, status: 200, contentType: image/png] (from: /)
+  </rule>
+  <rule id="images/dimensions" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/images/dimensions">
+   3 image(s) missing width/height (causes CLS)
+   Pages (1): /
+   Items (3):
+    - /images/liam-face.png | &lt;img src=&quot;https://www.digitalmischiefgroup.com/images/liam-face.png&quot; alt=&quot;Liam Ellis&quot;&gt;
+    - /portrait-silhouette-cyberpunk-style-person.jpg | &lt;img src=&quot;https://www.digitalmischiefgroup.com/portrait-silhouette-cyberpunk-style-person.jpg&quot; alt=&quot;Brendan Ellis&quot;&gt;
+    - /portrait-silhouette-neon-style-person.jpg | &lt;img src=&quot;https://www.digitalmischiefgroup.com/portrait-silhouette-neon-style-person.jpg&quot; alt=&quot;JP McMonagle&quot;&gt;
+  </rule>
+ </category>
+ <category name="Performance" errors="0" warnings="37">
+  <rule id="perf/cls-hints" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/perf/cls-hints">
+   3 image(s) without width/height (CLS risk)
+   Pages (1): /
+   Items (3):
+    - /images/liam-face.png
+    - /portrait-silhouette-cyberpunk-style-person.jpg
+    - /portrait-silhouette-neon-style-person.jpg
+  </rule>
+  <rule id="perf/render-blocking" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/perf/render-blocking">
+   4 render-blocking resources
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (4):
+    - /_next/static/chunks/89132f2d267f63fa.css?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+    - /_next/static/chunks/171e0843fbe955f1.css?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+    - https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css
+    - /_next/static/chunks/a6dad97d9634a72d.js?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+  </rule>
+  <rule id="perf/critical-request-chains" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/perf/critical-request-chains">
+   4 critical request chain(s) found
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (4):
+    - CSS: /_next/static/chunks/89132f2d267f63fa.css?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+    - CSS: /_next/static/chunks/171e0843fbe955f1.css?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+    - CSS: https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css
+    - JS: /_next/static/chunks/a6dad97d9634a72d.js?dpl=dpl_Gw8eiwNXY8RXVV5riEdpj1JUjyWs
+  </rule>
+  <rule id="perf/preconnect" severity="info" status="warn" docs="https://docs.squirrelscan.com/rules/perf/preconnect">
+   Missing preconnect for 1 CDN(s)
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (1):
+    - cdn.jsdelivr.net
+  </rule>
+ </category>
+ <category name="Accessibility" errors="45" warnings="43">
+  <rule id="a11y/button-name" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/a11y/button-name">
+   Buttons without accessible names
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (1):
+    - button.absolute
+  </rule>
+  <rule id="a11y/aria-command-name" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/a11y/aria-command-name">
+   N command element(s) without accessible names
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (2):
+    - button[type=&quot;submit&quot;]
+    - button[type=&quot;button&quot;]
+  </rule>
+  <rule id="a11y/aria-labels" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/a11y/aria-labels">
+   N button(s) without accessible names
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (2):
+    - absolute top-8 right-8 z-10 p-
+    - absolute right-3 top-1/2 -tran
+  </rule>
+  <rule id="a11y/form-labels" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/a11y/form-labels">
+   N form input(s) without labels
+   Pages (5/9): /brand-recon, /cortex, /enrich, /observe, /profile
+   Items (4):
+    - email
+    - password
+    - input
+    - text
+  </rule>
+  <rule id="a11y/color-contrast" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/a11y/color-contrast">
+   N potential color contrast issue(s)
+   Pages (5/12): /, /brand-recon, /cortex, /enrich, /loadout
+   Items (5/22):
+    - body with class &quot;share_tech_mono_858c1a4f-modul...&quot; may have low contrast
+    - svg with class &quot;lucide lucide-menu w-5 h-5 tex...&quot; may have low contrast
+    - span with class &quot;text-xs tracking-[0.3em] text-...&quot; may have low contrast
+    - div with class &quot;fixed inset-0 z-[1] opacity-30...&quot; may have low contrast
+    - svg with class &quot;pointer-events-none absolute i...&quot; may have low contrast
+  </rule>
+  <rule id="a11y/landmark-one-main" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/a11y/landmark-one-main">
+   Page has no main landmark
+   Pages (5/10): /, /brand-recon, /enrich, /observe, /profile
+  </rule>
+  <rule id="a11y/heading-order" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/a11y/heading-order">
+   1 heading level skip(s) detected
+   Pages (1): /
+   Items (1):
+    - H4 after H2
+  </rule>
+  <rule id="a11y/skip-link" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/a11y/skip-link">
+   No bypass mechanism for repetitive content
+   Pages (5/10): /, /brand-recon, /enrich, /observe, /profile
+  </rule>
+  <rule id="a11y/landmark-regions" severity="info" status="warn" docs="https://docs.squirrelscan.com/rules/a11y/landmark-regions">
+   No &lt;main&gt; landmark found
+   Pages (5/10): /, /brand-recon, /enrich, /observe, /profile
+  </rule>
+ </category>
+ <category name="E-E-A-T" errors="0" warnings="3">
+  <rule id="eeat/about-page" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/eeat/about-page">
+   No About page found
+  </rule>
+  <rule id="eeat/contact-page" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/eeat/contact-page">
+   No Contact page found
+  </rule>
+  <rule id="eeat/privacy-policy" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/eeat/privacy-policy">
+   No Privacy Policy page found
+  </rule>
+ </category>
+ <category name="Legal Compliance" errors="0" warnings="1">
+  <rule id="legal/privacy-policy" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/legal/privacy-policy">
+   No privacy policy link found across site
+  </rule>
+ </category>
+</issues>
+</audit>
