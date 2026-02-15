@@ -156,7 +156,7 @@ src/
 
 ## 📊 Primitive Status
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-02-15
 
 | Primitive | Implementation | Status | User Story |
 |-----------|----------------|--------|------------|

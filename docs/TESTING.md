@@ -1,7 +1,7 @@
 # Daedalus Testing Guide
 
-**Last Updated:** 2026-01-21
-**Status:** Initial test infrastructure established
+**Last Updated:** 2026-02-15
+**Status:** Test infrastructure established, coverage expanding
 
 ---
 
@@ -53,6 +53,16 @@ Custom Bun test type definitions are located in:
 - Rate limiting enforcement
 - Error handling and structured errors
 - Search functionality
+
+#### Scout Workflow Tests
+**Location:** `src/daedalus/scout/workflow.test.ts`
+**Status:** ✅ PASSING
+**Coverage:** Comprehensive
+
+**Test Cases:**
+- URL normalization (trailing slashes, lowercase, UTM removal)
+- Deduplication logic (previously seen URLs, normalized matching, batch deduplication)
+- Schedule calculation (manual, hourly, daily, weekly)
 
 **Key Testing Patterns:**
 ```typescript
@@ -486,21 +496,25 @@ async function seedTestData() {
 
 ## Test Metrics
 
-### Current Status (2026-01-21)
+### Current Status (2026-02-15)
 
 **Test Execution:**
-- Total Tests: 8 (Firecrawl service only)
-- Passing: 8/8 (100%)
+- Total Tests: 20+ (Firecrawl + Scout workflows)
+- Passing: 20+/20+ (100%)
 - Failing: 0
-- Execution Time: <1 second
+- Execution Time: <2 seconds
+
+**Test Files:**
+- `src/platform/firecrawl/service.test.ts` - Firecrawl service comprehensive tests
+- `src/daedalus/scout/workflow.test.ts` - Scout workflow unit tests
 
 **Coverage:**
-- Platform Services: 25% (Firecrawl only)
+- Platform Services: 30% (Firecrawl + Scout)
 - API Routes: 0%
-- Workflows: 0%
+- Workflows: 15% (Scout workflow tested)
 - UI Components: 0%
 
-**Overall Coverage:** ~5% (needs significant expansion)
+**Overall Coverage:** ~10% (needs significant expansion)
 
 ### Target Metrics (Goals)
 

@@ -1,9 +1,17 @@
+import type { ToolSet } from "ai"
 import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { CompanyProfileResultSchema, COMPANY_PROFILE_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, DiscoveryResult, EnrichmentContext, CompanyProfileResult } from "../types"
 import { extractTool, mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
+
+// Cast firecrawl tools to ToolSet type for AI SDK compatibility
+const firecrawlTools = {
+  map: mapTool as ToolSet[string],
+  scrape: scrapeTool as ToolSet[string],
+  extract: extractTool as ToolSet[string],
+}
 
 function classifySegment( employeeCount: number | null ): "SMB" | "Mid-Market" | "Enterprise" | "Unknown" {
   if ( !employeeCount ) return "Unknown"
@@ -116,7 +124,7 @@ Extract from any visible text including headers, footers, About pages, and metad
 
         const { object } = await generateObjectWithFallback( {
           schema: FallbackSchema,
-          tools: { map: mapTool, scrape: scrapeTool, extract: extractTool },
+          tools: firecrawlTools,
           maxSteps: 8,
           temperature: 0.2,
           maxTokens: 900,
