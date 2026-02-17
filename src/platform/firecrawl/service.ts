@@ -174,6 +174,11 @@ type FirecrawlScrapePayload = {
   links?: string[]
   screenshot?: string
   branding?: Record<string, unknown>
+  data?: {
+    branding?: Record<string, unknown>
+    screenshot?: string
+    metadata?: Record<string, unknown>
+  }
   json?: Record<string, unknown>
   metadata?: Record<string, unknown>
 } & Record<string, unknown>
@@ -463,8 +468,8 @@ export class FirecrawlService {
     }
 
     const payload = scrapeResult.data
-    const brandingData = payload.branding as BrandingProfileLegacy | undefined
-    const metadata = payload.metadata ?? {}
+    const brandingData = (payload.branding ?? payload.data?.branding) as BrandingProfileLegacy | undefined
+    const metadata = payload.metadata ?? payload.data?.metadata ?? {}
 
     if (!brandingData || isEmptyObject(brandingData)) {
       return {
@@ -504,7 +509,7 @@ export class FirecrawlService {
       animations: brandingData?.animations as BrandingProfile['animations'],
       layout: brandingData?.layout as BrandingProfile['layout'],
       personality: brandingData?.personality as BrandingProfile['personality'],
-      screenshot: payload.screenshot,
+      screenshot: payload.screenshot ?? payload.data?.screenshot,
     }
 
     return { success: true, data: brandingProfile, meta: scrapeResult.meta }
@@ -540,9 +545,9 @@ export class FirecrawlService {
     return {
       success: true,
       data: {
-        branding: scrapeResult.data.branding as BrandingProfileLegacy,
-        metadata: scrapeResult.data.metadata,
-        screenshot: scrapeResult.data.screenshot,
+        branding: (scrapeResult.data.branding ?? scrapeResult.data.data?.branding) as BrandingProfileLegacy,
+        metadata: scrapeResult.data.metadata ?? scrapeResult.data.data?.metadata,
+        screenshot: scrapeResult.data.screenshot ?? scrapeResult.data.data?.screenshot,
       },
       meta: scrapeResult.meta,
     }
