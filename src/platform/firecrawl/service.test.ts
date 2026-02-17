@@ -77,4 +77,40 @@ describe('FirecrawlService', () => {
     expect(result.success).toBe(false)
     expect(result.errorDetails?.code).toBe('empty_response')
   })
+
+  it('supports v2 envelope branding payloads from scrape', async () => {
+    const app = {
+      scrape: async () => ({
+        data: {
+          branding: {
+            colorScheme: 'dark',
+            colors: { primary: '#FF6B35' },
+            images: { logo: 'https://example.com/logo.svg' },
+          },
+          metadata: {
+            title: 'Example',
+            description: 'Example description',
+          },
+          screenshot: 'https://example.com/screenshot.png',
+        },
+      }),
+      search: async () => ({}),
+      startAgent: async () => ({}),
+      getAgentStatus: async () => ({}),
+    } satisfies NonNullable<FirecrawlServiceOptions['app']>
+
+    const service = createFirecrawlService({ app, maxRetries: 0, backoffMs: 0 })
+
+    const result = await service.extractBrand('https://example.com', {
+      useFallbacks: false,
+      retries: 0,
+      backoffMs: 0,
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.data?.siteTitle).toBe('Example')
+    expect(result.data?.siteDescription).toBe('Example description')
+    expect(result.data?.images?.logo).toBe('https://example.com/logo.svg')
+    expect(result.data?.screenshot).toBe('https://example.com/screenshot.png')
+  })
 })
