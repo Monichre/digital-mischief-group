@@ -4,6 +4,7 @@ import {useState} from 'react'
 import {
   Shield,
   Crosshair,
+  Building2,
   Sparkles,
   Loader2,
   Check,
@@ -653,6 +654,11 @@ export function CrossPrimitiveCTAs({
   const [showMonitorDialog, setShowMonitorDialog] = useState(false)
   const [showAssetDialog, setShowAssetDialog] = useState(false)
 
+  const enrichInput = context.website || context.domain || context.companyName
+  const enrichHref = enrichInput
+    ? `/enrich?input=${encodeURIComponent(enrichInput)}`
+    : '/enrich'
+
   const containerClass =
     variant === 'horizontal'
       ? 'flex flex-wrap items-center gap-2'
@@ -678,6 +684,14 @@ export function CrossPrimitiveCTAs({
           <Crosshair className="w-4 h-4 text-orange-500 group-hover:animate-pulse" />
           <span className="text-zinc-300">Create Monitor</span>
         </button>
+
+        <Link
+          href={enrichHref}
+          className="flex items-center gap-2 px-3 py-2 bg-zinc-800/50 border border-zinc-700 hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors text-sm font-mono group"
+        >
+          <Building2 className="w-4 h-4 text-orange-500 group-hover:animate-pulse" />
+          <span className="text-zinc-300">Enrich This Company</span>
+        </Link>
 
         {/* Generate Asset Pack CTA */}
         <button

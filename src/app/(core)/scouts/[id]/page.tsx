@@ -27,6 +27,7 @@ import {
 } from '@/components/open-scouts/ui/dialog'
 import {Connector} from '@/components/open-scouts/shared/layout/Connector'
 import SymbolColored from '@/components/open-scouts/shared/icons/SymbolColored'
+import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas/CrossPrimitiveCTAs'
 
 type ScoutRun = {
   id: string
@@ -194,6 +195,16 @@ export default function ScoutDetailPage() {
     return showNotFound ? runs : runs.filter((run) => run.new_results_count > 0)
   }, [runs, showNotFound])
 
+  const primaryResultUrl = useMemo(() => results[0]?.url, [results])
+  const inferredDomain = useMemo(() => {
+    if (!primaryResultUrl) return undefined
+    try {
+      return new URL(primaryResultUrl).hostname
+    } catch {
+      return undefined
+    }
+  }, [primaryResultUrl])
+
   const hasRunningExecution = runs.some((run) => run.status === 'running')
   const isInRunningState = triggering || hasRunningExecution
   const isButtonDisabled = triggering || hasRunningExecution
@@ -317,6 +328,20 @@ export default function ScoutDetailPage() {
                 {scout.search_query}
               </p>
             )}
+
+            <div className='w-full max-w-[780px] mb-[24px] border border-border-faint rounded-[8px] p-[12px] bg-white'>
+              <div className='text-mono-x-small uppercase tracking-wider text-black-alpha-48 mb-[10px]'>
+                Quick Actions
+              </div>
+              <CrossPrimitiveCTAs
+                context={{
+                  companyName: scout.name,
+                  domain: inferredDomain,
+                  website: primaryResultUrl,
+                  description: scout.search_query,
+                }}
+              />
+            </div>
 
             <div className='flex items-center justify-center gap-[16px] lg:gap-[24px] flex-wrap'>
               <div className='hidden sm:flex items-center gap-[12px]'>

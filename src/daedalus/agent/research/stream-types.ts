@@ -2,6 +2,7 @@
 
 export type StreamEventType =
   | 'thinking'
+  | 'reasoning'
   | 'search_start'
   | 'search_result'
   | 'search_fallback'
@@ -23,6 +24,14 @@ export interface StreamEvent {
 
 export interface ThinkingEvent {
   type: 'thinking'
+  data: {
+    blockNumber: number
+    content: string
+  }
+}
+
+export interface ReasoningEvent {
+  type: 'reasoning'
   data: {
     blockNumber: number
     content: string
@@ -149,6 +158,7 @@ export interface CitationFoundEvent {
 
 export type ResearchStreamEvent =
   | ThinkingEvent
+  | ReasoningEvent
   | SearchStartEvent
   | SearchResultEvent
   | SearchFallbackEvent

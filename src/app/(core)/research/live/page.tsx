@@ -1,25 +1,40 @@
 'use client'
 
-import {useState, useCallback} from 'react'
+import {useState, useCallback, useMemo} from 'react'
 import Link from 'next/link'
 import {ArrowLeft, Search, Loader2, Brain, Zap} from 'lucide-react'
 import {ThinkingPanel} from '@/components/research/ThinkingPanel'
 import {SourcePanel} from '@/components/research/SourcePanel'
 import {SynthesisPanel} from '@/components/research/SynthesisPanel'
 import {AuthLinks} from '@/components/AuthLinks'
+import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas/CrossPrimitiveCTAs'
 import type {
+  CitationFoundEvent,
   ResearchStreamEvent,
   SourceFoundEvent,
 } from '@/daedalus/agent/research/stream-types'
+import {normalizeResearchStreamEvent} from '@/daedalus/agent/research/stream-normalizer'
 
 export default function LiveResearchPage() {
   const [query, setQuery] = useState('')
   const [isResearching, setIsResearching] = useState(false)
   const [events, setEvents] = useState<ResearchStreamEvent[]>([])
   const [sources, setSources] = useState<SourceFoundEvent['data'][]>([])
+  const [citations, setCitations] = useState<CitationFoundEvent['data'][]>([])
   const [synthesis, setSynthesis] = useState('')
   const [isComplete, setIsComplete] = useState(false)
   const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [highlightedSourceUrl, setHighlightedSourceUrl] = useState<string | null>(null)
+
+  const primarySource = sources[0]
+  const inferredDomain = useMemo(() => {
+    if (!primarySource?.url) return undefined
+    try {
+      return new URL(primarySource.url).hostname
+    } catch {
+      return undefined
+    }
+  }, [primarySource])
 
   const handleResearch = useCallback(async () => {
     if (!query.trim() || isResearching) return
@@ -29,8 +44,10 @@ export default function LiveResearchPage() {
     setIsComplete(false)
     setEvents([])
     setSources([])
+    setCitations([])
     setSynthesis('')
     setIsSynthesizing(false)
+    setHighlightedSourceUrl(null)
 
     try {
       const response = await fetch('/api/agent', {
@@ -58,12 +75,17 @@ export default function LiveResearchPage() {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const event = JSON.parse(line.slice(6)) as ResearchStreamEvent
+              const rawEvent = JSON.parse(line.slice(6)) as unknown
+              const event = normalizeResearchStreamEvent(rawEvent)
+              if (!event) continue
+
               setEvents((prev) => [...prev, event])
 
               // Handle specific events
               if (event.type === 'source_found') {
                 setSources((prev) => [...prev, event.data])
+              } else if (event.type === 'citation_found') {
+                setCitations((prev) => [...prev, event.data])
               } else if (event.type === 'synthesis_start') {
                 setIsSynthesizing(true)
               } else if (event.type === 'synthesis_chunk') {
@@ -186,11 +208,31 @@ export default function LiveResearchPage() {
 
         {/* Right Panel - Sources + Synthesis */}
         <div className='flex-1 flex flex-col overflow-hidden min-h-0'>
+          {(sources.length > 0 || synthesis) && (
+            <div className='border-b border-zinc-800 bg-zinc-900/20 px-4 py-3'>
+              <div className='flex items-center gap-2 mb-2'>
+                <div className='w-1 h-4 bg-orange-500' />
+                <span className='text-[10px] uppercase tracking-widest text-zinc-500'>
+                  Quick Actions
+                </span>
+              </div>
+              <CrossPrimitiveCTAs
+                context={{
+                  companyName: primarySource?.title || query,
+                  website: primarySource?.url,
+                  domain: inferredDomain,
+                  description: synthesis ? synthesis.slice(0, 220) : undefined,
+                }}
+              />
+            </div>
+          )}
+
           {/* Sources */}
           <div className='flex-1 overflow-hidden min-h-0'>
             <SourcePanel
               sources={sources}
               isLoading={isResearching && sources.length === 0}
+              highlightedUrl={highlightedSourceUrl}
             />
           </div>
 
@@ -201,6 +243,9 @@ export default function LiveResearchPage() {
                 content={synthesis}
                 isStreaming={isSynthesizing}
                 isComplete={isComplete}
+                sources={sources}
+                citations={citations}
+                onSelectSource={setHighlightedSourceUrl}
               />
             </div>
           )}

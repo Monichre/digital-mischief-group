@@ -30,6 +30,7 @@ export function ThinkingPanel({events, isComplete}: ThinkingPanelProps) {
   const getEventIcon = (type: ResearchStreamEvent['type']) => {
     switch (type) {
       case 'thinking':
+      case 'reasoning':
         return <Brain className='w-4 h-4 text-orange-500' />
       case 'search_start':
       case 'search_result':
@@ -54,6 +55,7 @@ export function ThinkingPanel({events, isComplete}: ThinkingPanelProps) {
   const renderEvent = (event: ResearchStreamEvent, index: number) => {
     switch (event.type) {
       case 'thinking':
+      case 'reasoning':
         return (
           <div
             key={index}
@@ -62,7 +64,9 @@ export function ThinkingPanel({events, isComplete}: ThinkingPanelProps) {
             {getEventIcon(event.type)}
             <div className='flex-1'>
               <div className='text-xs text-orange-500 font-mono mb-1'>
-                Synthesizing Intelligence... (Block #{event.data.blockNumber})
+                {event.type === 'reasoning'
+                  ? `Model reasoning (Block #${event.data.blockNumber || 0})`
+                  : `Synthesizing Intelligence... (Block #${event.data.blockNumber})`}
               </div>
               <p className='text-sm text-zinc-300'>{event.data.content}</p>
             </div>
