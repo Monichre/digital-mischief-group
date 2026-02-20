@@ -1,0 +1,36 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: T-008
+- **Task Title**: CSV Enrichment Flow
+- **Description**: Ticket: CSV Enrichment Flow (Priority P1, Effort M, Module enrich, Sprint Active Sprint — Stabilize Core Primitives, Source TODOS.md).
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-01-21T10:00:55.386Z
+- **Ended At**: 2026-01-21T10:11:00.751Z
+- **Duration**: 10m 5s
+- **Agent**: droid
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+^D[?25l
+[?25h<promise>COMPLETE</promise>
+
+## Summary
+
+Implemented T-008 - CSV Enrichment Flow with the following changes:
+
+1. **Batch History API** (`/api/enrich/batch/history`) - New endpoint to list past batch enrichment jobs with pagination and status filtering, enabling session continuity
+
+2. **Batch Details API** (`/api/enrich/batch/[batchId]`) - New endpoint to retrieve details of a specific batch including all job results, for viewing and resuming interrupted sessions
+
+3. **BatchHistory Component** - New UI component displaying batch enrichment history with progress bars, success rates, export and resume buttons
+
+4. **RowErrorPanel Component** - New component providing categorized error display (input issues, network, rate limits, provider issues) with actionable retry capability
+
+5. **Enhanced CSV Export** - Updated `transformToCSVRow` to include all fields shown in dashboard (formatted buying signals with percentages, leadership with titles/LinkedIn, all tech stack fields combined, intelligence brief, source counts)
+
+6. **Enrich Page Integration** - Added tabbed history panel switching between single enrichments and CSV batches, with batch selection and export handlers
+[?25h
