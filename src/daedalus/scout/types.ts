@@ -2,7 +2,7 @@ export type Scout = {
   id: string
   name: string
   search_query: string
-  schedule: "manual" | "daily" | "weekly"
+  schedule: "manual" | "hourly" | "daily" | "weekly"
   is_active: boolean
   last_run_at: string | null
   next_run_at: string | null

@@ -39,6 +39,24 @@ const toOrigin = ( value: string ) => {
   }
 }
 
+const devTrustedOrigins =
+  process.env.NODE_ENV !== "production"
+    ? [
+      "http://localhost",
+      "https://localhost",
+      "http://localhost:*",
+      "https://localhost:*",
+      "http://127.0.0.1",
+      "https://127.0.0.1",
+      "http://127.0.0.1:*",
+      "https://127.0.0.1:*",
+      "http://[::1]",
+      "https://[::1]",
+      "http://[::1]:*",
+      "https://[::1]:*",
+    ]
+    : []
+
 const trustedOrigins = Array.from(
   new Set(
     [
@@ -46,8 +64,7 @@ const trustedOrigins = Array.from(
       process.env.BETTER_AUTH_URL,
       process.env.NEXT_PUBLIC_APP_URL,
       ...( process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split( "," ) ?? [] ),
-      process.env.NODE_ENV !== "production" ? "http://localhost:3000" : undefined,
-      process.env.NODE_ENV !== "production" ? "http://127.0.0.1:3000" : undefined,
+      ...devTrustedOrigins,
     ]
       .filter( ( value ): value is string => Boolean( value?.trim() ) )
       .map( ( value ) => toOrigin( value.trim() ) )

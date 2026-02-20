@@ -6,12 +6,22 @@ import {ArrowLeft, Crosshair, RefreshCw, Clock, ArrowRight} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import type {Monitor, MonitorChange} from '@/daedalus/scout/types'
 import {AuthLinks} from '@/components/AuthLinks'
+import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas/CrossPrimitiveCTAs'
 
 export default function MonitorDetailClient({id}: {id: string}) {
   const [monitor, setMonitor] = useState<Monitor | null>(null)
   const [changes, setChanges] = useState<MonitorChange[]>([])
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
+
+  const inferredDomain = (() => {
+    if (!monitor?.url) return undefined
+    try {
+      return new URL(monitor.url).hostname
+    } catch {
+      return undefined
+    }
+  })()
 
   const fetchData = async () => {
     const res = await fetch(`/api/monitors/${id}`)
@@ -103,6 +113,22 @@ export default function MonitorDetailClient({id}: {id: string}) {
               Last checked: {new Date(monitor.last_checked_at).toLocaleString()}
             </p>
           )}
+
+          <div className='mt-6 border border-zinc-800 bg-zinc-900/30 p-4'>
+            <div className='flex items-center gap-2 mb-3'>
+              <div className='w-1 h-4 bg-orange-500' />
+              <span className='text-xs uppercase tracking-widest text-zinc-500'>
+                Quick Actions
+              </span>
+            </div>
+            <CrossPrimitiveCTAs
+              context={{
+                companyName: monitor.name,
+                website: monitor.url,
+                domain: inferredDomain,
+              }}
+            />
+          </div>
         </div>
 
         <h2 className='text-lg font-bold mb-4 text-orange-500'>

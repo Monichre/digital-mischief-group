@@ -14,12 +14,21 @@ import type {SourceFoundEvent} from '@/daedalus/agent/research/stream-types'
 interface SourcePanelProps {
   sources: SourceFoundEvent['data'][]
   isLoading: boolean
+  highlightedUrl?: string | null
+}
+
+function normalizeUrl(url: string): string {
+  return url.replace(/\/$/, '').toLowerCase()
 }
 
 function SourceCard({
   source,
+  cardId,
+  isHighlighted,
 }: {
   source: SourceFoundEvent['data'] & {isLoading?: boolean; fullContent?: string}
+  cardId: string
+  isHighlighted: boolean
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -51,9 +60,10 @@ function SourceCard({
 
   return (
     <div
+      id={cardId}
       className={`rounded-lg border ${getSourceColor(
         source.source
-      )} overflow-hidden transition-all`}
+      )} overflow-hidden transition-all ${isHighlighted ? 'ring-2 ring-orange-500/80 ring-offset-1 ring-offset-zinc-900' : ''}`}
     >
       <div className='p-4'>
         <div className='flex items-start gap-3'>
@@ -140,7 +150,7 @@ function SourceCard({
   )
 }
 
-export function SourcePanel({sources, isLoading}: SourcePanelProps) {
+export function SourcePanel({sources, isLoading, highlightedUrl}: SourcePanelProps) {
   const groupedSources = sources.reduce((acc, source) => {
     if (!acc[source.source]) acc[source.source] = []
     acc[source.source].push(source)
@@ -148,6 +158,7 @@ export function SourcePanel({sources, isLoading}: SourcePanelProps) {
   }, {} as Record<string, SourceFoundEvent['data'][]>)
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  const highlightedNormalizedUrl = highlightedUrl ? normalizeUrl(highlightedUrl) : null
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -155,6 +166,24 @@ export function SourcePanel({sources, isLoading}: SourcePanelProps) {
       el.scrollTo({top: el.scrollHeight, behavior: 'smooth'})
     }
   }, [sources])
+
+  useEffect(() => {
+    if (!highlightedUrl) return
+
+    const normalizedHighlighted = normalizeUrl(highlightedUrl)
+    const sourceIndex = sources.findIndex(
+      (source) => normalizeUrl(source.url) === normalizedHighlighted
+    )
+
+    if (sourceIndex < 0) return
+
+    const nextCardId = `source-card-${sourceIndex}`
+
+    const node = document.getElementById(nextCardId)
+    if (node) {
+      node.scrollIntoView({behavior: 'smooth', block: 'center'})
+    }
+  }, [highlightedUrl, sources])
 
   return (
     <div className='h-full min-h-0 flex flex-col bg-zinc-900/30'>
@@ -196,11 +225,23 @@ export function SourcePanel({sources, isLoading}: SourcePanelProps) {
                   {sourceName} ({sourceList.length})
                 </h4>
                 <div className='space-y-3'>
-                  {sourceList.map((source, i) => (
+                  {sourceList.map((source, i) => {
+                    const sourceIndex = sources.findIndex((candidate) => candidate === source)
+                    const cardId = `source-card-${sourceIndex}`
+
+                    return (
                     <div key={`${source.url}-${i}`} className='animate-fade-in'>
-                      <SourceCard source={source} />
+                      <SourceCard
+                        source={source}
+                        cardId={cardId}
+                        isHighlighted={
+                          highlightedNormalizedUrl !== null
+                          && normalizeUrl(source.url) === highlightedNormalizedUrl
+                        }
+                      />
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             ))}
