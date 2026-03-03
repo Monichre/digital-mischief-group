@@ -677,3 +677,39 @@ bun run build
 - **Explicit workflows**: Profile enrichment ≠ company enrichment. No automatic expansions.
 - **Security first**: Always validate inputs, check auth, sanitize outputs
 - **No big refactors**: Migrate old code only when touched
+
+---
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+Daedalus is a single Next.js 16 application. All external services (PostgreSQL via Neon, Stripe, Firecrawl, AI providers) are remote APIs — no local Docker or database containers are needed.
+
+### Runtime
+
+The project uses **Bun 1.2.17** as its package manager (see `packageManager` field in `package.json`). Bun is installed at `~/.bun/bin/bun` and added to `PATH` via `~/.bashrc`. If Bun is not on `PATH`, run `export PATH="$HOME/.bun/bin:$PATH"`.
+
+### Running the dev server
+
+```bash
+bun run dev   # starts Next.js on port 3000
+```
+
+The `.env` file in the repo root is loaded automatically by Next.js. A warning about `serverActions` in `next.config.mjs` is expected and non-blocking.
+
+### Lint / Type check / Build
+
+See `package.json` scripts; standard commands per CLAUDE.md:
+
+```bash
+bun run lint        # ESLint (0 errors expected; ~338 warnings are pre-existing)
+bunx tsc --noEmit   # TypeScript type check
+bun run build       # production build
+```
+
+### Gotchas
+
+- **No `.env.local` required**: The repo ships a `.env` file with all necessary keys for the Neon-hosted DB, Stripe, OpenAI, Firecrawl, and other services.
+- **Upstash Redis REST**: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are **not** set in `.env`. This is non-blocking — Redis-dependent features (sandbox rate limiting) will throw only if invoked, but the app starts and runs fine without them.
+- **next.config.mjs warning**: `Unrecognized key(s) in object: 'serverActions'` is a benign config deprecation warning in Next.js 16; it does not prevent startup.
