@@ -892,7 +892,7 @@ export default function Home() {
                 href='mailto:liam@liamellis.dev?subject=DMG%20Bug%20Report'
                 className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
               >
-                liam@liamellis.dev →
+                Email bug report →
               </a>
             </div>
             <div>
@@ -906,7 +906,7 @@ export default function Home() {
                 href='mailto:liam@liamellis.dev?subject=DMG%20Feature%20Suggestion'
                 className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
               >
-                liam@liamellis.dev →
+                Send a suggestion →
               </a>
             </div>
             <div>
@@ -920,7 +920,7 @@ export default function Home() {
                 href='mailto:liam@liamellis.dev?subject=DMG%20Inquiry'
                 className='text-sm text-orange-500 hover:text-orange-400 transition-colors'
               >
-                liam@liamellis.dev →
+                Contact us by email →
               </a>
             </div>
           </div>

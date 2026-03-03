@@ -1,5 +1,6 @@
 .vercel
 .next
+.DS_Store
 
 # Environment variables
 .env

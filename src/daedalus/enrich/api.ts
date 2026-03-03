@@ -19,7 +19,18 @@ export async function runEnrichment(
   input: EnrichmentInput,
   options: EnrichmentOptions = {}
 ): Promise<EnrichmentResult & { competitive?: CompetitiveDiscoveryResult }> {
-  const baseResult = await orchestrateEnrichment(input, { onProgress: options.onProgress })
+  // Adapt the progress callback signature from AgentProgress to (phase, status, message)
+  const onProgress = options.onProgress
+    ? (phase: import("@/ai/types").AgentPhase, status: string, message: string) => {
+        options.onProgress?.({
+          phase,
+          status: status as import("@/ai/types").AgentStatus,
+          progress: 0,
+          message,
+        })
+      }
+    : undefined
+  const baseResult = await orchestrateEnrichment(input, { onProgress })
 
   if (options.competitive && baseResult.success) {
     const { discovery, profile } = baseResult.data

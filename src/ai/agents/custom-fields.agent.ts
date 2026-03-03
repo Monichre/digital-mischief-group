@@ -1,9 +1,15 @@
+import type { ToolSet } from "ai"
 import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { CustomFieldsResultSchema, LEADERSHIP_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, EnrichmentContext, CustomFieldsResult } from "../types"
 import { mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
+
+// Cast firecrawl tools to ToolSet type for AI SDK compatibility
+// Using explicit any to avoid deep type instantiation issues with firecrawl-aisdk generics
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const firecrawlTools: ToolSet = { map: mapTool, scrape: scrapeTool } as any
 
 // ICP (Ideal Customer Profile) configuration - customize per business
 const ICP_CONFIG = {
@@ -342,7 +348,7 @@ Return structured data with ceo_name and an executives array.`,
 
           const { object } = await generateObjectWithFallback( {
             schema: LeadershipSchema,
-            tools: { map: mapTool, scrape: scrapeTool },
+            tools: firecrawlTools,
             maxSteps: 10,
             temperature: 0.2,
             maxTokens: 900,

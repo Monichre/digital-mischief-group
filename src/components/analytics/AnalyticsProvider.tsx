@@ -51,7 +51,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     identifyUser(user.id, {
       user_id: user.id,
       user_type: 'free', // TODO: Update based on subscription
-      signup_date: user.createdAt || new Date().toISOString(),
+      signup_date: (user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt) || new Date().toISOString(),
       last_login: new Date().toISOString(),
     })
 

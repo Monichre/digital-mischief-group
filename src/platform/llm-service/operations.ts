@@ -120,7 +120,9 @@ export async function generateText(
     const modelOverride = resolveModelForProvider(providerName, options.model)
     const providerStart = Date.now()
     let providerError: unknown
-    let providerErrorCode: LLMErrorCode = "unknown"
+    // Using explicit type cast to prevent TypeScript from narrowing this variable
+    // It can be modified to "quota_exceeded" in the attemptGenerate closure
+    let providerErrorCode = "unknown" as LLMErrorCode
 
     const attemptGenerate = async (channel: "gateway" | "direct") => {
       const { model, modelId } = getLLMProvider(providerName, modelOverride, channel)
@@ -247,10 +249,12 @@ export async function generateObject<T extends z.ZodTypeAny>(
     const modelOverride = resolveModelForProvider(providerName, options.model)
     const providerStart = Date.now()
     let providerError: unknown
-    let providerErrorCode: LLMErrorCode = "unknown"
+    // Using explicit type cast to prevent TypeScript from narrowing this variable
+    // It can be modified to "quota_exceeded" in the attemptGenerate closure
+    let providerErrorCode = "unknown" as LLMErrorCode
     let usedSafeMode = false
 
-    const attemptGenerate = async (channel: "gateway" | "direct") => {
+    const attemptGenerate = async (channel: "gateway" | "direct"): Promise<LLMResponse<z.infer<T>> | null> => {
       const { model, modelId } = getLLMProvider(providerName, modelOverride, channel)
       lastProvider = providerName
       lastModelId = modelId
@@ -279,7 +283,7 @@ export async function generateObject<T extends z.ZodTypeAny>(
           })
 
           return {
-            data: result.object,
+            data: result.object as z.infer<T>,
             provider: providerName,
             model: modelId,
             usage: result.usage

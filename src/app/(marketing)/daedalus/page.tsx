@@ -36,6 +36,7 @@ const tiers = [
     period: "/mo",
     description: "Recon access to test the intel suite with limited missions.",
     cta: { label: "Run Demo", href: "/brand-recon" },
+    highlight: false,
   },
   {
     name: "Operator",
@@ -53,6 +54,7 @@ const tiers = [
     description:
       "Custom deployment and agent development with dedicated engineering support.",
     cta: { label: "Request Audit", href: "/loadout" },
+    highlight: false,
   },
 ] as const
 

@@ -33,7 +33,7 @@ export async function POST( req: Request ) {
   const parseResult = ScrapeInputSchema.safeParse(body)
   if (!parseResult.success) {
     return Response.json(
-      { error: parseResult.error.errors[0]?.message || "Invalid input" },
+      { error: parseResult.error.issues[0]?.message || "Invalid input" },
       { status: 400 }
     )
   }

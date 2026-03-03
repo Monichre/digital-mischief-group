@@ -17,12 +17,26 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError(null)
+
+    const trimmedEmail = email.trim()
+
+    if (!trimmedEmail) {
+      setError('Please enter your email address')
+      return
+    }
+
+    if (!password) {
+      setError('Please enter your password')
+      return
+    }
+
+    setEmail(trimmedEmail)
+    setIsLoading(true)
 
     try {
       const result = await authClient.signIn.email({
-        email,
+        email: trimmedEmail,
         password,
       })
 
@@ -33,7 +47,7 @@ export default function SignInPage() {
 
       router.push('/')
       router.refresh()
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setIsLoading(false)
@@ -160,7 +174,7 @@ export default function SignInPage() {
                 href='/sign-up'
                 className='text-orange-500 hover:text-orange-400 transition-colors'
               >
-                CREATE_ACCOUNT
+                Create account
               </Link>
             </p>
           </div>

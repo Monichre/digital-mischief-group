@@ -35,7 +35,7 @@ export function FuseBackground() {
       duration: 0.4 + Math.random() * 0.4,
     })),
   )
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
   const targetProgressRef = useRef(0)
   const currentProgressRef = useRef(0)
   const particleIdRef = useRef(0)

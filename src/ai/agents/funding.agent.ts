@@ -1,9 +1,15 @@
+import type { ToolSet } from "ai"
 import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { FundingResultSchema, FUNDING_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, DiscoveryResult, EnrichmentContext, FundingResult } from "../types"
 import { scrapeTool, searchTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
+
+// Cast firecrawl tools to ToolSet type for AI SDK compatibility
+// Using explicit any to avoid deep type instantiation issues with firecrawl-aisdk generics
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const firecrawlTools: ToolSet = { search: searchTool, scrape: scrapeTool } as any
 
 export const fundingAgent: Agent<DiscoveryResult, FundingResult> = {
   name: "funding",
@@ -132,7 +138,7 @@ If no funding information is found, leave fields null. For private companies wit
 
         const { object } = await generateObjectWithFallback( {
           schema: FundingFallbackSchema,
-          tools: { search: searchTool, scrape: scrapeTool },
+          tools: firecrawlTools,
           maxSteps: 8,
           temperature: 0.2,
           maxTokens: 900,

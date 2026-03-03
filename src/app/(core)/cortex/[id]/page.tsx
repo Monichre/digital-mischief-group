@@ -66,9 +66,13 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
     }
   }, [params.id])
 
-  const dossier = useMemo(() => {
+  const dossier = useMemo((): CortexDossier | null => {
     if (!data) return null
-    return parseJsonValue<CortexDossier>(data.dossier_json) || data.dossier_json
+    const parsed = parseJsonValue<CortexDossier>(data.dossier_json)
+    if (parsed) return parsed
+    // If parsing failed and dossier_json is already an object, cast it
+    if (typeof data.dossier_json === 'object') return data.dossier_json
+    return null
   }, [data])
 
   const sources = useMemo(() => {
@@ -176,7 +180,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   Key Insights
                 </h3>
                 <ul className='mt-3 space-y-2 text-sm list-disc list-inside'>
-                  {dossier.key_insights.map((item, idx) => (
+                  {dossier.key_insights.map((item: string, idx: number) => (
                     <li key={`${item}-${idx}`}>{item}</li>
                   ))}
                 </ul>
@@ -187,7 +191,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                     Signals
                   </h3>
                   <ul className='mt-3 space-y-2 text-sm list-disc list-inside'>
-                    {dossier.signals.map((item, idx) => (
+                    {dossier.signals.map((item: string, idx: number) => (
                       <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
@@ -204,7 +208,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Pain Points</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.kill_chain.pain_points.map((item, idx) => (
+                      {dossier.kill_chain.pain_points.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -212,7 +216,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Decision Makers</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.kill_chain.decision_makers.map((item, idx) => (
+                      {dossier.kill_chain.decision_makers.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -220,7 +224,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Budget Signals</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.kill_chain.budget_signals.map((item, idx) => (
+                      {dossier.kill_chain.budget_signals.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -228,7 +232,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Outreach Angles</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.kill_chain.outreach_angles.map((item, idx) => (
+                      {dossier.kill_chain.outreach_angles.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -252,7 +256,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                       </tr>
                     </thead>
                     <tbody>
-                      {dossier.market_teardown.competitors.map((comp, idx) => (
+                      {dossier.market_teardown.competitors.map((comp: { name: string; domain: string; positioning: string; price_tier: string }, idx: number) => (
                         <tr key={`${comp.domain}-${idx}`}>
                           <td className='p-2 border-b border-zinc-200'>
                             <div className='font-bold'>{comp.name}</div>
@@ -269,7 +273,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Pricing Models</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.market_teardown.pricing_models.map((item, idx) => (
+                      {dossier.market_teardown.pricing_models.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -277,7 +281,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Feature Gaps</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.market_teardown.feature_gaps.map((item, idx) => (
+                      {dossier.market_teardown.feature_gaps.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -285,7 +289,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Moat Risks</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.market_teardown.moat_risks.map((item, idx) => (
+                      {dossier.market_teardown.moat_risks.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -303,7 +307,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Brand Voice</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.asset_strip.brand_voice.map((item, idx) => (
+                      {dossier.asset_strip.brand_voice.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -311,7 +315,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className='font-bold'>Messaging</h4>
                     <ul className='mt-2 list-disc list-inside space-y-1'>
-                      {dossier.asset_strip.messaging.map((item, idx) => (
+                      {dossier.asset_strip.messaging.map((item: string, idx: number) => (
                         <li key={`${item}-${idx}`}>{item}</li>
                       ))}
                     </ul>
@@ -323,7 +327,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                       <div>
                         <h4 className='font-bold'>Colors</h4>
                         <div className='mt-2 flex flex-wrap gap-2'>
-                          {dossier.asset_strip.design_tokens.colors.map((color, idx) => (
+                          {dossier.asset_strip.design_tokens.colors.map((color: string, idx: number) => (
                             <span
                               key={`${color}-${idx}`}
                               className='border border-zinc-300 px-2 py-1 text-xs'
@@ -338,7 +342,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                       <div>
                         <h4 className='font-bold'>Fonts</h4>
                         <ul className='mt-2 list-disc list-inside space-y-1'>
-                          {dossier.asset_strip.design_tokens.fonts.map((font, idx) => (
+                          {dossier.asset_strip.design_tokens.fonts.map((font: string, idx: number) => (
                             <li key={`${font}-${idx}`}>{font}</li>
                           ))}
                         </ul>
@@ -348,7 +352,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                       <div>
                         <h4 className='font-bold'>Typography</h4>
                         <ul className='mt-2 list-disc list-inside space-y-1'>
-                          {dossier.asset_strip.design_tokens.typography.map((type, idx) => (
+                          {dossier.asset_strip.design_tokens.typography.map((type: string, idx: number) => (
                             <li key={`${type}-${idx}`}>{type}</li>
                           ))}
                         </ul>
@@ -359,7 +363,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                 <div>
                   <h4 className='font-bold'>Ad Copy Signals</h4>
                   <ul className='mt-2 list-disc list-inside space-y-1 text-sm'>
-                    {dossier.asset_strip.ad_copy.map((item, idx) => (
+                    {dossier.asset_strip.ad_copy.map((item: string, idx: number) => (
                       <li key={`${item}-${idx}`}>{item}</li>
                     ))}
                   </ul>
@@ -372,7 +376,7 @@ export default function CortexDossierPage({ params }: { params: { id: string } }
                 Recommended Actions
               </h2>
               <ul className='mt-3 space-y-2 text-sm list-disc list-inside'>
-                {dossier.recommended_actions.map((item, idx) => (
+                {dossier.recommended_actions.map((item: string, idx: number) => (
                   <li key={`${item}-${idx}`}>{item}</li>
                 ))}
               </ul>

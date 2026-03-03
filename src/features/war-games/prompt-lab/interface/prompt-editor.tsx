@@ -84,11 +84,22 @@ export function PromptEditor() {
 
       const result = await evaluatePrompt(data)
 
-      for await (const chunk of readStreamableValue(result.output)) {
-        if (typeof chunk === 'string') {
-          setPromptResult(chunk)
+      // The server action returns the collected result, not a stream
+      // Handle both cases: when it's a streamable value and when it's already resolved
+      if (result.output && typeof result.output === 'object' && Symbol.asyncIterator in Object(result.output)) {
+        for await (const chunk of readStreamableValue(result.output as Parameters<typeof readStreamableValue>[0])) {
+          if (typeof chunk === 'string') {
+            setPromptResult(chunk)
+          } else {
+            setPromptResult(JSON.stringify(chunk, null, 2))
+          }
+        }
+      } else {
+        // Already resolved value from server action
+        if (typeof result.output === 'string') {
+          setPromptResult(result.output)
         } else {
-          setPromptResult(JSON.stringify(chunk, null, 2))
+          setPromptResult(JSON.stringify(result.output, null, 2))
         }
       }
     } catch (error) {
@@ -109,21 +120,32 @@ export function PromptEditor() {
         output: promptResult,
       })
 
-      for await (const chunk of readStreamableValue(result.output)) {
+      // Handle both streamable value and already-resolved result
+      const processChunk = (chunk: unknown) => {
         if (chunk && typeof chunk === 'object' && 'analysis' in chunk) {
+          const analysisChunk = chunk as { analysis: Partial<AnalysisResult['analysis']> }
           setStreamedResult((prev) => ({
             ...prev,
             analysis: {
               consistency:
-                chunk.analysis.consistency ?? prev?.analysis?.consistency ?? 0,
+                analysisChunk.analysis?.consistency ?? prev?.analysis?.consistency ?? 0,
               relevance:
-                chunk.analysis.relevance ?? prev?.analysis?.relevance ?? 0,
-              quality: chunk.analysis.quality ?? prev?.analysis?.quality ?? 0,
+                analysisChunk.analysis?.relevance ?? prev?.analysis?.relevance ?? 0,
+              quality: analysisChunk.analysis?.quality ?? prev?.analysis?.quality ?? 0,
               feedback:
-                chunk.analysis.feedback ?? prev?.analysis?.feedback ?? '',
+                analysisChunk.analysis?.feedback ?? prev?.analysis?.feedback ?? '',
             },
           }))
         }
+      }
+
+      if (result.output && typeof result.output === 'object' && Symbol.asyncIterator in Object(result.output)) {
+        for await (const chunk of readStreamableValue(result.output as Parameters<typeof readStreamableValue>[0])) {
+          processChunk(chunk)
+        }
+      } else {
+        // Already resolved value from server action
+        processChunk(result.output)
       }
     } catch (error) {
       console.error('[PromptEditor] Error evaluating:', error)
@@ -484,7 +506,7 @@ function Output({
   promptResult: string
   evaluateOutput: () => void
   isEvaluating: boolean
-  streamedResult: Partial<AnalysisResult>
+  streamedResult: Partial<AnalysisResult> | null
 }) {
   return (
     <div className='space-y-1'>
@@ -542,7 +564,7 @@ function Output({
 function AnalysisResults({
   streamedResult,
 }: {
-  streamedResult: Partial<AnalysisResult>
+  streamedResult: Partial<AnalysisResult> | null
 }) {
   return (
     <AnimatePresence>

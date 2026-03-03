@@ -3,7 +3,7 @@
 import type React from 'react'
 
 import {useState} from 'react'
-import {useObject} from '@ai-sdk/react'
+import {experimental_useObject as useObject} from '@ai-sdk/react'
 import {z} from 'zod'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -79,7 +79,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
   const {object, submit, isLoading, error} = useObject({
     api: '/api/ai/enrich',
     schema: companyEnrichmentSchema,
-    onFinish: ({object}) => {
+    onFinish: ({object}: {object: CompanyEnrichment | undefined}) => {
       if (object && onEnrichComplete) {
         onEnrichComplete(object as CompanyEnrichment)
       }
@@ -257,7 +257,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
               </CardHeader>
               <CardContent>
                 <div className='grid gap-2'>
-                  {object.leadership.map((person, i) => (
+                  {object.leadership.map((person, i: number) => person && (
                     <div
                       key={i}
                       className='flex items-center justify-between p-2 bg-zinc-950/50 rounded'
@@ -287,7 +287,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
                 </CardHeader>
                 <CardContent>
                   <div className='flex flex-wrap gap-2'>
-                    {object.technologies.map((tech, i) => (
+                    {object.technologies.map((tech, i: number) => tech && (
                       <Badge
                         key={i}
                         variant='outline'
@@ -310,7 +310,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
                 </CardHeader>
                 <CardContent>
                   <div className='flex flex-wrap gap-2'>
-                    {object.competitors.map((comp, i) => (
+                    {object.competitors.map((comp, i: number) => comp && (
                       <Badge
                         key={i}
                         variant='outline'
@@ -342,7 +342,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
                         STRENGTHS
                       </span>
                       <ul className='mt-2 space-y-1'>
-                        {object.marketPosition.strengths.map((s, i) => (
+                        {object.marketPosition.strengths.map((s, i: number) => s && (
                           <li
                             key={i}
                             className='text-zinc-300 text-sm flex items-start gap-2'
@@ -359,7 +359,7 @@ export function EnrichForm({onEnrichComplete}: EnrichFormProps) {
                         OPPORTUNITIES
                       </span>
                       <ul className='mt-2 space-y-1'>
-                        {object.marketPosition.opportunities.map((o, i) => (
+                        {object.marketPosition.opportunities.map((o, i: number) => o && (
                           <li
                             key={i}
                             className='text-zinc-300 text-sm flex items-start gap-2'

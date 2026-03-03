@@ -7,11 +7,9 @@ import { extractTool, mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
 
 // Cast firecrawl tools to ToolSet type for AI SDK compatibility
-const firecrawlTools = {
-  map: mapTool as ToolSet[string],
-  scrape: scrapeTool as ToolSet[string],
-  extract: extractTool as ToolSet[string],
-}
+// Using explicit any to avoid deep type instantiation issues with firecrawl-aisdk generics
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const firecrawlTools: ToolSet = { map: mapTool, scrape: scrapeTool, extract: extractTool } as any
 
 function classifySegment( employeeCount: number | null ): "SMB" | "Mid-Market" | "Enterprise" | "Unknown" {
   if ( !employeeCount ) return "Unknown"

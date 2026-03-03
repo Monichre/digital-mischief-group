@@ -67,7 +67,7 @@ export default function SignUpPage() {
 
       router.push('/')
       router.refresh()
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setIsLoading(false)
@@ -254,7 +254,7 @@ export default function SignUpPage() {
                 href='/sign-in'
                 className='text-orange-500 hover:text-orange-400 transition-colors'
               >
-                SIGN_IN
+                Sign in
               </Link>
             </p>
           </div>

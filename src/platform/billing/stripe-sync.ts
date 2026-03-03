@@ -1,5 +1,5 @@
 import type { Stripe } from "stripe"
-import { redis } from "./redis"
+import { redis } from "@/platform/redis"
 import { stripe } from "./stripe"
 
 export type STRIPE_SUB_CACHE =

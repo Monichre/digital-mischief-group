@@ -424,6 +424,7 @@ Synthesize these findings into an intelligence brief.`,
           data: {
             summary: fullSummary,
             sources: allSources,
+            citations: [],
             duration: totalDuration,
             missionId,
           },

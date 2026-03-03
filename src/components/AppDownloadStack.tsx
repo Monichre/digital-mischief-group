@@ -151,7 +151,7 @@ export default function AppDownloadStack({
           y: {
             repeat: Number.POSITIVE_INFINITY,
             duration: FLOAT_DURATION,
-            ease: "easeInOut",
+            ease: "easeInOut" as const,
             delay: i * FLOAT_DELAY_MULTIPLIER,
           },
         },

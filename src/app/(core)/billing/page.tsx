@@ -49,13 +49,13 @@ interface UsageData {
   credits: number
 }
 
-const MODULE_ICONS: Record<string, React.ElementType> = {
+const MODULE_ICONS = {
   enrich: Sparkles,
   extract: Zap,
   observe: Eye,
   scout: Radar,
   agent: Bot,
-}
+} as const
 
 const MODULE_LABELS: Record<string, string> = {
   enrich: 'Enrich',
@@ -263,7 +263,7 @@ export default function BillingPage() {
         <CardContent>
           <div className="space-y-6">
             {Object.entries(data.usage).map(([module, stats]) => {
-              const Icon = MODULE_ICONS[module] || Zap
+              const Icon = MODULE_ICONS[module as keyof typeof MODULE_ICONS] ?? Zap
               const label = MODULE_LABELS[module] || module
               const isUnlimited = stats.limit === 0
               const percentage = isUnlimited

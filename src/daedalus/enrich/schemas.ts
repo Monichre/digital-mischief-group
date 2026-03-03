@@ -56,7 +56,7 @@ export const BatchRowSchema = z.object({
 )
 
 export const BatchEnrichInputSchema = z.object({
-  rows: z.array(z.record(z.string())).min(1).max(100),
+  rows: z.array(z.record(z.string(), z.string())).min(1).max(100),
   mapping: z.object({
     domain: z.string().nullable().optional(),
     email: z.string().nullable().optional(),
@@ -93,7 +93,7 @@ export const ProfileOutputSchema = z.object({
   year_founded: z.number().nullable(),
   business_type: z.string().nullable(),
   description: z.string().nullable(),
-  sources: z.record(z.array(z.string())),
+  sources: z.record(z.string(), z.array(z.string())),
 })
 
 export const FundingOutputSchema = z.object({
@@ -104,7 +104,7 @@ export const FundingOutputSchema = z.object({
   investors: z.array(z.string()),
   valuation: z.string().nullable(),
   is_public: z.boolean().default(false),
-  sources: z.record(z.array(z.string())),
+  sources: z.record(z.string(), z.array(z.string())),
 })
 
 export const TechStackOutputSchema = z.object({
@@ -136,7 +136,7 @@ export const CustomFieldsOutputSchema = z.object({
     confidence: z.number().min(0).max(1),
   })),
   competitive_landscape: z.array(z.string()),
-  sources: z.record(z.array(z.string())),
+  sources: z.record(z.string(), z.array(z.string())),
 })
 
 // Full enrichment result schema for DB validation

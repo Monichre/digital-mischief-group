@@ -6,6 +6,10 @@ import {
   type SearchResult,
 } from "./workflow"
 
+// Type assertion helper for bun:test matchers that aren't properly typed
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const expectAny = expect as any
+
 describe("Scout Workflow", () => {
   describe("normalizeUrl", () => {
     it("removes trailing slashes", () => {
@@ -49,7 +53,7 @@ describe("Scout Workflow", () => {
 
       const { newResults, duplicates } = deduplicateResults(results, seenUrls)
 
-      expect(newResults).toHaveLength(1)
+      expectAny(newResults).toHaveLength(1)
       expect(newResults[0].url).toBe("https://example.com/new")
       expect(duplicates).toBe(1)
     })
@@ -63,7 +67,7 @@ describe("Scout Workflow", () => {
 
       const { newResults, duplicates } = deduplicateResults(results, seenUrls)
 
-      expect(newResults).toHaveLength(0)
+      expectAny(newResults).toHaveLength(0)
       expect(duplicates).toBe(2)
     })
 
@@ -77,7 +81,7 @@ describe("Scout Workflow", () => {
 
       const { newResults, duplicates } = deduplicateResults(results, seenUrls)
 
-      expect(newResults).toHaveLength(2)
+      expectAny(newResults).toHaveLength(2)
       expect(duplicates).toBe(1)
     })
 
@@ -89,21 +93,21 @@ describe("Scout Workflow", () => {
 
       const { newResults, duplicates } = deduplicateResults(results, [])
 
-      expect(newResults).toHaveLength(2)
+      expectAny(newResults).toHaveLength(2)
       expect(duplicates).toBe(0)
     })
 
     it("handles empty results", () => {
       const { newResults, duplicates } = deduplicateResults([], ["https://example.com"])
 
-      expect(newResults).toHaveLength(0)
+      expectAny(newResults).toHaveLength(0)
       expect(duplicates).toBe(0)
     })
   })
 
   describe("calculateNextRunAt", () => {
     it("returns null for manual schedule", () => {
-      expect(calculateNextRunAt("manual")).toBeNull()
+      expectAny(calculateNextRunAt("manual")).toBeNull()
     })
 
     it("calculates hourly schedule", () => {
@@ -111,33 +115,33 @@ describe("Scout Workflow", () => {
       const result = calculateNextRunAt("hourly")
       const after = Date.now()
 
-      expect(result).not.toBeNull()
+      expectAny(result).not.toBeNull()
       const diff = result!.getTime() - before
       // Should be approximately 1 hour (3600000ms) ± small tolerance
-      expect(diff).toBeGreaterThanOrEqual(3600000 - 100)
-      expect(diff).toBeLessThanOrEqual(3600000 + (after - before) + 100)
+      expectAny(diff).toBeGreaterThanOrEqual(3600000 - 100)
+      expectAny(diff).toBeLessThanOrEqual(3600000 + (after - before) + 100)
     })
 
     it("calculates daily schedule", () => {
       const result = calculateNextRunAt("daily")
-      expect(result).not.toBeNull()
+      expectAny(result).not.toBeNull()
       const diff = result!.getTime() - Date.now()
       // Should be approximately 24 hours
-      expect(diff).toBeGreaterThan(23 * 60 * 60 * 1000)
-      expect(diff).toBeLessThan(25 * 60 * 60 * 1000)
+      expectAny(diff).toBeGreaterThan(23 * 60 * 60 * 1000)
+      expectAny(diff).toBeLessThan(25 * 60 * 60 * 1000)
     })
 
     it("calculates weekly schedule", () => {
       const result = calculateNextRunAt("weekly")
-      expect(result).not.toBeNull()
+      expectAny(result).not.toBeNull()
       const diff = result!.getTime() - Date.now()
       // Should be approximately 7 days
-      expect(diff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000)
-      expect(diff).toBeLessThan(8 * 24 * 60 * 60 * 1000)
+      expectAny(diff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000)
+      expectAny(diff).toBeLessThan(8 * 24 * 60 * 60 * 1000)
     })
 
     it("returns null for unknown schedule", () => {
-      expect(calculateNextRunAt("unknown")).toBeNull()
+      expectAny(calculateNextRunAt("unknown")).toBeNull()
     })
   })
 })

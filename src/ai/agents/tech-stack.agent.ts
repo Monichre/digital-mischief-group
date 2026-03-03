@@ -1,9 +1,15 @@
+import type { ToolSet } from "ai"
 import { getFirecrawlClient } from "@/platform/firecrawl/service"
 import { TechStackResultSchema, TECH_STACK_EXTRACTION_SCHEMA } from "../schemas"
 import { generateObjectWithFallback } from "@/ai/tools/llm.tool"
 import type { Agent, DiscoveryResult, EnrichmentContext, TechStackResult } from "../types"
 import { mapTool, scrapeTool } from "@/platform/firecrawl/ai-tools"
 import { z } from "zod"
+
+// Cast firecrawl tools to ToolSet type for AI SDK compatibility
+// Using explicit any to avoid deep type instantiation issues with firecrawl-aisdk generics
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const firecrawlTools: ToolSet = { map: mapTool, scrape: scrapeTool } as any
 
 // Known technology patterns for classification
 const TECH_PATTERNS = {
@@ -139,7 +145,7 @@ Be comprehensive - extract all technical terms you find.`
 
         const { object } = await generateObjectWithFallback( {
           schema: FallbackSchema,
-          tools: { map: mapTool, scrape: scrapeTool },
+          tools: firecrawlTools,
           maxSteps: 8,
           temperature: 0.2,
           maxTokens: 900,

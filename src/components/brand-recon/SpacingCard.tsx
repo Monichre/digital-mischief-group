@@ -9,11 +9,11 @@ interface SpacingCardProps {
 export function SpacingCard({spacing}: SpacingCardProps) {
   if (!spacing) return null
 
-  // Parse base unit (e.g., "8px" -> 8)
-  const baseUnitValue = spacing.unit
-    ? parseInt(spacing.unit.replace(/[^\d]/g, ''))
+  // Parse base unit (e.g., 8 -> 8 or "8px" -> 8)
+  const baseUnitValue = spacing.baseUnit != null
+    ? spacing.baseUnit
     : null
-  const scaleEntries = spacing.scale ? Object.entries(spacing.scale) : []
+  const scaleEntries = spacing.padding ? Object.entries(spacing.padding) : []
 
   return (
     <div className='border border-zinc-800 bg-zinc-900/30 p-6 relative'>
@@ -32,20 +32,18 @@ export function SpacingCard({spacing}: SpacingCardProps) {
       </div>
 
       {/* Base Unit */}
-      {spacing.unit && (
+      {baseUnitValue != null && (
         <div className='mb-6'>
           <div className='text-[10px] uppercase tracking-wider text-zinc-600 mb-3'>
             Base Unit
           </div>
           <div className='flex items-center gap-3'>
-            {baseUnitValue && (
-              <div
-                className='bg-orange-500/30 border border-orange-500'
-                style={{width: baseUnitValue, height: baseUnitValue}}
-              />
-            )}
+            <div
+              className='bg-orange-500/30 border border-orange-500'
+              style={{width: baseUnitValue, height: baseUnitValue}}
+            />
             <span className='text-lg font-mono text-zinc-300'>
-              {spacing.unit}
+              {baseUnitValue}px
             </span>
           </div>
         </div>
@@ -65,14 +63,14 @@ export function SpacingCard({spacing}: SpacingCardProps) {
                     className='bg-orange-500/30 border border-orange-500'
                     style={{
                       width: '100%',
-                      height: parseInt(value.replace(/[^\d]/g, '')) || 8,
+                      height: parseInt(String(value).replace(/[^\d]/g, '')) || 8,
                       maxHeight: '48px',
                     }}
                   />
                 </div>
                 <div className='text-[9px] text-zinc-500'>
                   <div className='font-mono text-orange-500/70'>{key}</div>
-                  <div className='text-zinc-600'>{value}</div>
+                  <div className='text-zinc-600'>{String(value)}</div>
                 </div>
               </div>
             ))}

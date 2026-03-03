@@ -279,7 +279,9 @@ export function SignupForm({
                 </span>
               </div>
               <button
+                type='button'
                 onClick={onClose}
+                aria-label='Close request audit modal'
                 className='p-2 text-zinc-500 hover:text-white transition-colors'
               >
                 <X className='w-5 h-5' />

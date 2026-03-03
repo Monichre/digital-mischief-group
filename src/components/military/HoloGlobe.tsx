@@ -107,7 +107,8 @@ const generateRings = () => {
 export function HoloGlobe() {
   const [mounted, setMounted] = useState(false)
   const [arcsData] = useState(generateArcs()) // Removed dynamic arc updates that caused flickering
-  const globeRef = useRef<unknown>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const globeRef = useRef<any>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -124,12 +125,18 @@ export function HoloGlobe() {
     }
   }, [mounted])
 
-  const getArcColor = useCallback((d: { color: string }) => d.color, [])
-  const getArcStroke = useCallback((d: { stroke: number }) => d.stroke, [])
-  const getArcDashLength = useCallback((d: { dashLen: number }) => d.dashLen, [])
-  const getArcDashGap = useCallback((d: { gap: number }) => d.gap, [])
-  const getArcDashInitialGap = useCallback((d: { initialGap: number }) => d.initialGap, [])
-  const getArcDashAnimateTime = useCallback((d: { speed: number }) => d.speed, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcColor = useCallback((d: any) => d.color as string, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcStroke = useCallback((d: any) => d.stroke as number, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcDashLength = useCallback((d: any) => d.dashLen as number, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcDashGap = useCallback((d: any) => d.gap as number, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcDashInitialGap = useCallback((d: any) => d.initialGap as number, [])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getArcDashAnimateTime = useCallback((d: any) => d.speed as number, [])
 
   if (!mounted) {
     return (

@@ -48,7 +48,7 @@ export function UploadZoneWrapper() {
     }
   }, [])
 
-  const onDropRejected = useCallback((fileRejections: { file: File; errors: { code: string }[] }[]) => {
+  const onDropRejected = useCallback((fileRejections: readonly { file: File; errors: readonly { code: string }[] }[]) => {
     const rejection = fileRejections[0]
     if (!rejection) return
 

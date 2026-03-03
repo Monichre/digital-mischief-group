@@ -12,8 +12,11 @@ declare global {
     gtag: (
       command: 'config' | 'event' | 'set' | 'consent',
       targetId: string,
-      config?: Record<string, any>
+      // Third argument can be config object or direct value (for 'set' command)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      config?: Record<string, any> | string
     ) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dataLayer: any[]
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import {Menu} from 'lucide-react'
+import {Menu, X} from 'lucide-react'
 import {useMenu} from './MenuProvider'
 import {cn} from '@/lib/utils'
 
@@ -10,20 +10,32 @@ interface MenuToggleProps {
 
 export function MenuToggle({className}: MenuToggleProps) {
   const {toggleMenu, isOpen} = useMenu()
+  const menuLabel = isOpen ? 'Close navigation menu' : 'Open navigation menu'
 
   return (
     <button
       onClick={toggleMenu}
       className={cn(
-        'fixed top-4 right-6 z-[60] p-2.5 border border-zinc-800 bg-zinc-950/90 backdrop-blur-md',
+        'fixed top-4 right-6 z-[110] p-2.5 border backdrop-blur-md',
         'hover:border-orange-500/50 hover:bg-orange-500/10 transition-all duration-300',
         'group',
-        isOpen && 'opacity-0 pointer-events-none',
+        isOpen
+          ? 'border-orange-500/60 bg-orange-500/15'
+          : 'border-zinc-800 bg-zinc-950/90',
         className
       )}
-      aria-label='Open menu'
+      aria-label={menuLabel}
+      aria-expanded={isOpen}
+      aria-controls='fullscreen-navigation'
+      aria-pressed={isOpen}
+      data-state={isOpen ? 'open' : 'closed'}
     >
-      <Menu className='w-5 h-5 text-zinc-400 group-hover:text-orange-500 transition-colors' />
+      <span className='sr-only'>{menuLabel}</span>
+      {isOpen ? (
+        <X className='w-5 h-5 text-orange-500 transition-colors' />
+      ) : (
+        <Menu className='w-5 h-5 text-zinc-400 group-hover:text-orange-500 transition-colors' />
+      )}
     </button>
   )
 }

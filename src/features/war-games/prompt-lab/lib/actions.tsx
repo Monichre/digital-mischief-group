@@ -83,7 +83,7 @@ Analyze the consistency, relevance, and quality. Provide specific feedback on wh
     messages,
   })
 
-  let result = {}
+  let result: unknown = {}
   for await (const partialObject of partialObjectStream) {
     result = partialObject
   }

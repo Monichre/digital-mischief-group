@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const parsed = BodySchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0]?.message || "Invalid input" }, { status: 400 })
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 })
     }
 
     const stats = await runRulesForUser(session.user.id, parsed.data.ruleId)

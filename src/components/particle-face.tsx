@@ -201,7 +201,7 @@ export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: P
       }
 
       pImageConfig.functions.canvas.init = () => {
-        pImageConfig.canvas.context = pImageConfig.canvas.el.getContext("2d")
+        pImageConfig.canvas.context = pImageConfig.canvas.el.getContext("2d") ?? undefined
         pImageConfig.canvas.el.width = pImageConfig.canvas.w
         pImageConfig.canvas.el.height = pImageConfig.canvas.h
         pImageConfig.canvas.aspect_ratio = pImageConfig.canvas.w / pImageConfig.canvas.h
@@ -429,28 +429,32 @@ export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: P
       }
 
       pImageConfig.functions.interactivity.repulseParticle = (p: any, args: any) => {
-        const dx_mouse = p.x - pImageConfig.mouse.x,
-          dy_mouse = p.y - pImageConfig.mouse.y,
+        const mouseX = pImageConfig.mouse.x ?? 0
+        const mouseY = pImageConfig.mouse.y ?? 0
+        const dx_mouse = p.x - mouseX,
+          dy_mouse = p.y - mouseY,
           mouse_dist = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse),
           inv_strength = pImageConfig.functions.utils.clamp(300 - args.strength, 10, 300)
         if (mouse_dist <= args.distance) {
-          p.acc_x = (p.x - pImageConfig.mouse.x!) / inv_strength
-          p.acc_y = (p.y - pImageConfig.mouse.y!) / inv_strength
+          p.acc_x = (p.x - mouseX) / inv_strength
+          p.acc_y = (p.y - mouseY) / inv_strength
           p.vx += p.acc_x
           p.vy += p.acc_y
         }
       }
 
       pImageConfig.functions.interactivity.grabParticle = (p: any, args: any) => {
-        const dx_mouse = p.x - pImageConfig.mouse.x,
-          dy_mouse = p.y - pImageConfig.mouse.y,
+        const mouseX = pImageConfig.mouse.x ?? 0
+        const mouseY = pImageConfig.mouse.y ?? 0
+        const dx_mouse = p.x - mouseX,
+          dy_mouse = p.y - mouseY,
           mouse_dist = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse)
         if (mouse_dist <= args.distance && pImageConfig.canvas.context) {
           pImageConfig.canvas.context.strokeStyle = p.color
           pImageConfig.canvas.context.lineWidth = Math.min(args.line_width, p.radius * 2)
           pImageConfig.canvas.context.beginPath()
           pImageConfig.canvas.context.moveTo(p.x, p.y)
-          pImageConfig.canvas.context.lineTo(pImageConfig.mouse.x!, pImageConfig.mouse.y!)
+          pImageConfig.canvas.context.lineTo(mouseX, mouseY)
           pImageConfig.canvas.context.stroke()
           pImageConfig.canvas.context.closePath()
         }
@@ -518,8 +522,9 @@ export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: P
         }
       }
 
-      pImageConfig.functions.utils.addEventActions = (event: string) => {
-        const action_funcs: any = {
+      pImageConfig.functions.utils.addEventActions = (event: "on_hover" | "on_click" | "on_touch") => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const action_funcs: Record<string, any> = {
           repulse: pImageConfig.functions.interactivity.repulseParticle,
           big_repulse: pImageConfig.functions.interactivity.repulseParticle,
           grab: pImageConfig.functions.interactivity.grabParticle,
@@ -528,9 +533,11 @@ export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: P
           event === "on_click"
             ? pImageConfig.functions.interactivity.onMouseClick
             : pImageConfig.functions.interactivity.onMouseMove
-        if (pImageConfig.particles.interactivity[event].enabled) {
-          const func = action_funcs[pImageConfig.particles.interactivity[event].action],
-            args = pImageConfig.interactions[pImageConfig.particles.interactivity[event].action]
+        const interactivityEvent = pImageConfig.particles.interactivity[event]
+        if (interactivityEvent.enabled) {
+          const actionName = interactivityEvent.action as keyof typeof pImageConfig.interactions
+          const func = action_funcs[actionName]
+          const args = pImageConfig.interactions[actionName]
           const partial_func = event_wrapper.bind(null, func, args)
           pImageConfig.particles.interactivity.fn_array.push(partial_func)
         }
@@ -549,7 +556,7 @@ export function ParticleFace({ analyser, imageSrc = "/images/liam-face.png" }: P
       return pImageConfig
     }
 
-    pImageRef.current = initParticleImage()
+    pImageRef.current = initParticleImage() ?? null
     currentImageSrcRef.current = imageSrc
 
     return () => {

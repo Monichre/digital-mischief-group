@@ -123,7 +123,9 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
 
   return (
     <div
+      id='fullscreen-navigation'
       ref={containerRef}
+      aria-hidden={!isOpen}
       className={cn(
         'fixed inset-0 z-[100] transition-all duration-700 ease-out',
         isOpen ? 'pointer-events-auto' : 'pointer-events-none'
@@ -133,7 +135,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       <div
         className={cn(
           'absolute inset-0 bg-zinc-950 transition-opacity duration-700',
-          isOpen ? 'opacity-100' : 'opacity-0'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
       />
 
@@ -141,7 +143,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       <div
         className={cn(
           'absolute inset-0 transition-opacity duration-1000',
-          isOpen ? 'opacity-100' : 'opacity-0'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         style={{
           background: `radial-gradient(circle 600px at ${mousePosition.x}px ${mousePosition.y}px, rgba(234, 88, 12, 0.08), transparent)`,
@@ -152,7 +154,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       <div
         className={cn(
           'absolute inset-0 transition-opacity duration-1000 delay-300',
-          isOpen ? 'opacity-100' : 'opacity-0'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
         style={{
           transform: `translate(${parallaxX * 0.5}px, ${parallaxY * 0.5}px)`,
@@ -198,7 +200,7 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       <div
         className={cn(
           'absolute inset-0 overflow-hidden transition-opacity duration-1000',
-          isOpen ? 'opacity-100' : 'opacity-0'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
       >
         {[...Array(20)].map((_, i) => (
@@ -234,7 +236,9 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
           key={i}
           className={cn(
             `absolute ${corner.pos} w-20 h-20 ${corner.border} border-orange-500/50 transition-all duration-500`,
-            isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+            isOpen
+              ? 'opacity-100 scale-100 pointer-events-auto'
+              : 'opacity-0 scale-75 pointer-events-none'
           )}
           style={{
             transitionDelay: corner.delay,
@@ -246,9 +250,12 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       {/* Close button */}
       <button
         onClick={onClose}
+        aria-label='Close navigation menu'
         className={cn(
           'absolute top-8 right-8 z-10 p-4 border border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10 transition-all duration-300 group',
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+          isOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-4 pointer-events-none'
         )}
         style={{transitionDelay: isOpen ? '600ms' : '0ms'}}
       >
@@ -261,7 +268,9 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
         onClick={onClose}
         className={cn(
           'absolute top-8 left-12 transition-all duration-500 hover:opacity-80',
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+          isOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-4 pointer-events-none'
         )}
         style={{transitionDelay: isOpen ? '600ms' : '0ms'}}
       >
@@ -274,8 +283,16 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       </Link>
 
       {/* Main menu content */}
-      <div className='relative h-full flex items-center justify-center px-4'>
-        <nav className='flex flex-col items-center space-y-3 md:space-y-4 w-full max-w-5xl'>
+      <div
+        className={cn(
+          'relative h-full flex items-center justify-center px-4',
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        )}
+      >
+        <nav
+          aria-label='Main navigation'
+          className='flex flex-col items-center space-y-3 md:space-y-4 w-full max-w-5xl'
+        >
           {MENU_ITEMS.map((item, index) => {
             const Icon = item.icon
             const isHovered = hoveredIndex === index
@@ -290,8 +307,8 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
                 className={cn(
                   'group relative flex items-center gap-4 sm:gap-6 md:gap-8 py-4 sm:py-5 md:py-6 px-4 sm:px-6 md:px-10 transition-all duration-700 ease-out w-full',
                   isOpen
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-12'
+                    ? 'opacity-100 translate-y-0 pointer-events-auto'
+                    : 'opacity-0 translate-y-12 pointer-events-none'
                 )}
                 style={{
                   transitionDelay: isOpen ? `${index * 100 + 300}ms` : '0ms',
@@ -382,7 +399,9 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
       <div
         className={cn(
           'absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 text-[0.6rem] tracking-[0.2em] text-zinc-600 transition-all duration-500 font-mono',
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          isOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
         )}
         style={{transitionDelay: isOpen ? '800ms' : '0ms'}}
       >

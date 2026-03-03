@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 // Source attribution - URLs where data was found
-const SourcesSchema = z.record(z.array(z.string()))
+const SourcesSchema = z.record(z.string(), z.array(z.string()))
 
 // Discovery Agent Output
 export const DiscoveryResultSchema = z.object({

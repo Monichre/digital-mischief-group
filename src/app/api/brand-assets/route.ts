@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const parseResult = BrandAssetInputSchema.safeParse(body)
     if (!parseResult.success) {
       return NextResponse.json(
-        { success: false, error: parseResult.error.errors[0]?.message || 'Invalid input' },
+        { success: false, error: parseResult.error.issues[0]?.message || 'Invalid input' },
         { status: 400 }
       )
     }
