@@ -176,6 +176,7 @@ const RECON_MODULES = [
   { key: "enrich", label: "Enrich", href: "/enrich", icon: Database, color: "text-orange-500" },
   { key: "brand", label: "Brand", href: "/brand-recon", icon: Zap, color: "text-orange-400" },
   { key: "sentinels", label: "Sentinels", href: "/scouts", icon: Target, color: "text-orange-500" },
+  { key: "browser", label: "Weaponize", href: "/weaponize-browser", icon: Flame, color: "text-orange-400" },
   { key: "recon", label: "Recon", href: "/observe", icon: Eye, color: "text-orange-400" },
 ] as const
 

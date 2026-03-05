@@ -1,0 +1,33 @@
+{
+  "run_id": "hyper-train-2026-03-04T21-25-07-371Z",
+  "started_at": "2026-03-04T21:25:07.371Z",
+  "completed_at": "2026-03-04T21:25:08.043Z",
+  "duration_ms": 672,
+  "input": {
+    "total_urls": 1,
+    "unique_urls": 1,
+    "chunk_size": 1,
+    "concurrency": 1,
+    "include_embeddings": false,
+    "include_qa_generation": false
+  },
+  "counts": {
+    "processed": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "embeddings_generated": 0,
+    "qa_generated": 0
+  },
+  "artifacts": {
+    "jsonl_path": "/Users/liamellis/Desktop/01_ACTIVE/digital-mischief-group/tmp/hyper-train-check/hyper-train-2026-03-04T21-25-07-371Z.dataset.jsonl",
+    "markdown_path": "/Users/liamellis/Desktop/01_ACTIVE/digital-mischief-group/tmp/hyper-train-check/hyper-train-2026-03-04T21-25-07-371Z.dataset.md",
+    "embeddings_path": null,
+    "qa_path": null,
+    "report_path": "/Users/liamellis/Desktop/01_ACTIVE/digital-mischief-group/tmp/hyper-train-check/hyper-train-2026-03-04T21-25-07-371Z.report.json"
+  },
+  "failures": [],
+  "optional_failures": {
+    "embeddings": [],
+    "qa": []
+  }
+}

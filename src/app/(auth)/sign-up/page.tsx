@@ -105,7 +105,7 @@ export default function SignUpPage() {
                 CREATE ACCOUNT
               </h1>
               <p className='text-xs text-zinc-500 font-mono'>
-                AGENT_REGISTRATION
+                Set up your account to get started
               </p>
             </div>
           </div>

@@ -97,11 +97,11 @@ This brings the backlog into explicit alignment with the current PRD while prese
 
 # Project Tickets - Daedalus Platform
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-03-04
 
 This is the canonical ticket backlog for Digital Mischief Group. All active work is tracked here with checkboxes for manual progress tracking.
 
-**Total Tickets:** 20
+**Total Tickets:** 24
 
 **Legend:**
 
@@ -343,6 +343,74 @@ This is the canonical ticket backlog for Digital Mischief Group. All active work
 - Users can self-serve account + billing updates
 - Usage and limits visible per plan tier
 - Gating enforced consistently on API routes
+
+---
+
+#### US-006: Firecrawl Browser Sandbox Integration (Ticket #21)
+
+**Priority:** P1 | **Effort:** M | **Module:** platform/firecrawl
+
+- [ ] Add typed Firecrawl browser methods to shared service: create session, execute code, list sessions, delete session
+- [ ] Support `language: node` and `language: bash` execution paths with structured result parsing
+- [ ] Add session controls (`ttl`, `activityTtl`, optional `profile`) and safe defaults
+- [ ] Add unit tests for successful execution, timeout/error handling, and session cleanup
+
+**Acceptance Criteria:**
+
+- Browser session lifecycle is fully available through the shared Firecrawl adapter
+- Browser execution returns typed results with consistent error handling
+- Session cleanup is reliable and tested
+
+---
+
+#### US-006: Firecrawl Agent Deep Research Integration (Ticket #22)
+
+**Priority:** P1 | **Effort:** M | **Module:** platform/firecrawl + daedalus/agent
+
+- [ ] Add typed support for Firecrawl `/agent` options (`prompt`, `urls`, `schema`, `model`, `maxCredits`)
+- [ ] Support both sync (`agent`) and async (`startAgent` + `getAgentStatus`) workflows in service layer
+- [ ] Persist run metadata (status, credits used, expiry, sources) for auditability
+- [ ] Add guardrails for credit caps and model selection defaults
+
+**Acceptance Criteria:**
+
+- Agent runs can be started, tracked, and completed from Daedalus workflows
+- Credits and run metadata are captured for each execution
+- Failure paths return actionable errors without breaking caller flows
+
+---
+
+#### US-005: Hyper Browser Parallel Scout Runs (Ticket #23)
+
+**Priority:** P1 | **Effort:** L | **Module:** daedalus/scout
+
+- [ ] Integrate Hyper Browser SDK client and config (API key, retries, concurrency limits)
+- [ ] Add a parallel execution runner for scout jobs (trend summary, competitor sweep, company research)
+- [ ] Normalize Hyper Browser outputs into existing `scout_results` + sentinel analysis pipeline
+- [ ] Add provider fallback and feature-flag gating to avoid hard dependency failures
+
+**Acceptance Criteria:**
+
+- Scout pipeline can execute high-concurrency browser runs through Hyper Browser
+- Results are persisted in existing schema with source attribution
+- Firecrawl-only fallback remains functional when Hyper Browser is disabled/unavailable
+
+---
+
+#### US-006: Hyper Train Dataset Pipeline (Ticket #24)
+
+**Priority:** P2 | **Effort:** L | **Module:** scripts/jobs
+
+- [ ] Add dataset pipeline for URL lists with configurable chunking and concurrency
+- [ ] Export LLM-ready outputs (JSONL and Markdown) with metadata
+- [ ] Add optional embedding and QA-generation steps behind explicit flags
+- [ ] Add run report output with processed URL counts, failures, and generated artifact paths
+
+**Acceptance Criteria:**
+
+- Operators can generate reusable training datasets from URL inputs
+- Output files are deterministic, validated, and traceable to source URLs
+- Optional embedding/QA steps are isolated and fail safely
 
 ---
 

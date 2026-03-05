@@ -66,7 +66,7 @@ export function LiveSentinelRunner({
     setInsights([])
     setCompetitiveIntel([])
     setTrends([])
-    setStatus('Starting sentinel...')
+    setStatus('INITIATING MULTI-VECTOR STRIKE...')
     setSearchProgress({
       serper: {status: 'idle', found: 0},
       exa: {status: 'idle', found: 0},
@@ -83,7 +83,7 @@ export function LiveSentinelRunner({
       // Update status based on event type
       switch (event.type) {
         case 'search_start':
-          setStatus(`Searching ${event.data.engine}...`)
+          setStatus('DEPLOYING SWARM...')
           setSearchProgress((prev) => ({
             ...prev,
             [event.data.engine]: {status: 'searching', found: 0},
@@ -102,7 +102,7 @@ export function LiveSentinelRunner({
           break
 
         case 'ai_analysis_start':
-          setStatus('AI analyzing results...')
+          setStatus('SYNCHRONIZING BATTLESPACE INTELLIGENCE...')
           break
 
         case 'insight_generated':
@@ -118,7 +118,7 @@ export function LiveSentinelRunner({
           break
 
         case 'complete':
-          setStatus('Complete!')
+          setStatus('OPERATION COMPLETE')
           setIsRunning(false)
           eventSource.close()
           if (onComplete) onComplete()
@@ -185,7 +185,7 @@ export function LiveSentinelRunner({
             {isRunning ? (
               <>
                 <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                Running...
+                DEPLOYING SWARM...
               </>
             ) : (
               <>

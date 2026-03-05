@@ -58,6 +58,27 @@ const tiers = [
   },
 ] as const
 
+const ballisticsCapabilities = [
+  {
+    name: 'Ghost Protocol',
+    tech: 'Firecrawl Stealth Browser + Agent Integration',
+    mission: 'Infiltration',
+    quote: 'Most agents get stopped at the gate. Ours walk through walls.',
+    description:
+      'Advanced fingerprint masking mimics human signatures to navigate JavaScript-heavy targets and contested perimeters without triggering alarms.',
+    capability: 'Undetectable Surveillance',
+  },
+  {
+    name: 'Swarm Engine',
+    tech: 'Hyper Browser Infrastructure',
+    mission: 'Saturation',
+    quote: 'One agent is a nuisance. A thousand agents is a siege.',
+    description:
+      'Spin up hundreds of concurrent browser sessions for Time-on-Target sweeps across competitors, trends, and market intelligence in parallel.',
+    capability: 'Convergent Operations',
+  },
+] as const
+
 export default function DaedalusPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-16 px-6 py-20 text-gray-300">
@@ -117,6 +138,59 @@ export default function DaedalusPage() {
           UI language stays human‑friendly. Code stays metal: extract, observe,
           scout, enrich, agent.
         </p>
+      </section>
+
+      <section className="space-y-6">
+        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-gray-500">
+          <span className="h-px w-12 bg-gray-700" />
+          // Upgrade: Ballistics Package v2.5
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-3xl font-semibold text-white md:text-4xl">
+            Multi-Vector Strike Capability.
+          </h2>
+          <p className="max-w-3xl text-sm text-gray-400 md:text-base">
+            We solved detection and scale with two mission-specific browser
+            warheads. Use Ghost Protocol to breach high-security targets. Use
+            Swarm Engine to strip-mine the open web. This is orchestrated
+            execution.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {ballisticsCapabilities.map((capability) => (
+            <article
+              key={capability.name}
+              className="rounded-2xl border border-white/10 bg-white/5 p-6"
+            >
+              <p className="text-xs uppercase tracking-[0.2em] text-orange-400">
+                {capability.mission}
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold text-white">
+                {capability.name}
+              </h3>
+              <p className="mt-2 text-xs uppercase tracking-[0.2em] text-gray-500">
+                {capability.tech}
+              </p>
+              <p className="mt-4 text-sm italic text-gray-300">
+                “{capability.quote}”
+              </p>
+              <p className="mt-4 text-sm text-gray-400">{capability.description}</p>
+              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-gray-500">
+                Capability: <span className="text-gray-300">{capability.capability}</span>
+              </p>
+            </article>
+          ))}
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+            Operational Synchronization
+          </p>
+          <p className="mt-2 text-sm text-gray-300">
+            Old way: one agent, one tab, blocked at the perimeter. New way:
+            distributed infiltration + mass parallel execution across every
+            mission target.
+          </p>
+        </div>
       </section>
 
       <section className="space-y-6">

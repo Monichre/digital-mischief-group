@@ -5,9 +5,11 @@ import { FullscreenMenu } from "./FullscreenMenu"
 
 interface MenuContextValue {
   isOpen: boolean
+  isToggleDisabled: boolean
   openMenu: () => void
   closeMenu: () => void
   toggleMenu: () => void
+  setToggleDisabled: (disabled: boolean) => void
 }
 
 const MenuContext = createContext<MenuContextValue | null>(null)
@@ -26,13 +28,37 @@ interface MenuProviderProps {
 
 export function MenuProvider({ children }: MenuProviderProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isToggleDisabled, setIsToggleDisabled] = useState(false)
 
-  const openMenu = useCallback(() => setIsOpen(true), [])
+  const setToggleDisabled = useCallback((disabled: boolean) => {
+    setIsToggleDisabled(disabled)
+
+    if (disabled) {
+      setIsOpen(false)
+    }
+  }, [])
+
+  const openMenu = useCallback(() => {
+    if (isToggleDisabled) return
+    setIsOpen(true)
+  }, [isToggleDisabled])
   const closeMenu = useCallback(() => setIsOpen(false), [])
-  const toggleMenu = useCallback(() => setIsOpen(prev => !prev), [])
+  const toggleMenu = useCallback(() => {
+    if (isToggleDisabled) return
+    setIsOpen(prev => !prev)
+  }, [isToggleDisabled])
 
   return (
-    <MenuContext.Provider value={{ isOpen, openMenu, closeMenu, toggleMenu }}>
+    <MenuContext.Provider
+      value={{
+        isOpen,
+        isToggleDisabled,
+        openMenu,
+        closeMenu,
+        toggleMenu,
+        setToggleDisabled,
+      }}
+    >
       {children}
       <FullscreenMenu isOpen={isOpen} onClose={closeMenu} />
     </MenuContext.Provider>

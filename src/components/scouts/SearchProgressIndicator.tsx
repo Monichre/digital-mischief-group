@@ -18,7 +18,7 @@ interface SearchProgressIndicatorProps {
 const engineLabels: Record<SearchEngine, string> = {
   serper: "Google Search",
   exa: "Exa AI",
-  firecrawl: "Deep Crawl",
+  firecrawl: "Ghost Protocol",
 }
 
 export function SearchProgressIndicator({ searchProgress }: SearchProgressIndicatorProps) {
@@ -47,7 +47,7 @@ export function SearchProgressIndicator({ searchProgress }: SearchProgressIndica
               <span className="text-xs font-medium text-zinc-600">{progress.found} results</span>
             )}
 
-            {isSearching && <span className="text-xs text-zinc-500">searching...</span>}
+            {isSearching && <span className="text-xs text-zinc-500">deploying swarm...</span>}
           </div>
         )
       })}

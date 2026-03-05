@@ -1,7 +1,6 @@
 import Firecrawl from '@mendable/firecrawl-js'
 import { z } from 'zod'
 import { recordFirecrawlRequest } from '@/platform/monitoring'
-import type { Primitive } from '@/platform/monitoring'
 
 export type FirecrawlFormat =
   | 'markdown'
@@ -44,6 +43,8 @@ export interface FirecrawlResponse<T = unknown> {
   data?: T
   error?: string
   errorDetails?: FirecrawlErrorDetails
+  creditsUsed?: number
+  expiresAt?: string
   meta?: {
     attempts: number
     fallbackUrls: string[]
@@ -188,6 +189,11 @@ type FirecrawlSdk = {
   search: (query: string, options: Record<string, unknown>) => Promise<unknown>
   startAgent: (options: Record<string, unknown>) => Promise<unknown>
   getAgentStatus: (jobId: string) => Promise<unknown>
+  agent?: (options: Record<string, unknown>) => Promise<unknown>
+  createBrowserSession?: (options: Record<string, unknown>) => Promise<unknown>
+  executeBrowserCode?: (sessionId: string, options: Record<string, unknown>) => Promise<unknown>
+  listBrowserSessions?: (options?: Record<string, unknown>) => Promise<unknown>
+  closeBrowserSession?: (sessionId: string) => Promise<unknown>
   mapUrl?: (url: string, options: Record<string, unknown>) => Promise<unknown>
   crawlUrl?: (url: string, options: Record<string, unknown>) => Promise<unknown>
 }
@@ -217,6 +223,14 @@ type FirecrawlSearchApiResult = {
 type FirecrawlAgentStartResult = {
   id?: string
   jobId?: string
+  creditsUsed?: number
+  expiresAt?: string
+  data?: {
+    id?: string
+    jobId?: string
+    creditsUsed?: number
+    expiresAt?: string
+  }
   error?: unknown
 }
 
@@ -224,7 +238,77 @@ type FirecrawlAgentStatusResult = {
   status?: 'pending' | 'processing' | 'completed' | 'failed'
   data?: unknown
   steps?: Array<{ action: string; result: unknown }>
+  creditsUsed?: number
+  expiresAt?: string
   error?: unknown
+}
+
+export type FirecrawlBrowserLanguage = 'node' | 'bash'
+
+export interface FirecrawlBrowserProfile {
+  name: string
+  saveChanges?: boolean
+}
+
+export interface FirecrawlBrowserSession {
+  id: string
+  status?: string
+  cdpUrl?: string
+  liveViewUrl?: string
+  interactiveLiveViewUrl?: string
+}
+
+type FirecrawlBrowserCreateResult = {
+  id?: string
+  cdpUrl?: string
+  liveViewUrl?: string
+  interactiveLiveViewUrl?: string
+  error?: unknown
+  data?: {
+    id?: string
+    cdpUrl?: string
+    liveViewUrl?: string
+    interactiveLiveViewUrl?: string
+  }
+}
+
+type FirecrawlBrowserExecuteResult = {
+  result?: unknown
+  error?: unknown
+  data?: {
+    result?: unknown
+  }
+}
+
+type FirecrawlBrowserListResult = {
+  sessions?: unknown[]
+  data?: {
+    sessions?: unknown[]
+  }
+  error?: unknown
+}
+
+type FirecrawlBrowserCloseResult = {
+  id?: string
+  error?: unknown
+  data?: {
+    id?: string
+  }
+}
+
+export interface FirecrawlAgentOptions {
+  prompt: string
+  url?: string
+  urls?: string[]
+  schema?: Record<string, unknown>
+  model?: string
+  maxCredits?: number
+  enableWebSearch?: boolean
+}
+
+export interface FirecrawlAgentRunOptions extends FirecrawlAgentOptions {
+  maxWaitMs?: number
+  pollIntervalMs?: number
 }
 
 type FirecrawlMapResult = {
@@ -336,6 +420,78 @@ function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
 }
 
+function asNumber(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' ? (value as Record<string, unknown>) : undefined
+}
+
+function responseLayers(result: unknown): Record<string, unknown>[] {
+  const layers: Record<string, unknown>[] = []
+  const root = asRecord(result)
+  if (!root) return layers
+
+  layers.push(root)
+  const data = asRecord(root.data)
+  if (data) {
+    layers.push(data)
+    const nestedData = asRecord(data.data)
+    if (nestedData) layers.push(nestedData)
+  }
+
+  return layers
+}
+
+function getStringFromLayers(result: unknown, key: string): string | undefined {
+  for (const layer of responseLayers(result)) {
+    const value = asString(layer[key])
+    if (value) return value
+  }
+  return undefined
+}
+
+function getNumberFromLayers(result: unknown, key: string): number | undefined {
+  for (const layer of responseLayers(result)) {
+    const value = asNumber(layer[key])
+    if (value !== undefined) return value
+  }
+  return undefined
+}
+
+function getUnknownFromLayers(result: unknown, key: string): unknown {
+  for (const layer of responseLayers(result)) {
+    if (Object.prototype.hasOwnProperty.call(layer, key)) {
+      return layer[key]
+    }
+  }
+  return undefined
+}
+
+function getArrayFromLayers(result: unknown, key: string): unknown[] | undefined {
+  for (const layer of responseLayers(result)) {
+    const value = layer[key]
+    if (Array.isArray(value)) return value
+  }
+  return undefined
+}
+
+function extractErrorMessageFromLayers(result: unknown): string | undefined {
+  for (const layer of responseLayers(result)) {
+    if (!Object.prototype.hasOwnProperty.call(layer, 'error')) continue
+    const value = layer.error
+    if (!value) continue
+    if (typeof value === 'string') return value
+    try {
+      return JSON.stringify(value)
+    } catch {
+      return String(value)
+    }
+  }
+  return undefined
+}
+
 class FirecrawlRequestError extends Error {
   details: FirecrawlErrorDetails
 
@@ -389,6 +545,7 @@ class FirecrawlRateLimiter {
 export interface FirecrawlServiceOptions {
   app?: FirecrawlSdk
   apiKey?: string
+  apiUrl?: string
   logger?: FirecrawlLogger
   maxRetries?: number
   backoffMs?: number
@@ -402,9 +559,12 @@ export class FirecrawlService {
   private limiter: FirecrawlRateLimiter
   private maxRetries: number
   private backoffMs: number
+  private apiKey?: string
+  private apiUrl: string
 
   constructor(options: FirecrawlServiceOptions = {}) {
     const apiKey = options.apiKey ?? process.env.FIRECRAWL_API_KEY
+    const apiUrl = (options.apiUrl ?? process.env.FIRECRAWL_API_URL ?? 'https://api.firecrawl.dev').replace(/\/$/, '')
 
     if (options.app) {
       this.app = options.app
@@ -418,6 +578,8 @@ export class FirecrawlService {
     this.logger = options.logger ?? console
     this.maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES
     this.backoffMs = options.backoffMs ?? DEFAULT_BACKOFF_MS
+    this.apiKey = apiKey
+    this.apiUrl = apiUrl
     this.limiter = new FirecrawlRateLimiter(
       options.maxConcurrent ?? DEFAULT_MAX_CONCURRENT,
       options.minDelayMs ?? DEFAULT_MIN_DELAY_MS,
@@ -685,34 +847,50 @@ export class FirecrawlService {
     }
   }
 
-  async startAgent(options: {
-    url: string
-    prompt: string
-    schema?: Record<string, unknown>
-    enableWebSearch?: boolean
-  }): Promise<FirecrawlResponse<{ jobId: string }>> {
+  async startAgent(options: FirecrawlAgentOptions): Promise<
+    FirecrawlResponse<{ jobId: string; creditsUsed?: number; expiresAt?: string }>
+  > {
     try {
-      const result = await this.limiter.schedule(() =>
-        this.app.startAgent({
-          url: options.url,
-          prompt: options.prompt,
-          schema: options.schema,
-          enableWebSearch: options.enableWebSearch,
-        })
-      )
+      const urls = options.urls && options.urls.length > 0
+        ? options.urls
+        : options.url
+          ? [options.url]
+          : undefined
 
-      const payload = result as FirecrawlAgentStartResult
-      const errorMessage = extractErrorMessage(payload)
+      const payload: Record<string, unknown> = {
+        prompt: options.prompt,
+        schema: options.schema,
+        enableWebSearch: options.enableWebSearch,
+        model: options.model,
+        maxCredits: options.maxCredits,
+      }
+
+      // Preserve compatibility with older Firecrawl agent payloads.
+      if (options.url) payload.url = options.url
+      if (urls?.length) payload.urls = urls
+
+      const result = await this.limiter.schedule(() => this.app.startAgent(payload))
+
+      const payloadResult = result as FirecrawlAgentStartResult
+      const errorMessage = extractErrorMessage(payloadResult) || extractErrorMessageFromLayers(payloadResult)
       if (errorMessage) {
         return { success: false, error: errorMessage }
       }
 
-      const jobId = payload.id || payload.jobId
+      const jobId = getStringFromLayers(payloadResult, 'id') || getStringFromLayers(payloadResult, 'jobId')
       if (!jobId) {
         return { success: false, error: 'Agent start failed' }
       }
 
-      return { success: true, data: { jobId } }
+      const creditsUsed = getNumberFromLayers(payloadResult, 'creditsUsed')
+      const expiresAt = getStringFromLayers(payloadResult, 'expiresAt')
+
+      return {
+        success: true,
+        data: { jobId, creditsUsed, expiresAt },
+        creditsUsed,
+        expiresAt,
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Agent start failed' }
     }
@@ -723,42 +901,51 @@ export class FirecrawlService {
       status: 'pending' | 'processing' | 'completed' | 'failed'
       data?: unknown
       steps?: Array<{ action: string; result: unknown }>
+      creditsUsed?: number
+      expiresAt?: string
     }>
   > {
     try {
       const result = await this.limiter.schedule(() => this.app.getAgentStatus(jobId))
 
       const payload = result as FirecrawlAgentStatusResult
-      const errorMessage = extractErrorMessage(payload)
+      const errorMessage = extractErrorMessage(payload) || extractErrorMessageFromLayers(payload)
       if (errorMessage) {
         return { success: false, error: errorMessage }
       }
 
-      if (!payload.status) {
+      const status = getStringFromLayers(payload, 'status') as
+        | 'pending'
+        | 'processing'
+        | 'completed'
+        | 'failed'
+        | undefined
+
+      if (!status) {
         return { success: false, error: 'Agent status missing' }
       }
+
+      const creditsUsed = getNumberFromLayers(payload, 'creditsUsed')
+      const expiresAt = getStringFromLayers(payload, 'expiresAt')
 
       return {
         success: true,
         data: {
-          status: payload.status,
-          data: payload.data,
-          steps: payload.steps,
+          status,
+          data: getUnknownFromLayers(payload, 'data'),
+          steps: getUnknownFromLayers(payload, 'steps') as Array<{ action: string; result: unknown }> | undefined,
+          creditsUsed,
+          expiresAt,
         },
+        creditsUsed,
+        expiresAt,
       }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Agent status check failed' }
     }
   }
 
-  async runAgent(options: {
-    url: string
-    prompt: string
-    schema?: Record<string, unknown>
-    enableWebSearch?: boolean
-    maxWaitMs?: number
-    pollIntervalMs?: number
-  }): Promise<FirecrawlResponse<unknown>> {
+  async runAgent(options: FirecrawlAgentRunOptions): Promise<FirecrawlResponse<unknown>> {
     const startResult = await this.startAgent(options)
     if (!startResult.success || !startResult.data?.jobId) {
       return { success: false, error: startResult.error || 'Failed to start agent' }
@@ -777,17 +964,248 @@ export class FirecrawlService {
       }
 
       if (statusResult.data?.status === 'completed') {
-        return { success: true, data: statusResult.data.data }
+        return {
+          success: true,
+          data: statusResult.data.data,
+          creditsUsed: statusResult.data.creditsUsed,
+          expiresAt: statusResult.data.expiresAt,
+        }
       }
 
       if (statusResult.data?.status === 'failed') {
-        return { success: false, error: 'Agent job failed' }
+        return {
+          success: false,
+          error: 'Agent job failed',
+          creditsUsed: statusResult.data.creditsUsed,
+          expiresAt: statusResult.data.expiresAt,
+        }
       }
 
       await sleep(pollInterval)
     }
 
-    return { success: false, error: 'Agent job timed out' }
+    return {
+      success: false,
+      error: 'Agent job timed out',
+      creditsUsed: startResult.creditsUsed,
+      expiresAt: startResult.expiresAt,
+    }
+  }
+
+  async agent(
+    options: FirecrawlAgentOptions & {
+      pollIntervalMs?: number
+      timeoutMs?: number
+      maxWaitMs?: number
+    },
+  ): Promise<FirecrawlResponse<unknown>> {
+    if (this.app.agent) {
+      try {
+        const urls = options.urls && options.urls.length > 0
+          ? options.urls
+          : options.url
+            ? [options.url]
+            : undefined
+
+        const payload: Record<string, unknown> = {
+          prompt: options.prompt,
+          urls,
+          schema: options.schema,
+          model: options.model,
+          maxCredits: options.maxCredits,
+          pollInterval: options.pollIntervalMs ? Math.max(1, Math.round(options.pollIntervalMs / 1000)) : undefined,
+          timeout: options.timeoutMs
+            ? Math.max(1, Math.round(options.timeoutMs / 1000))
+            : options.maxWaitMs
+              ? Math.max(1, Math.round(options.maxWaitMs / 1000))
+              : undefined,
+        }
+
+        const result = await this.limiter.schedule(() => this.app.agent!(payload))
+        const errorMessage = extractErrorMessageFromLayers(result) || extractErrorMessage(result)
+        if (errorMessage) {
+          return { success: false, error: errorMessage }
+        }
+
+        const status = getStringFromLayers(result, 'status')
+        if (status === 'failed') {
+          return {
+            success: false,
+            error: 'Agent job failed',
+            creditsUsed: getNumberFromLayers(result, 'creditsUsed'),
+            expiresAt: getStringFromLayers(result, 'expiresAt'),
+          }
+        }
+
+        return {
+          success: true,
+          data: getUnknownFromLayers(result, 'data'),
+          creditsUsed: getNumberFromLayers(result, 'creditsUsed'),
+          expiresAt: getStringFromLayers(result, 'expiresAt'),
+        }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Agent failed' }
+      }
+    }
+
+    return this.runAgent({
+      ...options,
+      maxWaitMs: options.maxWaitMs ?? options.timeoutMs,
+    })
+  }
+
+  async createBrowserSession(options: {
+    ttl?: number
+    activityTtl?: number
+    profile?: FirecrawlBrowserProfile
+  } = {}): Promise<FirecrawlResponse<FirecrawlBrowserSession>> {
+    try {
+      const payload: Record<string, unknown> = {
+        ttl: options.ttl,
+        activityTtl: options.activityTtl,
+        profile: options.profile,
+      }
+
+      const result = this.app.createBrowserSession
+        ? await this.limiter.schedule(() => this.app.createBrowserSession!(payload))
+        : await this.firecrawlApiRequest<FirecrawlBrowserCreateResult>('POST', ['/v2/browser', '/browser'], payload)
+
+      const errorMessage = extractErrorMessageFromLayers(result) || extractErrorMessage(result)
+      if (errorMessage) {
+        return { success: false, error: errorMessage }
+      }
+
+      const id = getStringFromLayers(result, 'id')
+      if (!id) {
+        return { success: false, error: 'Browser session creation failed' }
+      }
+
+      return {
+        success: true,
+        data: {
+          id,
+          cdpUrl: getStringFromLayers(result, 'cdpUrl'),
+          liveViewUrl: getStringFromLayers(result, 'liveViewUrl'),
+          interactiveLiveViewUrl: getStringFromLayers(result, 'interactiveLiveViewUrl'),
+          status: getStringFromLayers(result, 'status'),
+        },
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Browser session creation failed',
+      }
+    }
+  }
+
+  async executeBrowserCode(options: {
+    sessionId: string
+    code: string
+    language: FirecrawlBrowserLanguage
+    timeout?: number
+  }): Promise<FirecrawlResponse<{ result: unknown }>> {
+    try {
+      const payload: Record<string, unknown> = {
+        code: options.code,
+        language: options.language,
+        timeout: options.timeout,
+      }
+
+      const result = this.app.executeBrowserCode
+        ? await this.limiter.schedule(() => this.app.executeBrowserCode!(options.sessionId, payload))
+        : await this.firecrawlApiRequest<FirecrawlBrowserExecuteResult>(
+            'POST',
+            [`/v2/browser/${options.sessionId}/execute`, `/browser/${options.sessionId}/execute`],
+            payload,
+          )
+
+      const errorMessage = extractErrorMessageFromLayers(result) || extractErrorMessage(result)
+      if (errorMessage) {
+        return { success: false, error: errorMessage }
+      }
+
+      const explicitResult = getUnknownFromLayers(result, 'result')
+      return {
+        success: true,
+        data: {
+          result: explicitResult !== undefined ? explicitResult : result,
+        },
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Browser code execution failed',
+      }
+    }
+  }
+
+  async listBrowserSessions(options?: {
+    status?: string
+  }): Promise<FirecrawlResponse<Array<FirecrawlBrowserSession & { result?: unknown }>>> {
+    try {
+      const params = options?.status ? { status: options.status } : undefined
+      const result = this.app.listBrowserSessions
+        ? await this.limiter.schedule(() => this.app.listBrowserSessions!(params))
+        : await this.firecrawlApiRequest<FirecrawlBrowserListResult>('GET', ['/v2/browser', '/browser'], params)
+
+      const errorMessage = extractErrorMessageFromLayers(result) || extractErrorMessage(result)
+      if (errorMessage) {
+        return { success: false, error: errorMessage }
+      }
+
+      const root = asRecord(result)
+      const sessionsRaw =
+        (Array.isArray(result) ? result : undefined) ||
+        getArrayFromLayers(result, 'sessions') ||
+        (root && Array.isArray(root.data) ? root.data : [])
+
+      const sessions: Array<FirecrawlBrowserSession & { result?: unknown }> = []
+      for (const session of sessionsRaw) {
+        const id = getStringFromLayers(session, 'id')
+        if (!id) continue
+
+        sessions.push({
+          id,
+          status: getStringFromLayers(session, 'status'),
+          cdpUrl: getStringFromLayers(session, 'cdpUrl'),
+          liveViewUrl: getStringFromLayers(session, 'liveViewUrl'),
+          interactiveLiveViewUrl: getStringFromLayers(session, 'interactiveLiveViewUrl'),
+          result: getUnknownFromLayers(session, 'result'),
+        })
+      }
+
+      return { success: true, data: sessions }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to list browser sessions',
+      }
+    }
+  }
+
+  async closeBrowserSession(sessionId: string): Promise<FirecrawlResponse<{ id: string }>> {
+    try {
+      const result = this.app.closeBrowserSession
+        ? await this.limiter.schedule(() => this.app.closeBrowserSession!(sessionId))
+        : await this.firecrawlApiRequest<FirecrawlBrowserCloseResult>('DELETE', [`/v2/browser/${sessionId}`, `/browser/${sessionId}`])
+
+      const errorMessage = extractErrorMessageFromLayers(result) || extractErrorMessage(result)
+      if (errorMessage) {
+        return { success: false, error: errorMessage }
+      }
+
+      return {
+        success: true,
+        data: {
+          id: getStringFromLayers(result, 'id') || sessionId,
+        },
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to close browser session',
+      }
+    }
   }
 
   async map(options: {
@@ -846,6 +1264,66 @@ export class FirecrawlService {
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Crawl failed' }
     }
+  }
+
+  private async firecrawlApiRequest<T>(
+    method: 'GET' | 'POST' | 'DELETE',
+    endpoints: string[],
+    body?: Record<string, unknown>,
+  ): Promise<T> {
+    if (!this.apiKey) {
+      throw new Error('FIRECRAWL_API_KEY is not configured')
+    }
+
+    let lastError: Error | undefined
+
+    for (const endpoint of endpoints) {
+      try {
+        const url = new URL(`${this.apiUrl}${endpoint}`)
+        if (method === 'GET' && body) {
+          for (const [key, value] of Object.entries(body)) {
+            if (value !== undefined && value !== null) {
+              url.searchParams.set(key, String(value))
+            }
+          }
+        }
+
+        const response = await this.limiter.schedule(() =>
+          fetch(url.toString(), {
+            method,
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: method === 'GET' ? undefined : JSON.stringify(body ?? {}),
+          })
+        )
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          if (response.status === 404 && endpoint !== endpoints[endpoints.length - 1]) {
+            continue
+          }
+
+          throw new Error(errorText || `Firecrawl API request failed (${response.status})`)
+        }
+
+        const rawText = await response.text()
+        if (!rawText) {
+          return {} as T
+        }
+
+        try {
+          return JSON.parse(rawText) as T
+        } catch {
+          return { result: rawText } as T
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+      }
+    }
+
+    throw lastError ?? new Error('Firecrawl API request failed')
   }
 
   private async scrapeWithFallback<T = FirecrawlScrapePayload>(options: {

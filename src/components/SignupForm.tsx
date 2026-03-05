@@ -16,6 +16,7 @@ import {
   Sparkles,
   Globe,
 } from 'lucide-react'
+import {useMenu} from './MenuProvider'
 
 // =============================================================================
 // TYPES
@@ -152,6 +153,7 @@ export function SignupForm({
   isOpen: boolean
   onClose: () => void
 }) {
+  const {setToggleDisabled} = useMenu()
   const [step, setStep] = useState(0)
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -170,6 +172,15 @@ export function SignupForm({
       setTimeout(() => inputRef.current?.focus(), 300)
     }
   }, [step, isOpen])
+
+  // Prevent global navigation toggle interaction while modal is active
+  useEffect(() => {
+    setToggleDisabled(isOpen)
+
+    return () => {
+      setToggleDisabled(false)
+    }
+  }, [isOpen, setToggleDisabled])
 
   // Reset on close
   useEffect(() => {

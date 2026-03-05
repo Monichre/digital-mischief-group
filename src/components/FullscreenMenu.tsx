@@ -65,9 +65,16 @@ const MENU_ITEMS = [
     description: 'Page change detection',
   },
   {
+    label: 'Weaponize Browser',
+    href: '/weaponize-browser',
+    number: '06',
+    icon: Flame,
+    description: 'Browser sandbox + agent + Hyper strategies',
+  },
+  {
     label: 'Profile',
     href: '/profile',
-    number: '06',
+    number: '07',
     icon: User,
     description: 'Account settings & billing',
   },
