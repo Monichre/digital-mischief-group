@@ -5,7 +5,6 @@ import {
   Flame,
   ArrowRight,
   ChevronRight,
-  Target,
   X,
   Radar,
   Zap,
@@ -20,7 +19,6 @@ import {
 } from 'lucide-react'
 import {useState, useRef, useEffect} from 'react'
 import {SignupForm, useSignupForm} from '@/components/SignupForm'
-import {MeetTheTeam} from '@/components/MeetTheTeam'
 import {HeroTicker} from '@/components/HeroTicker'
 import {CapabilitiesStrip} from '@/components/CapabilitiesStrip'
 import {AuthLinks} from '@/components/AuthLinks'
@@ -48,7 +46,6 @@ import {
   SectionGlow,
   StrikeOutReveal,
   RoleBasedAccessControl,
-  RealtimeCollaboration,
 } from '@/components/effects'
 
 // Stripe buy link for Operator ($30/mo)
@@ -81,13 +78,13 @@ export default function Home() {
       <NoiseOverlay />
       <ScanlineOverlay />
 
-      {/* Background Dot Pattern (secondary layer) */}
-      <div className='fixed inset-0 z-[1] opacity-30 pointer-events-none'>
+      {/* Background Dot Pattern (secondary layer) - refined, minimal */}
+      <div className='fixed inset-0 z-[1] opacity-15 pointer-events-none'>
         <DotPattern
-          width={32}
-          height={32}
+          width={40}
+          height={40}
           cr={0.5}
-          className='text-orange-500/10'
+          className='text-zinc-500/20'
         />
       </div>
 
@@ -525,54 +522,58 @@ export default function Home() {
           className='absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none'
           style={{
             background:
-              'radial-gradient(circle, rgba(239,68,68,0.15) 0%, transparent 70%)',
+              'radial-gradient(circle, rgba(239,68,68,0.12) 0%, transparent 70%)',
             filter: 'blur(80px)',
           }}
         />
-        {/* Subtle vignette */}
         <div className='absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,black_70%)]' />
 
         <div className='max-w-xl mx-auto px-6 relative z-10'>
           <div className='font-mono text-left'>
             {/* Eyebrow */}
-            <div className='text-[10px] text-red-500/70 tracking-widest mb-8 flex items-center gap-2'>
+            <div className='text-[10px] text-red-500/80 tracking-widest mb-8 flex items-center gap-2'>
               <div className='w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse' />
-              <span>// SYSTEM ALERT: OBSOLESCENCE IMMINENT</span>
+              <span>// SYSTEM ALERT: EXTINCTION EVENT</span>
             </div>
 
             {/* Headline */}
             <h2 className='text-3xl md:text-5xl font-black text-white mb-12 leading-tight'>
-              The end is near.
+              The end is here.
               <br />
               <span className='text-zinc-500'>
-                For some it's already too late.
+                For some, it&apos;s already too late.
               </span>
             </h2>
 
-            {/* Body - Animated strikethrough list */}
-            <div className='space-y-5 text-body-lg text-zinc-300 mb-12'>
+            {/* The Kill List */}
+            <div className='space-y-4 text-body-lg text-zinc-300 mb-12'>
               <StrikeOutReveal delay={0} duration={0.5}>
-                <span className='opacity-90'>your competitors.</span>
+                <span className='opacity-90'>Your competitors.</span>{' '}
+                <span className='text-red-500/90 text-xs tracking-widest'>[ KIA ]</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.3} duration={0.5}>
-                <span className='opacity-80'>your front-end guy.</span>
+                <span className='opacity-80'>Your front-end guy.</span>{' '}
+                <span className='text-red-500/90 text-xs tracking-widest'>[ KIA ]</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.6} duration={0.5}>
-                <span className='opacity-70'>your content guy.</span>
+                <span className='opacity-70'>Your content guy.</span>{' '}
+                <span className='text-red-500/90 text-xs tracking-widest'>[ KIA ]</span>
               </StrikeOutReveal>
               <StrikeOutReveal delay={0.9} duration={0.5}>
-                <span className='opacity-60'>your marketing guy.</span>
+                <span className='opacity-60'>Your marketing guy.</span>{' '}
+                <span className='text-red-500/90 text-xs tracking-widest'>[ KIA ]</span>
               </StrikeOutReveal>
             </div>
 
             <p className='text-body-lg text-zinc-500 mb-8'>
-              The "Specialist Class" is dying. While they are booking meetings
-              and waiting for approvals, we are deploying infrastructure that
-              thinks.
+              The &quot;Specialist Class&quot; is consolidating. If your Boomer
+              colleague is still shilling cold email outreach — kill him, but
+              you&apos;re already dead. We highlight and lock in nano second AI
+              signals.
             </p>
 
             <p className='text-body-lg text-orange-500 font-bold text-glow-orange'>
-              Stop hiring "Guys." Start installing Sentience.
+              Stop burying co-workers. Start installing Daedalus.
             </p>
           </div>
         </div>
@@ -580,9 +581,8 @@ export default function Home() {
 
       <CircuitDivider />
 
-      {/* SOLUTION / THE WEAPON SECTION */}
+      {/* THE SOLUTION (The Weapon) */}
       <section id='cortex' className='relative py-32 overflow-hidden'>
-        {/* Dramatic center glow for the weapon reveal */}
         <SectionGlow position='center' intensity='strong' />
         <GlowingOrb size='lg' className='top-[10%] right-[5%]' pulseSpeed={6} />
         <GlowingOrb
@@ -592,7 +592,6 @@ export default function Home() {
           pulseSpeed={5}
         />
 
-        {/* Governance visual - floating behind grid */}
         <div className='absolute bottom-0 right-0 opacity-40 pointer-events-none hidden lg:block'>
           <RoleBasedAccessControl size='lg' />
         </div>
@@ -618,47 +617,44 @@ export default function Home() {
               </p>
 
               <p className='text-body-xl text-zinc-500 max-w-3xl mx-auto'>
-                A{' '}
-                <span className='text-zinc-300 font-medium'>
-                  Skunkworks-grade intelligence engine
-                </span>{' '}
-                that scrapes, maps, and enriches the world. It performs
-                multi-dimensional reconnaissance across brand, market, persona,
-                geography, and narrative structures.
+                A Skunkworks-grade intelligence engine that scrapes, maps, and
+                enriches the world. It performs multi-dimensional reconnaissance
+                across brand, market, persona, geography, and narrative
+                structures.
               </p>
             </div>
           </ScrollReveal>
 
-          {/* The System - 4 Core Components */}
+          {/* The Capability Grid */}
           <StaggerReveal className='grid grid-cols-1 md:grid-cols-2 gap-8'>
             <IntelCard
               icon={Radar}
-              title='Sentience'
+              title='SENTIENCE'
               subtitle='Recon'
               description='Autonomous surveillance and threat detection. Always watching, always learning.'
               classification='classified'
             />
             <IntelCard
               icon={Layers}
-              title='The Cortex'
+              title='THE CORTEX'
               subtitle='Intelligence'
               description='Unified, permissions-aware data layer. RAG pipelines, vector stores, semantic search.'
               classification='secret'
             />
             <IntelCard
               icon={Zap}
-              title='The Autopilot'
+              title='THE AUTOPILOT'
               subtitle='Action'
               description='Workflow agents that act on signals 24/7. No sleep, no breaks, no excuses.'
               classification='classified'
             >
               <div className='mt-4 text-sm font-mono font-bold text-red-500 tracking-wide'>
-                {'>'} PERMISSION GRANTED: SHOOT TO KILL.
+                {'>'} PERMISSION GRANTED: SHOOT TO KILL
               </div>
             </IntelCard>
             <IntelCard
               icon={Shield}
-              title='The Relay'
+              title='THE RELAY'
               subtitle='Governance'
               description='The safety switch that keeps you compliant. Guardrails that scale.'
               classification='restricted'
@@ -688,7 +684,7 @@ export default function Home() {
 
       <CircuitDivider />
 
-      {/* PROCESS SECTION */}
+      {/* THE PROTOCOL - Process */}
       <section id='protocol' className='relative py-32 overflow-hidden'>
         <SectionGlow position='right' intensity='medium' />
         <div className='max-w-7xl mx-auto px-6 relative z-10'>
@@ -700,8 +696,8 @@ export default function Home() {
               </div>
               <GlitchText>
                 <h2 className='text-4xl md:text-6xl font-black mb-4'>
-                  The DMG{' '}
-                  <span className='text-orange-500'>Ignition Protocol</span>
+                  From Lab to Live in{' '}
+                  <span className='text-orange-500'>4 Weeks.</span>
                 </h2>
               </GlitchText>
             </div>
@@ -739,21 +735,16 @@ export default function Home() {
               },
             ].map((step, i) => (
               <div key={i} className='relative group'>
-                <div className='p-6 border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm rounded-lg hover:border-orange-500/30 transition-all duration-300 h-full'>
-                  {/* Number with glow on hover */}
-                  <div className='text-4xl font-black text-orange-500 mb-4 transition-all duration-300 group-hover:text-glow-orange'>
-                    {step.num}
+                <div className='p-6 border border-zinc-800/60 bg-zinc-950/50 backdrop-blur-sm rounded-sm hover:border-zinc-600/50 transition-all duration-200 h-full'>
+                  <div className='text-2xl font-black text-orange-500/90 mb-3 tracking-tight'>
+                    {step.num} — {step.title}
                   </div>
-                  <h3 className='text-base font-bold mb-3 text-zinc-200 tracking-wide'>
-                    {step.title}
-                  </h3>
-                  <p className='text-base text-zinc-400 leading-relaxed'>
+                  <p className='text-sm text-zinc-500 leading-relaxed'>
                     {step.desc}
                   </p>
                 </div>
-                {/* Connector line */}
                 {i < 4 && (
-                  <div className='hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-gradient-to-r from-orange-500/30 to-transparent' />
+                  <div className='hidden md:block absolute top-1/2 -right-2 w-4 h-px bg-zinc-700/50' />
                 )}
               </div>
             ))}
@@ -777,44 +768,6 @@ export default function Home() {
               <Radar className='w-4 h-4 text-orange-500' />[ RUN DEMO ]
             </Link>
           </div>
-        </div>
-      </section>
-
-      <CircuitDivider />
-
-      {/* THE UNIT / TEAM SECTION */}
-      <section id='mission' className='py-32 relative overflow-hidden'>
-        {/* Multi-cursor collaboration visual - positioned to the right, out of the way */}
-        <div className='absolute top-1/4 right-0 opacity-20 pointer-events-none hidden lg:block translate-x-1/4'>
-          <RealtimeCollaboration />
-        </div>
-
-        <div className='max-w-7xl mx-auto px-6 relative z-10'>
-          <ScrollReveal>
-            <div className='max-w-4xl mx-auto text-center'>
-              <div className='inline-flex items-center gap-2 px-4 py-2 border border-orange-500/30 text-orange-500 text-xs mb-8 rounded-full glitch-hover cursor-default'>
-                <Target className='w-4 h-4' />
-                <span>// THE UNIT</span>
-              </div>
-              <GlitchText>
-                <h2 className='text-4xl md:text-5xl font-black mb-8'>
-                  You Have To Break It{' '}
-                  <span className='text-orange-500'>To Understand It.</span>
-                </h2>
-              </GlitchText>
-              <p className='text-body-xl text-zinc-400 mb-12'>
-                Meet the team that breaks it.
-              </p>
-              <p className='text-body-lg text-zinc-500 italic max-w-2xl mx-auto'>
-                We're an ideas lab with matches{' '}
-                <Flame className='inline w-4 h-4 text-orange-500' /> — curious
-                enough to blow it up, disciplined enough to put it back together
-                again.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <MeetTheTeam />
         </div>
       </section>
 

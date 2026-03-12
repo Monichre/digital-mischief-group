@@ -9,7 +9,7 @@ import {memo} from 'react'
 export const ScanlineOverlay = memo(function ScanlineOverlay() {
   return (
     <>
-      {/* Static scanlines */}
+      {/* Static scanlines - refined, minimal */}
       <div
         className='pointer-events-none fixed inset-0 z-[9998]'
         style={{
@@ -17,8 +17,8 @@ export const ScanlineOverlay = memo(function ScanlineOverlay() {
             0deg,
             transparent 0px,
             transparent 1px,
-            rgba(0, 0, 0, 0.15) 1px,
-            rgba(0, 0, 0, 0.15) 2px
+            rgba(0, 0, 0, 0.06) 1px,
+            rgba(0, 0, 0, 0.06) 2px
           )`,
         }}
         aria-hidden='true'

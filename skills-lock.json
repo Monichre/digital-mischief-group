@@ -1,10 +1,65 @@
 {
   "version": 1,
   "skills": {
+    "elevenlabs-remotion": {
+      "source": "maartenlouis/elevenlabs-remotion-skill",
+      "sourceType": "github",
+      "computedHash": "9637b8739c9a3d4655293818906f907e4e69e89c716f1d9f1aceb8377aeb2247"
+    },
     "firecrawl": {
       "source": "firecrawl/cli",
       "sourceType": "github",
       "computedHash": "79e664302fdb9e4f1b9c471e3d5f8058dd11aaf78cdc98c8f0d1d2acb9fe228e"
+    },
+    "muapi-cinema-director": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "947972a7b7d584d13afb1d94e33af29f435d933f486580285c99b7f1eeed9be5"
+    },
+    "muapi-logo-creator": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "eb95b7561b0cbabdecb09bf3c1b0ec85cfaea9d3be0e3c19e0045f266121a77d"
+    },
+    "muapi-media-editing": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "6bb6da9ae136fa70a10d76131764d0d514509d58c9b5e8bc5a046195e922999e"
+    },
+    "muapi-media-generation": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "2176b681ecc6c545f5b87c0ca2e766c47c0ab68c2265132e4f40cc4db28b34c9"
+    },
+    "muapi-nano-banana": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "192bfa0ac8a495e57c5524c23760cd4521cad82bb926223a7ca7b7fa1d90a7e9"
+    },
+    "muapi-platform": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "7afab85e02e2b21bec314080ae2e8f050c9e4146331fbfa516fa0c95faf79ac6"
+    },
+    "muapi-seedance-2": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "d4d3bd2a6fa5ea9767fd363a252eb7cb02c3bd436db9c90c9be0431a6344b619"
+    },
+    "muapi-ui-design": {
+      "source": "SamurAIGPT/Generative-Media-Skills",
+      "sourceType": "github",
+      "computedHash": "986f32f3e74255980e0acb98cbe80411836b5640a0ed35f09c6da21664c5e2c5"
+    },
+    "remotion": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "73a794b428f2bb568859f0db83b66219c842a0a088db9818a45ac72c37b6aa66"
+    },
+    "remotion-ads": {
+      "source": "maartenlouis/remotion-ads",
+      "sourceType": "github",
+      "computedHash": "c33d454af1643abd85fb14c066f5f061c65680156ed24965a4a726966fa9c68f"
     }
   }
 }

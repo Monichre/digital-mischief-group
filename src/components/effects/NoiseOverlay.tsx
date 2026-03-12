@@ -26,7 +26,7 @@ export const NoiseOverlay = memo(function NoiseOverlay() {
       style={{
         backgroundImage: `url("${encodedSvg}")`,
         backgroundRepeat: 'repeat',
-        opacity: 0.08,
+        opacity: 0.04,
         mixBlendMode: 'soft-light',
       }}
       aria-hidden='true'
