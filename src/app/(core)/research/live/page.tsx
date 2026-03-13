@@ -9,37 +9,56 @@ import {SynthesisPanel} from '@/components/research/SynthesisPanel'
 import {AuthLinks} from '@/components/AuthLinks'
 import type {
   ResearchStreamEvent,
-  SourceFoundEvent,
 } from '@/daedalus/agent/research/stream-types'
+import {
+  applyLiveResearchEvent,
+  getApiErrorMessage,
+  type LiveResearchUiState,
+} from '@/lib/core-flow-ux'
 
 export default function LiveResearchPage() {
   const [query, setQuery] = useState('')
   const [isResearching, setIsResearching] = useState(false)
-  const [events, setEvents] = useState<ResearchStreamEvent[]>([])
-  const [sources, setSources] = useState<SourceFoundEvent['data'][]>([])
-  const [synthesis, setSynthesis] = useState('')
-  const [isComplete, setIsComplete] = useState(false)
-  const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [streamState, setStreamState] = useState<LiveResearchUiState>({
+    events: [],
+    sources: [],
+    synthesis: '',
+    isComplete: false,
+    isSynthesizing: false,
+    error: null,
+  })
+
+  const {events, sources, synthesis, isComplete, isSynthesizing, error} =
+    streamState
 
   const handleResearch = useCallback(async () => {
-    if (!query.trim() || isResearching) return
+    const trimmedQuery = query.trim()
+
+    if (!trimmedQuery || isResearching) return
 
     // Reset state
     setIsResearching(true)
-    setIsComplete(false)
-    setEvents([])
-    setSources([])
-    setSynthesis('')
-    setIsSynthesizing(false)
+    setQuery(trimmedQuery)
+    setStreamState({
+      events: [],
+      sources: [],
+      synthesis: '',
+      isComplete: false,
+      isSynthesizing: false,
+      error: null,
+    })
 
     try {
       const response = await fetch('/api/agent', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({query}),
+        body: JSON.stringify({query: trimmedQuery}),
       })
 
-      if (!response.ok) throw new Error('Research failed')
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(getApiErrorMessage(data, 'Research failed'))
+      }
 
       const reader = response.body?.getReader()
       if (!reader) throw new Error('No response body')
@@ -59,19 +78,7 @@ export default function LiveResearchPage() {
           if (line.startsWith('data: ')) {
             try {
               const event = JSON.parse(line.slice(6)) as ResearchStreamEvent
-              setEvents((prev) => [...prev, event])
-
-              // Handle specific events
-              if (event.type === 'source_found') {
-                setSources((prev) => [...prev, event.data])
-              } else if (event.type === 'synthesis_start') {
-                setIsSynthesizing(true)
-              } else if (event.type === 'synthesis_chunk') {
-                setSynthesis((prev) => prev + event.data.content)
-              } else if (event.type === 'complete') {
-                setIsComplete(true)
-                setIsSynthesizing(false)
-              }
+              setStreamState((prev) => applyLiveResearchEvent(prev, event))
             } catch {
               // Skip malformed events
             }
@@ -80,15 +87,15 @@ export default function LiveResearchPage() {
       }
     } catch (error) {
       console.error('Research error:', error)
-      setEvents((prev) => [
-        ...prev,
-        {
+      setStreamState((prev) =>
+        applyLiveResearchEvent(prev, {
           type: 'error',
           data: {
-            message: error instanceof Error ? error.message : 'Research failed',
+            message:
+              error instanceof Error ? error.message : 'Research failed',
           },
-        },
-      ])
+        })
+      )
     } finally {
       setIsResearching(false)
     }
@@ -102,9 +109,14 @@ export default function LiveResearchPage() {
   }
 
   return (
-    <main className='min-h-screen bg-zinc-950 text-zinc-100 flex flex-col'>
+    <main className='relative flex min-h-screen flex-col bg-zinc-950 text-zinc-100'>
+      <div className='fixed inset-0 pointer-events-none z-0'>
+        <div className='absolute inset-0 dmg-grid-bg opacity-70' />
+        <div className='absolute inset-0 dmg-page-glow opacity-60' />
+      </div>
+
       {/* Header */}
-      <header className='border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-sm'>
+      <header className='relative z-10 border-b border-white/10 bg-zinc-950/88 backdrop-blur-xl'>
         <div className='max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between'>
           <Link
             href='/'
@@ -124,9 +136,9 @@ export default function LiveResearchPage() {
           </div>
 
           <div className='flex items-center gap-4'>
-            <div className='flex items-center gap-2'>
+            <div className='dmg-chip border-zinc-800 bg-zinc-900/70 px-3 py-1.5 text-[10px] text-zinc-500'>
               <Zap className='w-4 h-4 text-orange-500' />
-              <span className='text-xs font-mono text-zinc-500'>LIVE MODE</span>
+              <span>LIVE MODE</span>
             </div>
             <AuthLinks
               linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
@@ -137,23 +149,30 @@ export default function LiveResearchPage() {
       </header>
 
       {/* Search Bar */}
-      <div className='border-b border-zinc-800 bg-zinc-900/50'>
+      <div className='relative z-10 border-b border-zinc-800/80 bg-zinc-900/35'>
         <div className='max-w-[1800px] mx-auto px-6 py-4'>
-          <div className='relative'>
+          <div className='dmg-surface relative rounded-xl p-2'>
             <input
               type='text'
+              aria-label='Research query'
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                if (error) {
+                  setStreamState((prev) => ({...prev, error: null}))
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder='Enter your research query... (e.g., What are the latest AI trends in 2025?)'
-              className='w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 pl-12 pr-32 font-mono text-sm focus:outline-none focus:border-orange-500 transition-colors'
+              aria-describedby={error ? 'live-research-error' : undefined}
+              className='w-full rounded-lg border border-zinc-800 bg-zinc-950/90 px-4 py-3 pl-12 pr-32 font-mono text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none'
               disabled={isResearching}
             />
             <Search className='absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500' />
             <button
               onClick={handleResearch}
               disabled={!query.trim() || isResearching}
-              className='absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 font-mono text-sm rounded transition-colors flex items-center gap-2'
+              className='absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-md bg-orange-500 px-4 py-1.5 font-mono text-sm text-zinc-950 transition-colors hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-500'
             >
               {isResearching ? (
                 <>
@@ -169,8 +188,19 @@ export default function LiveResearchPage() {
             </button>
           </div>
 
+          {error && (
+            <div
+              id='live-research-error'
+              role='alert'
+              aria-live='polite'
+              className='mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300'
+            >
+              {error}
+            </div>
+          )}
+
           {query && !isResearching && events.length === 0 && (
-            <p className='text-xs text-zinc-500 mt-2 font-mono'>
+            <p className='mt-2 font-sans text-sm text-zinc-500'>
               Press Enter or click Research to begin
             </p>
           )}
@@ -178,7 +208,7 @@ export default function LiveResearchPage() {
       </div>
 
       {/* Main Content - Split View */}
-      <div className='flex-1 flex overflow-hidden min-h-0'>
+      <div className='relative z-10 flex min-h-0 flex-1 overflow-hidden'>
         {/* Left Panel - Thinking Log */}
         <div className='w-[400px] flex-shrink-0 overflow-hidden min-h-0 border-r border-zinc-800'>
           <ThinkingPanel events={events} isComplete={isComplete} />

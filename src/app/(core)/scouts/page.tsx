@@ -1,13 +1,20 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useRouter} from 'next/navigation'
+import {useCallback, useEffect, useState} from 'react'
 import Link from 'next/link'
-import {Clock, Eye, MapPin, Plus, Trash2, ArrowLeft, Loader2, ExternalLink, Search} from 'lucide-react'
+import {Clock, Eye, MapPin, Plus, Trash2, ArrowLeft, ExternalLink} from 'lucide-react'
 
 import type {Scout} from '@/daedalus/scout/types'
 import {ProGate} from '@/components/pro-gate'
 import {Button} from '@/components/ui/button'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
 import {Skeleton} from '@/components/ui/skeleton'
 import {
   Dialog,
@@ -17,62 +24,141 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {AuthLinks} from '@/components/AuthLinks'
+import {authClient} from '@/platform/auth/client'
+import {useProStatus} from '@/hooks/use-pro-status'
+import {getApiErrorMessage, normalizeOptionalEmail} from '@/lib/core-flow-ux'
 
 type ScoutWithCount = Scout & {result_count?: number}
 
 export default function ScoutsPage() {
-  const router = useRouter()
   const [scouts, setScouts] = useState<ScoutWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [scoutToDelete, setScoutToDelete] = useState<
     {id: string; name: string} | null
   >(null)
-  const [form, setForm] = useState({name: '', search_query: '', schedule: 'daily' as string})
+  const [form, setForm] = useState({
+    name: '',
+    search_query: '',
+    schedule: 'daily' as string,
+    notification_email: '',
+  })
+  const {data: session, isPending: sessionPending} = authClient.useSession()
+  const {isPro, isLoading: proLoading} = useProStatus()
 
-  const loadScouts = async () => {
+  const gateReady = !sessionPending && !proLoading
+  const canCreateScout = Boolean(session?.user && isPro)
+
+  const loadScouts = useCallback(async () => {
     setLoading(true)
-    const res = await fetch('/api/scouts')
-    const data = await res.json()
-    setScouts(data.scouts || [])
-    setLoading(false)
-  }
 
-  useEffect(() => {
-    loadScouts()
+    try {
+      setError(null)
+
+      const res = await fetch('/api/scouts')
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to load scouts'))
+      }
+
+      setScouts(data?.scouts || [])
+    } catch (err) {
+      setScouts([])
+      setError(err instanceof Error ? err.message : 'Failed to load scouts')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const createScout = async () => {
-    if (!form.name || !form.search_query) return
-    setCreating(true)
-    const res = await fetch('/api/scouts', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name: form.name, search_query: form.search_query, schedule: form.schedule}),
-    })
-    setCreating(false)
+  useEffect(() => {
+    void loadScouts()
+  }, [loadScouts])
 
-    if (res.ok) {
-      setForm({name: '', search_query: '', schedule: 'daily'})
+  const createScout = async () => {
+    const trimmedName = form.name.trim()
+    const trimmedSearchQuery = form.search_query.trim()
+
+    if (!trimmedName) {
+      setError('Scout name is required')
+      return
+    }
+
+    if (!trimmedSearchQuery) {
+      setError('Search query is required')
+      return
+    }
+
+    setCreating(true)
+    setError(null)
+
+    try {
+      const res = await fetch('/api/scouts', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: trimmedName,
+          search_query: trimmedSearchQuery,
+          schedule: form.schedule,
+          notification_email: normalizeOptionalEmail(form.notification_email),
+        }),
+      })
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to create scout'))
+      }
+
+      setForm({
+        name: '',
+        search_query: '',
+        schedule: 'daily',
+        notification_email: '',
+      })
       setCreateDialogOpen(false)
       await loadScouts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create scout')
+    } finally {
+      setCreating(false)
     }
   }
 
   const openDeleteDialog = (scout: ScoutWithCount, e: React.MouseEvent) => {
     e.stopPropagation()
+    setError(null)
     setScoutToDelete({id: scout.id, name: scout.name})
     setDeleteDialogOpen(true)
   }
 
   const confirmDeleteScout = async () => {
     if (!scoutToDelete) return
-    await fetch(`/api/scouts/${scoutToDelete.id}`, {method: 'DELETE'})
-    setDeleteDialogOpen(false)
-    setScoutToDelete(null)
-    await loadScouts()
+
+    setDeleting(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/scouts/${scoutToDelete.id}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to delete scout'))
+      }
+
+      setDeleteDialogOpen(false)
+      setScoutToDelete(null)
+      await loadScouts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete scout')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const cancelDelete = () => {
@@ -82,6 +168,13 @@ export default function ScoutsPage() {
 
   return (
     <div className='min-h-screen bg-zinc-950 text-zinc-200 font-mono relative overflow-hidden'>
+      <style jsx global>{`
+        .open-scouts > nav,
+        .dmg-menu-toggle {
+          display: none !important;
+        }
+      `}</style>
+
       <header className='border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40'>
         <div className='max-w-6xl mx-auto px-6 h-16 flex items-center justify-between'>
           <Link
@@ -121,17 +214,31 @@ export default function ScoutsPage() {
           </p>
         </div>
 
-        <div className='flex justify-end mb-8'>
-          <ProGate>
+        <div className='mb-8 flex min-h-10 justify-end'>
+          {gateReady && canCreateScout ? (
             <Button
-              onClick={() => setCreateDialogOpen(true)}
+              onClick={() => {
+                setError(null)
+                setCreateDialogOpen(true)
+              }}
               className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
             >
               <Plus className='w-4 h-4 mr-2' />
               New Scout
             </Button>
-          </ProGate>
+          ) : null}
         </div>
+
+        {error && (
+          <div
+            id='scouts-error'
+            role='alert'
+            aria-live='polite'
+            className='mb-6 border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300'
+          >
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
@@ -151,22 +258,38 @@ export default function ScoutsPage() {
             ))}
           </div>
         ) : scouts.length === 0 ? (
-          <div className='text-center py-16 border border-dashed border-zinc-800'>
-            <Eye className='w-12 h-12 mx-auto mb-4 text-zinc-700' />
-            <p className='text-zinc-500 mb-2'>No scouts deployed yet</p>
-            <p className='text-zinc-600 text-sm mb-6'>
-              Create your first scout to start monitoring
-            </p>
-            <ProGate>
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
-              >
-                <Plus className='w-4 h-4 mr-2' />
-                Create Scout
-              </Button>
-            </ProGate>
-          </div>
+          <Empty className='dmg-surface min-h-[360px] border-zinc-800/80 bg-zinc-900/35'>
+            <EmptyHeader>
+              <EmptyMedia variant='icon' className='bg-zinc-900 text-orange-500'>
+                <Eye className='w-6 h-6' />
+              </EmptyMedia>
+              <EmptyTitle className='font-mono text-zinc-100'>
+                No scouts deployed yet
+              </EmptyTitle>
+              <EmptyDescription className='font-sans text-zinc-500'>
+                Create your first scout to continuously search the web for fresh findings.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              {gateReady ? (
+                canCreateScout ? (
+                  <Button
+                    onClick={() => setCreateDialogOpen(true)}
+                    className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
+                  >
+                    <Plus className='w-4 h-4 mr-2' />
+                    Create Scout
+                  </Button>
+                ) : (
+                  <ProGate>
+                    <span className='hidden' />
+                  </ProGate>
+                )
+              ) : (
+                <Skeleton className='h-10 w-48 bg-zinc-800' />
+              )}
+            </EmptyContent>
+          </Empty>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {scouts.map((scout) => (
@@ -264,39 +387,107 @@ export default function ScoutsPage() {
           </DialogHeader>
           <div className='mt-4 space-y-4'>
             <div>
-              <label className='text-sm text-zinc-400 mb-1 block'>
+              <label
+                htmlFor='scout-name'
+                className='text-sm text-zinc-400 mb-1 block'
+              >
                 Scout Name
               </label>
               <input
+                id='scout-name'
                 value={form.name}
                 onChange={(e) =>
                   setForm((prev) => ({...prev, name: e.target.value}))
                 }
                 placeholder='Competitor Pricing Monitor'
+                aria-describedby={error ? 'scouts-error' : undefined}
+                disabled={creating}
                 className='w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500'
               />
             </div>
             <div>
-              <label className='text-sm text-zinc-400 mb-1 block'>
+              <label
+                htmlFor='scout-query'
+                className='text-sm text-zinc-400 mb-1 block'
+              >
                 Search Query
               </label>
               <input
+                id='scout-query'
                 value={form.search_query}
                 onChange={(e) =>
                   setForm((prev) => ({...prev, search_query: e.target.value}))
                 }
                 placeholder="'acme corp' pricing OR plans"
+                aria-describedby={error ? 'scouts-error' : undefined}
+                disabled={creating}
+                className='w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500'
+              />
+            </div>
+          </div>
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div>
+              <label
+                htmlFor='scout-schedule'
+                className='text-sm text-zinc-400 mb-1 block'
+              >
+                Schedule
+              </label>
+              <select
+                id='scout-schedule'
+                value={form.schedule}
+                onChange={(e) =>
+                  setForm((prev) => ({...prev, schedule: e.target.value}))
+                }
+                disabled={creating}
+                className='w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500'
+              >
+                <option value='manual'>Manual</option>
+                <option value='hourly'>Hourly</option>
+                <option value='daily'>Daily</option>
+                <option value='weekly'>Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor='scout-email'
+                className='text-sm text-zinc-400 mb-1 block'
+              >
+                Alert Email (optional)
+              </label>
+              <input
+                id='scout-email'
+                type='email'
+                value={form.notification_email}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    notification_email: e.target.value,
+                  }))
+                }
+                placeholder='ops@dmg.io'
+                aria-describedby={error ? 'scouts-error' : undefined}
+                disabled={creating}
                 className='w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500'
               />
             </div>
           </div>
           <div className='flex gap-3 justify-end mt-6'>
-            <Button variant='outline' onClick={() => setCreateDialogOpen(false)}>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setCreateDialogOpen(false)
+                setError(null)
+              }}
+              disabled={creating}
+            >
               Cancel
             </Button>
             <Button
               onClick={createScout}
-              disabled={creating || !form.name || !form.search_query}
+              disabled={
+                creating || !form.name.trim() || !form.search_query.trim()
+              }
               className='bg-orange-500 hover:bg-orange-600 text-black font-bold'
             >
               {creating ? 'Creating...' : 'Create Scout'}
@@ -314,11 +505,11 @@ export default function ScoutsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className='flex gap-3 justify-end mt-6'>
-            <Button variant='outline' onClick={cancelDelete}>
+            <Button variant='outline' onClick={cancelDelete} disabled={deleting}>
               Cancel
             </Button>
-            <Button onClick={confirmDeleteScout} variant='destructive'>
-              Delete
+            <Button onClick={confirmDeleteScout} variant='destructive' disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
         </DialogContent>

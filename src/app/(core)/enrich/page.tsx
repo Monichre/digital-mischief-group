@@ -44,12 +44,13 @@ import {EnrichHistory} from '@/components/enrich/EnrichHistory'
 import {BatchHistory} from '@/components/enrich/BatchHistory'
 import {useEnrichStream} from '@/hooks/useEnrichStream'
 import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
-import {AuthLinks} from '@/components/AuthLinks'
+import {IntelPageChrome} from '@/components/military/IntelPageChrome'
 import {
   CORTEX_DIRECTIVES,
   CORTEX_DIRECTIVE_LABELS,
   type CortexDirective,
 } from '@/lib/cortex-directives'
+import {getApiErrorMessage, toCompetitorEntry} from '@/lib/core-flow-ux'
 
 type EnrichStatus = 'idle' | 'loading' | 'success' | 'error'
 type BulkStep = 'input' | 'mapping' | 'processing' | 'complete'
@@ -199,6 +200,9 @@ export default function EnrichPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [historyTab, setHistoryTab] = useState<'single' | 'batch'>('single')
   const [loadingHistoryItem, setLoadingHistoryItem] = useState(false)
+  const [historyFeedback, setHistoryFeedback] = useState<
+    {type: 'error' | 'success'; message: string} | null
+  >(null)
   const [historicalResult, setHistoricalResult] =
     useState<EnrichmentResult | null>(null)
   const [directive, setDirective] = useState<CortexDirective>('kill_chain')
@@ -346,6 +350,8 @@ export default function EnrichPage() {
   const handleTextSubmit = async (input: string) => {
     setBulkStep('input')
     setShowHistory(false)
+    setHistoryFeedback(null)
+    setHistoricalResult(null)
     setArchiveStatus('idle')
     setArchiveError(null)
     setCortexId(null)
@@ -355,13 +361,17 @@ export default function EnrichPage() {
 
   const handleHistorySelect = async (id: string) => {
     setLoadingHistoryItem(true)
+    setHistoryFeedback(null)
     setArchiveStatus('idle')
     setArchiveError(null)
     setCortexId(null)
     try {
       const res = await fetch(`/api/enrich/${id}`)
-      if (!res.ok) throw new Error('Failed to load')
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to load enrichment'))
+      }
 
       // Transform to match EnrichmentResult format
       const loadedResult: EnrichmentResult = {
@@ -388,6 +398,11 @@ export default function EnrichPage() {
       setShowHistory(false)
     } catch (err) {
       console.error('Failed to load history item:', err)
+      setHistoryFeedback({
+        type: 'error',
+        message:
+          err instanceof Error ? err.message : 'Failed to load enrichment',
+      })
     } finally {
       setLoadingHistoryItem(false)
     }
@@ -395,12 +410,16 @@ export default function EnrichPage() {
 
   // T-008: Batch history handlers for session continuity
   const handleBatchSelect = useCallback(async (batchIdToLoad: string) => {
-    setShowHistory(false)
+    setLoadingHistoryItem(true)
+    setHistoryFeedback(null)
     setBatchId(batchIdToLoad)
     try {
       const res = await fetch(`/api/enrich/batch/${batchIdToLoad}`)
-      if (!res.ok) throw new Error('Failed to load batch')
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to load batch'))
+      }
       
       // Transform jobs to bulkRows format for display
       const loadedRows = data.jobs.map((job: any) => ({
@@ -416,16 +435,31 @@ export default function EnrichPage() {
       }))
       
       setBulkRows(loadedRows)
+      setHistoricalResult(null)
       setBulkStep('processing')
+      setShowHistory(false)
     } catch (err) {
       console.error('Failed to load batch:', err)
+      setHistoryFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to load batch',
+      })
+    } finally {
+      setLoadingHistoryItem(false)
     }
   }, [])
 
   const handleBatchExport = useCallback(async (batchIdToExport: string) => {
+    setLoadingHistoryItem(true)
+    setHistoryFeedback(null)
+
     try {
       const response = await fetch(`/api/enrich/batch?batchId=${batchIdToExport}&format=csv`)
-      if (!response.ok) throw new Error('Failed to export CSV')
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(getApiErrorMessage(data, 'Failed to export CSV'))
+      }
 
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
@@ -434,14 +468,26 @@ export default function EnrichPage() {
       link.download = `enrichment_export_${batchIdToExport}_${new Date().toISOString().split('T')[0]}.csv`
       link.click()
       URL.revokeObjectURL(url)
+      setHistoryFeedback({
+        type: 'success',
+        message: 'CSV export started.',
+      })
     } catch (error) {
       console.error('Export failed:', error)
+      setHistoryFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to export CSV',
+      })
+    } finally {
+      setLoadingHistoryItem(false)
     }
   }, [])
 
   const handleCsvUpload = useCallback(
     (data: Record<string, string>[], headers: string[]) => {
       stream.reset()
+      setHistoricalResult(null)
+      setHistoryFeedback(null)
       setCsvData(data)
       setCsvHeaders(headers)
       setBulkStep('mapping')
@@ -566,6 +612,7 @@ export default function EnrichPage() {
     setFieldMapping({})
     setEnrichedRows([])
     setBatchId(null)
+    setHistoryFeedback(null)
     setHistoricalResult(null)
     setArchiveStatus('idle')
     setArchiveError(null)
@@ -628,72 +675,53 @@ export default function EnrichPage() {
   }
 
   return (
-    <div className='min-h-screen bg-zinc-950 text-zinc-200 font-mono'>
-      {/* Background Grid */}
-      <div className='fixed inset-0 pointer-events-none z-0'>
-        <div className='absolute inset-0 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:4rem_4rem]' />
-      </div>
+    <IntelPageChrome
+      badge={
+        <>
+          <Sparkles className='w-4 h-4 text-orange-500 animate-pulse' />
+          <span className='font-bold tracking-tighter text-lg text-zinc-100'>
+            [ TARGET ENRICH ]
+          </span>
+        </>
+      }
+      navActions={
+        <button
+          onClick={() => {
+            setHistoryFeedback(null)
+            setShowHistory(!showHistory)
+          }}
+          className={`inline-flex items-center gap-2 rounded-sm border px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${
+            showHistory
+              ? 'border-orange-500/40 bg-orange-500/15 text-orange-300'
+              : 'border-transparent text-zinc-500 hover:border-zinc-800 hover:text-orange-400'
+          }`}
+        >
+          <History className='w-4 h-4' />
+          <span className='hidden sm:inline'>History</span>
+        </button>
+      }
+      eyebrow={
+        <>
+          <Building2 className='w-3 h-3 text-orange-500' />
+          <span>// MULTI-AGENT INTELLIGENCE</span>
+        </>
+      }
+      title={
+        <>
+          <span className='text-zinc-100'>Target</span>
+          <span className='text-orange-500'>-Enrich</span>
+        </>
+      }
+      description='5-phase AI pipeline extracts company intelligence, calculates ICP fit, and detects buying signals.'
+      containerClassName='max-w-5xl'
+    >
 
-      {/* Navigation */}
-      <nav className='fixed top-0 w-full border-b border-white/10 bg-zinc-950/90 backdrop-blur-md z-50'>
-        <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
-          <Link
-            href='/'
-            className='flex items-center gap-3 text-zinc-400 hover:text-orange-500 transition-colors'
-          >
-            <ArrowLeft className='w-4 h-4' />
-            <span className='text-sm'>Back to HQ</span>
-          </Link>
-          <div className='flex items-center gap-4'>
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${
-                showHistory
-                  ? 'bg-orange-500/20 text-orange-400'
-                  : 'text-zinc-400 hover:text-orange-500'
-              }`}
-            >
-              <History className='w-4 h-4' />
-              <span className='hidden sm:inline'>History</span>
-            </button>
-            <div className='flex items-center gap-2'>
-              <Sparkles className='w-4 h-4 text-orange-500 animate-pulse' />
-              <span className='font-mono font-bold tracking-tighter text-lg'>
-                [ TARGET ENRICH ]
-              </span>
-            </div>
-            <AuthLinks
-              linkClassName='text-[10px] text-zinc-500 hover:text-white transition-colors'
-              ctaClassName='px-2.5 py-1 border border-zinc-700 text-[10px] text-zinc-400 hover:border-orange-500/60 hover:text-orange-500 transition-colors'
-            />
-          </div>
-        </div>
-      </nav>
-
-      <main className='relative z-10 pt-32 pb-20 px-6'>
-        <div className='max-w-5xl mx-auto'>
-          {/* Header */}
-          <div className='text-center mb-12'>
-            <div className='inline-flex items-center gap-2 px-3 py-1 border border-zinc-800 text-xs text-zinc-500 mb-6'>
-              <Building2 className='w-3 h-3 text-orange-500' />
-              <span>// MULTI-AGENT INTELLIGENCE</span>
-            </div>
-            <h1 className='text-4xl md:text-5xl font-bold tracking-tight mb-4'>
-              <span className='text-zinc-100'>Target</span>
-              <span className='text-orange-500'>-Enrich</span>
-            </h1>
-            <p className='text-zinc-400 max-w-xl mx-auto'>
-              5-phase AI pipeline extracts company intelligence, calculates ICP
-              fit, and detects buying signals.
-            </p>
-          </div>
-
-          {/* Input Section */}
-          {bulkStep === 'input' &&
-            status !== 'loading' &&
-            status !== 'success' && (
-              <div className='mb-12'>
-                <div className='mb-6 border border-zinc-800 bg-zinc-900/40 p-4'>
+      {/* Input Section */}
+      {bulkStep === 'input' &&
+        status !== 'loading' &&
+        status !== 'success' && (
+          <div className='mb-12'>
+            <div className='mb-6 dmg-surface p-4'>
                   <div className='text-xs text-zinc-500 tracking-widest mb-3'>
                     DIRECTIVE // MISSION PROFILE
                   </div>
@@ -722,13 +750,13 @@ export default function EnrichPage() {
                     ))}
                   </div>
                 </div>
-                <UnifiedInput
-                  onTextSubmit={handleTextSubmit}
-                  onCsvUpload={handleCsvUpload}
-                  isLoading={false}
-                />
-              </div>
-            )}
+            <UnifiedInput
+              onTextSubmit={handleTextSubmit}
+              onCsvUpload={handleCsvUpload}
+              isLoading={false}
+            />
+          </div>
+        )}
 
           {/* Error State */}
           {status === 'error' && error && (
@@ -1188,8 +1216,6 @@ export default function EnrichPage() {
               />
             </div>
           )}
-        </div>
-      </main>
 
       {showArchiveModal && (
         <>
@@ -1231,9 +1257,11 @@ export default function EnrichPage() {
                   {competitors.map((comp, idx) => (
                     <div key={`${comp.domain}-${idx}`} className='flex gap-2'>
                       <input
+                        aria-label={`Competitor ${idx + 1} name`}
                         value={comp.name}
                         onChange={(e) => {
                           const value = e.target.value
+                          setArchiveError(null)
                           setCompetitors((prev) =>
                             prev.map((item, index) =>
                               index === idx ? {...item, name: value} : item
@@ -1244,9 +1272,11 @@ export default function EnrichPage() {
                         className='flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-600'
                       />
                       <input
+                        aria-label={`Competitor ${idx + 1} domain`}
                         value={comp.domain}
                         onChange={(e) => {
                           const value = e.target.value
+                          setArchiveError(null)
                           setCompetitors((prev) =>
                             prev.map((item, index) =>
                               index === idx ? {...item, domain: value} : item
@@ -1257,6 +1287,7 @@ export default function EnrichPage() {
                         className='flex-1 bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-600'
                       />
                       <button
+                        type='button'
                         onClick={() =>
                           setCompetitors((prev) =>
                             prev.filter((_, index) => index !== idx)
@@ -1271,6 +1302,7 @@ export default function EnrichPage() {
 
                   <div className='flex gap-2'>
                     <input
+                      aria-label='New competitor name'
                       value={competitorDraft.name}
                       onChange={(e) =>
                         setCompetitorDraft((prev) => ({
@@ -1282,6 +1314,7 @@ export default function EnrichPage() {
                       className='flex-1 bg-zinc-900 border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-400 placeholder:text-zinc-600'
                     />
                     <input
+                      aria-label='New competitor domain'
                       value={competitorDraft.domain}
                       onChange={(e) =>
                         setCompetitorDraft((prev) => ({
@@ -1293,17 +1326,23 @@ export default function EnrichPage() {
                       className='flex-1 bg-zinc-900 border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-400 placeholder:text-zinc-600'
                     />
                     <button
+                      type='button'
                       onClick={() => {
-                        if (!competitorDraft.domain.trim()) return
+                        const entry = toCompetitorEntry(competitorDraft)
+
+                        if (!entry) {
+                          setArchiveError('Competitor domain is required')
+                          return
+                        }
+
                         setCompetitors((prev) => [
                           ...prev,
-                          {
-                            name: competitorDraft.name.trim(),
-                            domain: competitorDraft.domain.trim(),
-                          },
+                          entry,
                         ])
+                        setArchiveError(null)
                         setCompetitorDraft({name: '', domain: ''})
                       }}
+                      disabled={!competitorDraft.domain.trim()}
                       className='px-4 border border-orange-500/40 text-orange-400 text-xs hover:bg-orange-500 hover:text-white transition-colors'
                     >
                       Add
@@ -1341,7 +1380,10 @@ export default function EnrichPage() {
           {/* Backdrop */}
           <div
             className='fixed inset-0 bg-black/50 z-40'
-            onClick={() => setShowHistory(false)}
+            onClick={() => {
+              setHistoryFeedback(null)
+              setShowHistory(false)
+            }}
           />
           {/* Panel */}
           <div className='fixed top-0 right-0 h-full w-full max-w-md z-50 animate-in slide-in-from-right duration-300 bg-zinc-900'>
@@ -1350,7 +1392,10 @@ export default function EnrichPage() {
               <div className='flex items-center justify-between px-4 py-3 border-b border-zinc-800'>
                 <span className='font-semibold'>Enrichment History</span>
                 <button
-                  onClick={() => setShowHistory(false)}
+                  onClick={() => {
+                    setHistoryFeedback(null)
+                    setShowHistory(false)
+                  }}
                   className='p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors'
                 >
                   <X className='w-5 h-5' />
@@ -1360,7 +1405,10 @@ export default function EnrichPage() {
               {/* Tab Switcher */}
               <div className='flex border-b border-zinc-800'>
                 <button
-                  onClick={() => setHistoryTab('single')}
+                  onClick={() => {
+                    setHistoryFeedback(null)
+                    setHistoryTab('single')
+                  }}
                   className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
                     historyTab === 'single'
                       ? 'text-orange-500 border-b-2 border-orange-500 bg-orange-500/5'
@@ -1370,7 +1418,10 @@ export default function EnrichPage() {
                   Single Enrichments
                 </button>
                 <button
-                  onClick={() => setHistoryTab('batch')}
+                  onClick={() => {
+                    setHistoryFeedback(null)
+                    setHistoryTab('batch')
+                  }}
                   className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
                     historyTab === 'batch'
                       ? 'text-orange-500 border-b-2 border-orange-500 bg-orange-500/5'
@@ -1381,12 +1432,35 @@ export default function EnrichPage() {
                 </button>
               </div>
 
+              {loadingHistoryItem && (
+                <div className='border-b border-zinc-800 px-4 py-3 text-xs text-zinc-500'>
+                  Loading history...
+                </div>
+              )}
+
+              {historyFeedback && (
+                <div
+                  role={historyFeedback.type === 'error' ? 'alert' : 'status'}
+                  aria-live='polite'
+                  className={`border-b px-4 py-3 text-sm ${
+                    historyFeedback.type === 'error'
+                      ? 'border-red-500/30 bg-red-500/10 text-red-300'
+                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  }`}
+                >
+                  {historyFeedback.message}
+                </div>
+              )}
+
               {/* Tab Content */}
               <div className='flex-1 overflow-y-auto p-4'>
                 {historyTab === 'single' ? (
                   <EnrichHistory
                     onSelect={handleHistorySelect}
-                    onClose={() => setShowHistory(false)}
+                    onClose={() => {
+                      setHistoryFeedback(null)
+                      setShowHistory(false)
+                    }}
                   />
                 ) : (
                   <BatchHistory
@@ -1399,6 +1473,6 @@ export default function EnrichPage() {
           </div>
         </>
       )}
-    </div>
+    </IntelPageChrome>
   )
 }

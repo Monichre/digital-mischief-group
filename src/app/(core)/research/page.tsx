@@ -27,6 +27,10 @@ import {ScrollReveal} from '@/components/scroll-animations'
 import type {ResearchMission, ResearchDepth} from '@/daedalus/agent/research/types'
 import {ProGate} from '@/components/pro-gate'
 import {AuthLinks} from '@/components/AuthLinks'
+import {
+  getApiErrorMessage,
+  validateResearchMissionForm,
+} from '@/lib/core-flow-ux'
 
 const DEPTH_OPTIONS: {
   value: ResearchDepth
@@ -62,20 +66,40 @@ export default function ResearchPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [runningId, setRunningId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [name, setName] = useState('')
   const [query, setQuery] = useState('')
   const [depth, setDepth] = useState<ResearchDepth>('standard')
   const [sources, setSources] = useState<string[]>(['perplexity', 'exa'])
+  const missionValidationError = validateResearchMissionForm({
+    name,
+    query,
+    sources,
+  })
 
   const fetchMissions = useCallback(async () => {
     try {
+      setError(null)
+
       const res = await fetch('/api/research')
-      const data = await res.json()
-      setMissions(data.missions || [])
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(
+          getApiErrorMessage(data, 'Failed to fetch research missions')
+        )
+      }
+
+      setMissions(data?.missions || [])
     } catch (error) {
       console.error('Failed to fetch missions:', error)
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch research missions'
+      )
     } finally {
       setIsLoading(false)
     }
@@ -86,16 +110,39 @@ export default function ResearchPage() {
   }, [fetchMissions])
 
   const handleCreate = async () => {
-    if (!name || !query) return
+    const validationError = validateResearchMissionForm({name, query, sources})
+
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    const trimmedName = name.trim()
+    const trimmedQuery = query.trim()
+
     setIsCreating(true)
+    setError(null)
 
     try {
       const res = await fetch('/api/research', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({name, query, depth, sources}),
+        body: JSON.stringify({
+          name: trimmedName,
+          query: trimmedQuery,
+          depth,
+          sources,
+        }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to create mission'))
+      }
+
+      if (!data?.mission) {
+        throw new Error('Failed to create mission')
+      }
 
       if (data.mission) {
         setMissions((prev) => [data.mission, ...prev])
@@ -103,10 +150,13 @@ export default function ResearchPage() {
         setName('')
         setQuery('')
         // Auto-run the mission
-        handleRun(data.mission.id)
+        void handleRun(data.mission.id)
       }
     } catch (error) {
       console.error('Failed to create mission:', error)
+      setError(
+        error instanceof Error ? error.message : 'Failed to create mission'
+      )
     } finally {
       setIsCreating(false)
     }
@@ -114,6 +164,7 @@ export default function ResearchPage() {
 
   const handleRun = async (missionId: string) => {
     setRunningId(missionId)
+    setError(null)
     setMissions((prev) =>
       prev.map((m) => (m.id === missionId ? {...m, status: 'running'} : m))
     )
@@ -122,7 +173,15 @@ export default function ResearchPage() {
       const res = await fetch(`/api/research/${missionId}/run`, {
         method: 'POST',
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Mission failed'))
+      }
+
+      if (!data?.mission) {
+        throw new Error('Mission failed')
+      }
 
       if (data.mission) {
         setMissions((prev) =>
@@ -131,6 +190,7 @@ export default function ResearchPage() {
       }
     } catch (error) {
       console.error('Mission failed:', error)
+      setError(error instanceof Error ? error.message : 'Mission failed')
       setMissions((prev) =>
         prev.map((m) => (m.id === missionId ? {...m, status: 'failed'} : m))
       )
@@ -140,10 +200,18 @@ export default function ResearchPage() {
   }
 
   const toggleSource = (source: string) => {
-    setSources((prev) =>
-      prev.includes(source)
-        ? prev.filter((s) => s !== source)
-        : [...prev, source]
+    const isActive = sources.includes(source)
+
+    if (isActive && sources.length === 1) {
+      setError('Select at least one source')
+      return
+    }
+
+    setError((current) =>
+      current === 'Select at least one source' ? null : current
+    )
+    setSources(
+      isActive ? sources.filter((s) => s !== source) : [...sources, source]
     )
   }
 
@@ -216,13 +284,27 @@ export default function ResearchPage() {
             </div>
           </ScrollReveal>
 
+          {error && (
+            <div
+              id='research-error'
+              role='alert'
+              aria-live='polite'
+              className='mb-6 border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300'
+            >
+              {error}
+            </div>
+          )}
+
           {/* Create Mission */}
           <ProGate>
             <ScrollReveal delay={0.1}>
               <div className='mb-8'>
                 {!showCreate ? (
                   <Button
-                    onClick={() => setShowCreate(true)}
+                    onClick={() => {
+                      setError(null)
+                      setShowCreate(true)
+                    }}
                     className='w-full bg-zinc-900 border border-zinc-800 hover:border-orange-500/50 text-zinc-100 font-mono'
                   >
                     <Plus className='w-4 h-4 mr-2' />
@@ -245,25 +327,37 @@ export default function ResearchPage() {
                     </div>
 
                     <div>
-                      <label className='block text-xs font-mono text-zinc-500 mb-2'>
+                      <label
+                        htmlFor='research-mission-name'
+                        className='block text-xs font-mono text-zinc-500 mb-2'
+                      >
                         MISSION NAME
                       </label>
                       <Input
+                        id='research-mission-name'
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder='e.g., Competitor Analysis Q1'
+                        aria-describedby={error ? 'research-error' : undefined}
+                        disabled={isCreating}
                         className='bg-zinc-950 border-zinc-700 font-mono'
                       />
                     </div>
 
                     <div>
-                      <label className='block text-xs font-mono text-zinc-500 mb-2'>
+                      <label
+                        htmlFor='research-mission-query'
+                        className='block text-xs font-mono text-zinc-500 mb-2'
+                      >
                         RESEARCH QUERY
                       </label>
                       <Textarea
+                        id='research-mission-query'
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder='e.g., What are the latest AI marketing trends in 2025? Focus on enterprise adoption and emerging tools.'
+                        aria-describedby={error ? 'research-error' : undefined}
+                        disabled={isCreating}
                         className='bg-zinc-950 border-zinc-700 font-mono min-h-[100px]'
                       />
                     </div>
@@ -276,7 +370,9 @@ export default function ResearchPage() {
                         {DEPTH_OPTIONS.map((opt) => (
                           <button
                             key={opt.value}
+                            type='button'
                             onClick={() => setDepth(opt.value)}
+                            disabled={isCreating}
                             className={`p-3 rounded border text-left transition-colors ${
                               depth === opt.value
                                 ? 'bg-orange-500/10 border-orange-500 text-orange-500'
@@ -303,7 +399,10 @@ export default function ResearchPage() {
                           return (
                             <button
                               key={src.value}
+                              type='button'
                               onClick={() => toggleSource(src.value)}
+                              aria-pressed={isActive}
+                              disabled={isCreating}
                               className={`flex items-center gap-2 px-3 py-2 rounded border transition-colors ${
                                 isActive
                                   ? 'bg-orange-500/10 border-orange-500 text-orange-500'
@@ -318,11 +417,14 @@ export default function ResearchPage() {
                           )
                         })}
                       </div>
+                      <p className='mt-2 text-xs text-zinc-500'>
+                        Select at least one intelligence source.
+                      </p>
                     </div>
 
                     <Button
                       onClick={handleCreate}
-                      disabled={!name || !query || isCreating}
+                      disabled={Boolean(missionValidationError) || isCreating}
                       className='w-full bg-orange-500 hover:bg-orange-600 text-zinc-950 font-mono'
                     >
                       {isCreating ? (

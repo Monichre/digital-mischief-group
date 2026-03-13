@@ -1,35 +1,89 @@
 'use client'
 
-import {useState, useEffect} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import Link from 'next/link'
-import {ArrowLeft, Crosshair, RefreshCw, Clock, ArrowRight} from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Crosshair,
+  Mail,
+  RefreshCw,
+} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import type {Monitor, MonitorChange} from '@/daedalus/scout/types'
 import {AuthLinks} from '@/components/AuthLinks'
+import {
+  getApiErrorMessage,
+  normalizeMonitorDetailResponse,
+} from '@/lib/core-flow-ux'
 
 export default function MonitorDetailClient({id}: {id: string}) {
   const [monitor, setMonitor] = useState<Monitor | null>(null)
   const [changes, setChanges] = useState<MonitorChange[]>([])
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
-  const fetchData = async () => {
-    const res = await fetch(`/api/monitors/${id}`)
-    const data = await res.json()
-    setMonitor(data.monitor)
-    setChanges(data.changes || [])
-    setLoading(false)
-  }
+  const fetchData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) {
+      setLoading(true)
+    }
+
+    try {
+      setError(null)
+
+      const res = await fetch(`/api/monitors/${id}`)
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to load recon target'))
+      }
+
+      const normalized = normalizeMonitorDetailResponse<Monitor, MonitorChange>(
+        data
+      )
+
+      setMonitor(normalized.monitor)
+      setChanges(normalized.changes)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to load recon target'
+      )
+    } finally {
+      if (showSpinner) {
+        setLoading(false)
+      }
+    }
+  }, [id])
 
   useEffect(() => {
-    fetchData()
-  }, [id])
+    void fetchData(true)
+  }, [fetchData])
 
   const checkNow = async () => {
     setChecking(true)
-    await fetch(`/api/monitors/${id}/check`, {method: 'POST'})
-    setChecking(false)
-    fetchData()
+    setError(null)
+    setStatusMessage(null)
+
+    try {
+      const res = await fetch(`/api/monitors/${id}/check`, {method: 'POST'})
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(getApiErrorMessage(data, 'Failed to check recon target'))
+      }
+
+      await fetchData()
+      setStatusMessage('Recon target checked successfully.')
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to check recon target'
+      )
+    } finally {
+      setChecking(false)
+    }
   }
 
   if (loading) {
@@ -42,8 +96,40 @@ export default function MonitorDetailClient({id}: {id: string}) {
 
   if (!monitor) {
     return (
-      <div className='min-h-screen bg-zinc-950 flex items-center justify-center text-red-500'>
-        Target not found
+      <div className='min-h-screen bg-zinc-950 px-6 text-zinc-200'>
+        <div className='mx-auto flex min-h-screen max-w-xl items-center justify-center'>
+          <div className='w-full border border-zinc-800 bg-zinc-900/40 p-6'>
+            <div className='mb-4 flex items-center gap-2 text-orange-500'>
+              <Crosshair className='h-4 w-4' />
+              <span className='text-xs tracking-[0.2em]'>{'// RECON TARGET'}</span>
+            </div>
+            <h1 className='mb-2 text-xl font-bold text-zinc-100'>
+              {error?.toLowerCase().includes('not found')
+                ? 'Target not found'
+                : 'Unable to load recon target'}
+            </h1>
+            <p
+              role='alert'
+              aria-live='polite'
+              className='mb-6 text-sm text-zinc-400'
+            >
+              {error || 'This recon target is unavailable.'}
+            </p>
+            <div className='flex flex-wrap gap-3'>
+              <Link href='/observe'>
+                <Button variant='outline'>Back to Recon</Button>
+              </Link>
+              {!error?.toLowerCase().includes('not found') && (
+                <Button
+                  onClick={() => void fetchData(true)}
+                  aria-label='Retry loading recon target'
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -86,7 +172,7 @@ export default function MonitorDetailClient({id}: {id: string}) {
         <div className='mb-8'>
           <div className='flex items-center gap-2 text-orange-500 text-sm mb-2'>
             <Crosshair className='w-4 h-4' />
-            <span>// RECON TARGET</span>
+            <span>{'// RECON TARGET'}</span>
           </div>
           <h1 className='text-3xl font-black mb-2'>{monitor.name}</h1>
           <a
@@ -103,10 +189,30 @@ export default function MonitorDetailClient({id}: {id: string}) {
               Last checked: {new Date(monitor.last_checked_at).toLocaleString()}
             </p>
           )}
+          {monitor.notification_email && (
+            <p className='text-xs text-zinc-600 mt-2 flex items-center gap-1'>
+              <Mail className='w-3 h-3' />
+              Alerts: {monitor.notification_email}
+            </p>
+          )}
         </div>
 
+        {(error || statusMessage) && (
+          <div
+            role={error ? 'alert' : 'status'}
+            aria-live='polite'
+            className={`mb-6 border px-4 py-3 text-sm ${
+              error
+                ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+            }`}
+          >
+            {error ?? statusMessage}
+          </div>
+        )}
+
         <h2 className='text-lg font-bold mb-4 text-orange-500'>
-          // CHANGE HISTORY ({changes.length})
+          {'// CHANGE HISTORY'} ({changes.length})
         </h2>
 
         {changes.length === 0 ? (
