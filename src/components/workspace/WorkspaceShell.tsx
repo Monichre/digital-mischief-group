@@ -1,0 +1,850 @@
+'use client'
+
+import type React from 'react'
+import {useEffect, useRef, useState} from 'react'
+import Link from 'next/link'
+import {useRouter} from 'next/navigation'
+import useSWR from 'swr'
+import {
+  Archive,
+  ArrowRight,
+  Binoculars,
+  BrainCircuit,
+  Check,
+  ChevronRight,
+  CircleDot,
+  Database,
+  File,
+  FileText,
+  Flame,
+  FolderOpen,
+  Globe2,
+  Loader2,
+  MemoryStick,
+  Plus,
+  Radar,
+  Search,
+  Sparkles,
+  Trash2,
+  Upload,
+  WandSparkles,
+  X,
+} from 'lucide-react'
+import {
+  WORKSPACE_SKILLS,
+  type WorkspaceSkillId,
+} from '@/daedalus/agent/workspace/config'
+import type {
+  KnowledgeSearchResult,
+  KnowledgeSource,
+} from '@/daedalus/agent/knowledge/types'
+
+type WorkspaceView = 'new' | 'search' | 'skills' | 'files' | 'memory'
+
+type WorkspaceTask = {
+  id: string
+  skill: WorkspaceSkillId
+  primitive: 'enrich' | 'agent' | 'extract' | 'scout' | 'observe'
+  title: string
+  prompt: string
+  status: string
+  target_href: string
+  created_at: string
+}
+
+type SearchPayload = {
+  tasks: WorkspaceTask[]
+  sources: Array<{
+    id: string
+    source_type: KnowledgeSource['source_type']
+    title: string
+    summary: string | null
+    status: string
+    created_at: string
+  }>
+  knowledge: KnowledgeSearchResult[]
+}
+
+const fetcher = async <T,>(url: string): Promise<T> => {
+  const response = await fetch(url)
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(data?.error || 'Request failed')
+  return data as T
+}
+
+const iconBySkill: Record<WorkspaceSkillId, React.ComponentType<{className?: string}>> = {
+  research: BrainCircuit,
+  enrich: Sparkles,
+  'brand-recon': Radar,
+  sentinels: Binoculars,
+  observe: CircleDot,
+  'weaponize-browser': Globe2,
+}
+
+const navItems: Array<{
+  id: WorkspaceView
+  label: string
+  icon: React.ComponentType<{className?: string}>
+}> = [
+  {id: 'new', label: 'New task', icon: Plus},
+  {id: 'search', label: 'Search', icon: Search},
+  {id: 'skills', label: 'Arsenal', icon: WandSparkles},
+  {id: 'files', label: 'Files', icon: FolderOpen},
+  {id: 'memory', label: 'Memory', icon: MemoryStick},
+]
+
+function shortDate(value: string) {
+  const date = new Date(value)
+  return new Intl.DateTimeFormat('en', {month: 'short', day: 'numeric'}).format(date)
+}
+
+function bytesLabel(value: number | null) {
+  if (!value) return '—'
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+export function WorkspaceShell({
+  user,
+}: {
+  user: {name: string | null; email: string}
+}) {
+  const router = useRouter()
+  const [view, setView] = useState<WorkspaceView>('new')
+  const [selectedSkill, setSelectedSkill] =
+    useState<WorkspaceSkillId>('research')
+  const [prompt, setPrompt] = useState('')
+  const [launching, setLaunching] = useState(false)
+  const [launchError, setLaunchError] = useState<string | null>(null)
+  const {data: taskData, mutate: mutateTasks} = useSWR<{tasks: WorkspaceTask[]}>(
+    '/api/workspace/tasks',
+    fetcher
+  )
+  const {data: sourceData, mutate: mutateSources} = useSWR<{
+    sources: KnowledgeSource[]
+  }>('/api/knowledge', fetcher)
+
+  const tasks = taskData?.tasks || []
+  const sources = sourceData?.sources || []
+  const firstName = user.name?.trim().split(/\s+/)[0] || user.email.split('@')[0]
+
+  const launchTask = async () => {
+    const nextPrompt = prompt.trim()
+    if (!nextPrompt || launching) return
+
+    setLaunching(true)
+    setLaunchError(null)
+    try {
+      const response = await fetch('/api/workspace/tasks', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({skill: selectedSkill, prompt: nextPrompt}),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data?.task?.target_href) {
+        throw new Error(data?.error || 'The task could not be launched')
+      }
+      await mutateTasks()
+      router.push(data.task.target_href)
+    } catch (error) {
+      setLaunchError(error instanceof Error ? error.message : 'The task could not be launched')
+      setLaunching(false)
+    }
+  }
+
+  return (
+    <div className='min-h-screen bg-[#070708] text-zinc-200 font-sans lg:h-screen lg:overflow-hidden'>
+      <style jsx global>{`
+        .dmg-menu-toggle {
+          display: none !important;
+        }
+      `}</style>
+
+      <aside className='fixed inset-y-0 left-0 z-40 hidden w-[286px] flex-col border-r border-white/10 bg-[#09090a] lg:flex'>
+        <button
+          type='button'
+          onClick={() => setView('new')}
+          className='flex h-16 items-center gap-3 border-b border-white/10 px-5 text-left transition-colors hover:bg-white/[0.03]'
+        >
+          <span className='flex h-7 w-7 items-center justify-center rounded-md bg-orange-500 text-zinc-950'>
+            <Flame className='h-4 w-4' />
+          </span>
+          <span>
+            <span className='block text-sm font-semibold text-white'>Daedalus</span>
+            <span className='block font-mono text-[9px] tracking-[0.18em] text-zinc-600'>DMG SUPERCOMPUTER</span>
+          </span>
+        </button>
+
+        <nav aria-label='Workspace navigation' className='space-y-1 p-3'>
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const active = view === item.id
+            return (
+              <button
+                key={item.id}
+                type='button'
+                onClick={() => setView(item.id)}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? 'bg-white/[0.07] text-white'
+                    : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-200'
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${active ? 'text-orange-500' : ''}`} />
+                <span>{item.label}</span>
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className='mt-3 flex min-h-0 flex-1 flex-col border-t border-white/10 px-3 pt-4'>
+          <div className='mb-2 flex items-center justify-between px-2'>
+            <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-600'>Tasks</span>
+            <span className='font-mono text-[9px] text-zinc-700'>{tasks.length}</span>
+          </div>
+          <div className='min-h-0 flex-1 space-y-1 overflow-y-auto pb-4'>
+            {tasks.length === 0 ? (
+              <p className='px-2 py-4 text-xs leading-5 text-zinc-700'>Launched missions will appear here.</p>
+            ) : (
+              tasks.map((task) => {
+                const Icon = iconBySkill[task.skill]
+                return (
+                  <Link
+                    key={task.id}
+                    href={task.target_href}
+                    className='group flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-white/[0.04]'
+                  >
+                    <Icon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-600 group-hover:text-orange-500' />
+                    <span className='min-w-0 flex-1'>
+                      <span className='block truncate text-xs text-zinc-400 group-hover:text-zinc-200'>{task.title}</span>
+                      <span className='mt-1 block font-mono text-[9px] uppercase text-zinc-700'>{shortDate(task.created_at)}</span>
+                    </span>
+                  </Link>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        <div className='border-t border-white/10 p-3'>
+          <Link
+            href='/profile'
+            aria-label='Open profile and billing'
+            className='flex items-center gap-3 rounded-lg p-1 transition-colors hover:bg-white/[0.04]'
+          >
+            <span className='flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/30 bg-orange-500/10 font-mono text-xs uppercase text-orange-400'>
+              {firstName.slice(0, 2)}
+            </span>
+            <span className='min-w-0'>
+              <span className='block truncate text-xs text-zinc-300'>{user.name || firstName}</span>
+              <span className='block truncate text-[10px] text-zinc-600'>{user.email}</span>
+            </span>
+          </Link>
+        </div>
+      </aside>
+
+      <div className='lg:ml-[286px] lg:flex lg:h-screen lg:flex-col'>
+        <header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[#09090a]/95 px-4 backdrop-blur-xl md:px-6 lg:relative'>
+          <div className='flex items-center gap-3'>
+            <button
+              type='button'
+              onClick={() => setView('new')}
+              className='flex items-center gap-2 text-sm font-medium text-white lg:hidden'
+            >
+              <Flame className='h-4 w-4 text-orange-500' />
+              Daedalus
+            </button>
+            <span className='hidden text-xs text-zinc-600 lg:block'>Workspace</span>
+          </div>
+
+          <div role='tablist' aria-label='Workspace mode' className='flex items-center rounded-lg bg-white/[0.04] p-1'>
+            <button
+              type='button'
+              role='tab'
+              aria-selected={view !== 'memory'}
+              onClick={() => setView('new')}
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
+                view !== 'memory' ? 'bg-white/[0.08] text-white' : 'text-zinc-600 hover:text-zinc-300'
+              }`}
+            >
+              Skills
+            </button>
+            <button
+              type='button'
+              role='tab'
+              aria-selected={view === 'memory'}
+              onClick={() => setView('memory')}
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
+                view === 'memory' ? 'bg-white/[0.08] text-white' : 'text-zinc-600 hover:text-zinc-300'
+              }`}
+            >
+              Memory
+            </button>
+          </div>
+
+          <Link href='/' className='text-xs text-zinc-600 transition-colors hover:text-orange-500'>HQ</Link>
+        </header>
+
+        <main className='relative min-h-[calc(100vh-4rem)] flex-1 overflow-y-auto pb-24 lg:min-h-0 lg:pb-0'>
+          <div className='pointer-events-none fixed inset-0 left-0 opacity-60 lg:left-[286px]'>
+            <div className='absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px]' />
+            <div className='absolute left-1/2 top-1/3 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-orange-500/[0.045] blur-[120px]' />
+          </div>
+
+          {view === 'new' && (
+            <NewTaskView
+              firstName={firstName}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              selectedSkill={selectedSkill}
+              setSelectedSkill={setSelectedSkill}
+              launching={launching}
+              error={launchError}
+              onLaunch={launchTask}
+            />
+          )}
+          {view === 'skills' && <SkillsView onSelect={(skillId) => {
+            setSelectedSkill(skillId)
+            setView('new')
+          }} />}
+          {view === 'memory' && (
+            <MemoryView sources={sources} mutateSources={mutateSources} />
+          )}
+          {view === 'files' && (
+            <FilesView sources={sources} mutateSources={mutateSources} />
+          )}
+          {view === 'search' && <SearchView />}
+        </main>
+      </div>
+
+      <nav aria-label='Mobile workspace navigation' className='fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/10 bg-[#09090a]/95 px-1 py-2 backdrop-blur-xl lg:hidden'>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const active = view === item.id
+          return (
+            <button
+              key={item.id}
+              type='button'
+              onClick={() => setView(item.id)}
+              className={`flex flex-col items-center gap-1 py-1 text-[9px] ${active ? 'text-orange-500' : 'text-zinc-600'}`}
+            >
+              <Icon className='h-4 w-4' />
+              {item.label.replace('New ', '')}
+            </button>
+          )
+        })}
+      </nav>
+    </div>
+  )
+}
+
+function NewTaskView({
+  firstName,
+  prompt,
+  setPrompt,
+  selectedSkill,
+  setSelectedSkill,
+  launching,
+  error,
+  onLaunch,
+}: {
+  firstName: string
+  prompt: string
+  setPrompt: (value: string) => void
+  selectedSkill: WorkspaceSkillId
+  setSelectedSkill: (value: WorkspaceSkillId) => void
+  launching: boolean
+  error: string | null
+  onLaunch: () => void
+}) {
+  const skill = WORKSPACE_SKILLS.find((item) => item.id === selectedSkill) || WORKSPACE_SKILLS[0]
+
+  return (
+    <section className='relative z-10 mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center px-5 py-14 md:px-10 lg:py-20'>
+      <div className='mx-auto w-full max-w-3xl'>
+        <div className='mb-10 text-center'>
+          <span className='mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/[0.06] px-3 py-1 font-mono text-[10px] tracking-[0.18em] text-orange-400'>
+            <CircleDot className='h-3 w-3' /> ALL SYSTEMS NOMINAL
+          </span>
+          <h1 className='text-balance text-3xl font-medium tracking-tight text-white md:text-5xl'>
+            {firstName}, what are we building today?
+          </h1>
+          <p className='mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-500'>
+            One command surface for research, reconnaissance, monitoring, and extraction.
+          </p>
+        </div>
+
+        <div className='overflow-hidden rounded-2xl border border-white/10 bg-[#111113]/95 shadow-2xl shadow-black/30'>
+          <textarea
+            aria-label='Task prompt'
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                onLaunch()
+              }
+            }}
+            placeholder={skill.placeholder}
+            className='min-h-32 w-full resize-none bg-transparent px-5 py-5 text-base leading-7 text-zinc-100 outline-none placeholder:text-zinc-700'
+          />
+
+          <div className='border-t border-white/8 p-3'>
+            <div className='mb-3 flex flex-wrap gap-2'>
+              {WORKSPACE_SKILLS.map((item) => {
+                const Icon = iconBySkill[item.id]
+                const active = item.id === selectedSkill
+                return (
+                  <button
+                    key={item.id}
+                    type='button'
+                    onClick={() => setSelectedSkill(item.id)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] transition-colors ${
+                      active
+                        ? 'border-orange-500/40 bg-orange-500/10 text-orange-300'
+                        : 'border-white/8 text-zinc-600 hover:border-white/15 hover:text-zinc-300'
+                    }`}
+                  >
+                    <Icon className='h-3 w-3' />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className='flex items-center justify-between gap-3'>
+              <div className='min-w-0'>
+                <span className='block font-mono text-[9px] tracking-[0.16em] text-zinc-700'>
+                  {skill.eyebrow} PROTOCOL
+                </span>
+                <span className='hidden truncate text-[11px] text-zinc-600 sm:block'>{skill.description}</span>
+              </div>
+              <button
+                type='button'
+                onClick={onLaunch}
+                disabled={!prompt.trim() || launching}
+                className='inline-flex shrink-0 items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-600'
+              >
+                {launching ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <ArrowRight className='h-3.5 w-3.5' />}
+                Launch
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {error && <p role='alert' className='mt-3 text-center text-xs text-red-400'>{error}</p>}
+
+        <div className='mt-8 grid gap-2'>
+          {skill.examples.slice(0, 3).map((example) => (
+            <button
+              key={example}
+              type='button'
+              onClick={() => setPrompt(example)}
+              className='group flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-zinc-600 transition-colors hover:bg-white/[0.03] hover:text-zinc-300'
+            >
+              <ChevronRight className='h-3.5 w-3.5 text-zinc-800 transition-colors group-hover:text-orange-500' />
+              {example}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function SkillsView({onSelect}: {onSelect: (skillId: WorkspaceSkillId) => void}) {
+  return (
+    <section className='relative z-10 mx-auto max-w-6xl px-5 py-10 md:px-10'>
+      <div className='mb-8'>
+        <span className='font-mono text-[10px] tracking-[0.2em] text-orange-500'>{'// ARSENAL'}</span>
+        <h1 className='mt-2 text-3xl font-medium text-white'>Skills</h1>
+        <p className='mt-2 max-w-2xl text-sm text-zinc-500'>Every skill maps to an existing Daedalus primitive. No duplicate engines, no mystery meat.</p>
+      </div>
+      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+        {WORKSPACE_SKILLS.map((skill, index) => {
+          const Icon = iconBySkill[skill.id]
+          return (
+            <button
+              key={skill.id}
+              type='button'
+              onClick={() => onSelect(skill.id)}
+              className='group rounded-xl border border-white/10 bg-white/[0.025] p-5 text-left transition-all hover:-translate-y-0.5 hover:border-orange-500/30 hover:bg-orange-500/[0.04]'
+            >
+              <div className='mb-8 flex items-center justify-between'>
+                <span className='flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-black/20 text-zinc-500 group-hover:border-orange-500/30 group-hover:text-orange-400'>
+                  <Icon className='h-4 w-4' />
+                </span>
+                <span className='font-mono text-[9px] text-zinc-700'>0{index + 1}</span>
+              </div>
+              <span className='font-mono text-[9px] tracking-[0.18em] text-orange-500/70'>{skill.eyebrow}</span>
+              <h2 className='mt-1 text-base font-medium text-zinc-200'>{skill.label}</h2>
+              <p className='mt-2 text-sm leading-6 text-zinc-600'>{skill.description}</p>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function MemoryView({
+  sources,
+  mutateSources,
+}: {
+  sources: KnowledgeSource[]
+  mutateSources: () => Promise<unknown>
+}) {
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [value, setValue] = useState('')
+  const [title, setTitle] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const readyCount = sources.filter((source) => source.status === 'ready').length
+  const chunkCount = sources.reduce((total, source) => total + Number(source.chunk_count || 0), 0)
+
+  const ingest = async () => {
+    if ((!value.trim() && !file) || loading) return
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      let response: Response
+      if (file) {
+        const form = new FormData()
+        form.set('file', file)
+        if (title.trim()) form.set('title', title.trim())
+        response = await fetch('/api/knowledge', {method: 'POST', body: form})
+      } else {
+        const raw = value.trim()
+        const isUrl = /^https?:\/\//i.test(raw)
+        response = await fetch('/api/knowledge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(
+            isUrl
+              ? {type: 'url', url: raw, title: title.trim() || undefined}
+              : {type: 'text', text: raw, title: title.trim() || undefined}
+          ),
+        })
+      }
+
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(data?.error || 'Knowledge could not be integrated')
+
+      setValue('')
+      setTitle('')
+      setFile(null)
+      if (fileRef.current) fileRef.current.value = ''
+      setSuccess(`${data.source.title} is now part of Delphi.`)
+      await mutateSources()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Knowledge could not be integrated')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className='relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-5 py-8 md:px-10'>
+      <div className='grid flex-1 gap-8 xl:grid-cols-[1fr_360px]'>
+        <div className='flex min-h-[520px] flex-col'>
+          <div className='mb-6'>
+            <span className='font-mono text-[10px] tracking-[0.2em] text-orange-500'>{'// DELPHI SENTIENCE'}</span>
+            <h1 className='mt-2 text-3xl font-medium text-white'>Learning from every source</h1>
+            <p className='mt-2 text-sm text-zinc-500'>Private knowledge, chunked and indexed for retrieval.</p>
+          </div>
+
+          <button
+            type='button'
+            aria-label='Add knowledge to Delphi Sentience'
+            onClick={() => inputRef.current?.focus()}
+            className='group relative mx-auto my-auto flex h-72 w-72 items-center justify-center rounded-full outline-none md:h-80 md:w-80'
+          >
+            <span className='absolute inset-0 rounded-full border border-orange-500/10 transition-transform duration-700 group-hover:scale-105' />
+            <span className='absolute inset-8 rounded-full border border-dashed border-white/10 transition-transform duration-[1400ms] group-hover:rotate-12' />
+            <span className='absolute inset-16 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.18),rgba(249,115,22,0.02)_48%,transparent_70%)] blur-sm' />
+            {[0, 60, 120, 180, 240, 300].map((angle) => (
+              <span
+                key={angle}
+                className='absolute h-2 w-2 rounded-full border border-orange-500/40 bg-[#111113] shadow-[0_0_14px_rgba(249,115,22,0.25)]'
+                style={{transform: `rotate(${angle}deg) translateY(-126px)`}}
+              />
+            ))}
+            <span className='relative flex h-24 w-24 items-center justify-center rounded-full border border-orange-500/20 bg-[#111113] shadow-[0_0_70px_rgba(249,115,22,0.15)]'>
+              <BrainCircuit className='h-9 w-9 text-orange-400' />
+            </span>
+          </button>
+
+          <div className='mt-8 overflow-hidden rounded-2xl border border-white/10 bg-[#111113]/95'>
+            <div className='grid gap-3 border-b border-white/8 p-3 sm:grid-cols-[180px_1fr]'>
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder='Optional title'
+                className='rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-xs text-zinc-300 outline-none focus:border-orange-500/30'
+              />
+              <textarea
+                ref={inputRef}
+                value={value}
+                onChange={(event) => {
+                  setValue(event.target.value)
+                  if (file) setFile(null)
+                }}
+                placeholder='Add text, paste a URL, or attach a source…'
+                className='min-h-20 resize-none bg-transparent px-2 py-2 text-sm text-zinc-200 outline-none placeholder:text-zinc-700'
+              />
+            </div>
+            <div className='flex flex-wrap items-center justify-between gap-3 p-3'>
+              <div className='flex items-center gap-2'>
+                <input
+                  ref={fileRef}
+                  type='file'
+                  className='hidden'
+                  accept='.pdf,.docx,.txt,.md,.markdown,.csv,.json,.xml,.jpg,.jpeg,.png,.webp,.gif'
+                  onChange={(event) => {
+                    const selected = event.target.files?.[0] || null
+                    setFile(selected)
+                    if (selected) setValue('')
+                  }}
+                />
+                <button
+                  type='button'
+                  onClick={() => fileRef.current?.click()}
+                  className='inline-flex items-center gap-2 rounded-lg border border-white/8 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-200'
+                >
+                  <Upload className='h-3.5 w-3.5' /> Attach
+                </button>
+                {file && (
+                  <span className='inline-flex max-w-[220px] items-center gap-1 rounded-lg bg-white/[0.04] px-2 py-1.5 text-[10px] text-zinc-400'>
+                    <File className='h-3 w-3 text-orange-500' />
+                    <span className='truncate'>{file.name}</span>
+                    <button type='button' aria-label='Remove file' onClick={() => setFile(null)}>
+                      <X className='h-3 w-3' />
+                    </button>
+                  </span>
+                )}
+              </div>
+              <button
+                type='button'
+                onClick={ingest}
+                disabled={(!value.trim() && !file) || loading}
+                className='inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-600'
+              >
+                {loading ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <Database className='h-3.5 w-3.5' />}
+                Integrate
+              </button>
+            </div>
+          </div>
+          {error && <p role='alert' className='mt-3 text-xs text-red-400'>{error}</p>}
+          {success && <p role='status' className='mt-3 flex items-center gap-2 text-xs text-emerald-400'><Check className='h-3.5 w-3.5' />{success}</p>}
+        </div>
+
+        <aside className='rounded-xl border border-white/10 bg-white/[0.02] p-4'>
+          <div className='grid grid-cols-2 gap-3'>
+            <Metric label='Sources' value={String(readyCount)} />
+            <Metric label='Chunks' value={String(chunkCount)} />
+          </div>
+          <div className='mb-3 mt-6 flex items-center justify-between'>
+            <span className='font-mono text-[10px] tracking-[0.16em] text-zinc-600'>RECENT MEMORY</span>
+            <Archive className='h-3.5 w-3.5 text-zinc-700' />
+          </div>
+          <div className='space-y-2'>
+            {sources.slice(0, 8).map((source) => (
+              <div key={source.id} className='rounded-lg border border-white/8 bg-black/20 p-3'>
+                <div className='flex items-start gap-2'>
+                  <SourceIcon type={source.source_type} />
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-xs text-zinc-300'>{source.title}</p>
+                    <p className='mt-1 line-clamp-2 text-[10px] leading-4 text-zinc-600'>{source.summary || source.error_message || 'Processing source…'}</p>
+                  </div>
+                  <StatusDot status={source.status} />
+                </div>
+              </div>
+            ))}
+            {sources.length === 0 && <p className='py-10 text-center text-xs text-zinc-700'>Delphi is waiting for its first source.</p>}
+          </div>
+        </aside>
+      </div>
+    </section>
+  )
+}
+
+function FilesView({
+  sources,
+  mutateSources,
+}: {
+  sources: KnowledgeSource[]
+  mutateSources: () => Promise<unknown>
+}) {
+  const files = sources.filter((source) => source.source_type === 'file')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const remove = async (source: KnowledgeSource) => {
+    if (!window.confirm(`Remove ${source.title} from Delphi?`)) return
+    setDeletingId(source.id)
+    try {
+      const response = await fetch(`/api/knowledge?id=${encodeURIComponent(source.id)}`, {method: 'DELETE'})
+      if (!response.ok) throw new Error('Delete failed')
+      await mutateSources()
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  return (
+    <section className='relative z-10 mx-auto max-w-6xl px-5 py-10 md:px-10'>
+      <div className='mb-8 flex flex-wrap items-end justify-between gap-4'>
+        <div>
+          <span className='font-mono text-[10px] tracking-[0.2em] text-orange-500'>{'// PRIVATE SOURCE REGISTRY'}</span>
+          <h1 className='mt-2 text-3xl font-medium text-white'>Files</h1>
+          <p className='mt-2 text-sm text-zinc-500'>Private originals in Blob; normalized knowledge in Neon.</p>
+        </div>
+        <span className='font-mono text-[10px] text-zinc-700'>{files.length} FILES</span>
+      </div>
+
+      <div className='overflow-hidden rounded-xl border border-white/10'>
+        <div className='hidden grid-cols-[1fr_120px_100px_100px] gap-4 border-b border-white/8 bg-white/[0.025] px-4 py-3 font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-700 md:grid'>
+          <span>Name</span><span>Type</span><span>Size</span><span>Status</span>
+        </div>
+        {files.map((source) => (
+          <div key={source.id} className='flex items-center gap-3 border-b border-white/8 px-4 py-4 last:border-b-0 md:grid md:grid-cols-[1fr_120px_100px_100px] md:gap-4'>
+            <div className='flex min-w-0 items-center gap-3'>
+              <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-white/[0.03]'><FileText className='h-4 w-4 text-orange-500' /></span>
+              <div className='min-w-0'>
+                <p className='truncate text-sm text-zinc-300'>{source.file_name || source.title}</p>
+                <p className='mt-1 truncate text-[10px] text-zinc-700'>{source.chunk_count} chunks · {shortDate(source.created_at)}</p>
+              </div>
+            </div>
+            <span className='hidden text-xs text-zinc-600 md:block'>{source.mime_type || 'unknown'}</span>
+            <span className='hidden text-xs text-zinc-600 md:block'>{bytesLabel(Number(source.size_bytes))}</span>
+            <div className='ml-auto flex items-center justify-end gap-2 md:ml-0'>
+              {source.status === 'ready' && source.blob_pathname && (
+                <Link href={`/api/knowledge/files/${source.id}`} className='rounded-md border border-white/10 px-2 py-1 text-[10px] text-zinc-500 hover:text-white'>Open</Link>
+              )}
+              <button type='button' aria-label={`Delete ${source.title}`} onClick={() => remove(source)} disabled={deletingId === source.id} className='p-1 text-zinc-700 hover:text-red-400'>
+                {deletingId === source.id ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <Trash2 className='h-3.5 w-3.5' />}
+              </button>
+            </div>
+          </div>
+        ))}
+        {files.length === 0 && <div className='px-6 py-20 text-center text-sm text-zinc-700'>No private files have been integrated yet.</div>}
+      </div>
+    </section>
+  )
+}
+
+function SearchView() {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<SearchPayload>({
+    tasks: [],
+    sources: [],
+    knowledge: [],
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const trimmed = query.trim()
+    if (!trimmed) {
+      setResults({tasks: [], sources: [], knowledge: []})
+      setError(null)
+      return
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`/api/workspace/search?q=${encodeURIComponent(trimmed)}`, {signal: controller.signal})
+        const data = await response.json().catch(() => null)
+        if (!response.ok) throw new Error(data?.error || 'Search failed')
+        setResults(data as SearchPayload)
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setResults({tasks: [], sources: [], knowledge: []})
+          setError(error instanceof Error ? error.message : 'Search failed')
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
+      }
+    }, 250)
+
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [query])
+
+  const total = results.tasks.length + results.sources.length + results.knowledge.length
+
+  return (
+    <section className='relative z-10 mx-auto max-w-5xl px-5 py-10 md:px-10'>
+      <span className='font-mono text-[10px] tracking-[0.2em] text-orange-500'>{'// GLOBAL RETRIEVAL'}</span>
+      <h1 className='mt-2 text-3xl font-medium text-white'>Search</h1>
+      <div className='relative mt-8'>
+        <Search className='absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-700' />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus placeholder='Search missions and memory…' className='w-full rounded-xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-12 text-sm text-zinc-200 outline-none focus:border-orange-500/30' />
+        {loading && <Loader2 className='absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-orange-500' />}
+      </div>
+      {error && <p role='alert' className='mt-3 text-xs text-red-400'>{error}</p>}
+
+      <div className='mt-8 space-y-8'>
+        {results.tasks.length > 0 && (
+          <div>
+            <h2 className='mb-3 font-mono text-[10px] tracking-[0.16em] text-zinc-700'>TASKS</h2>
+            <div className='space-y-2'>{results.tasks.map((task) => <Link key={task.id} href={task.target_href} className='flex items-center gap-3 rounded-lg border border-white/8 bg-white/[0.02] p-4 hover:border-orange-500/20'><SourceIcon type='text' /><div className='min-w-0'><p className='truncate text-sm text-zinc-300'>{task.title}</p><p className='mt-1 truncate text-xs text-zinc-700'>{task.prompt}</p></div></Link>)}</div>
+          </div>
+        )}
+        {results.knowledge.length > 0 && (
+          <div>
+            <h2 className='mb-3 font-mono text-[10px] tracking-[0.16em] text-zinc-700'>KNOWLEDGE HITS</h2>
+            <div className='space-y-2'>
+              {results.knowledge.map((result) => (
+                <div key={result.id} className='flex items-start gap-3 rounded-lg border border-orange-500/10 bg-orange-500/[0.025] p-4'>
+                  <SourceIcon type={result.source_type} />
+                  <div className='min-w-0 flex-1'>
+                    <div className='flex items-center justify-between gap-3'>
+                      <p className='truncate text-sm text-zinc-300'>{result.source_title}</p>
+                      {typeof result.similarity === 'number' && (
+                        <span className='shrink-0 font-mono text-[9px] text-orange-500/70'>
+                          {Math.round(result.similarity * 100)}% MATCH
+                        </span>
+                      )}
+                    </div>
+                    <p className='mt-1 line-clamp-3 text-xs leading-5 text-zinc-600'>{result.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {results.sources.length > 0 && (
+          <div>
+            <h2 className='mb-3 font-mono text-[10px] tracking-[0.16em] text-zinc-700'>MEMORY</h2>
+            <div className='space-y-2'>{results.sources.map((source) => <div key={source.id} className='flex items-start gap-3 rounded-lg border border-white/8 bg-white/[0.02] p-4'><SourceIcon type={source.source_type} /><div><p className='text-sm text-zinc-300'>{source.title}</p><p className='mt-1 line-clamp-2 text-xs leading-5 text-zinc-600'>{source.summary}</p></div></div>)}</div>
+          </div>
+        )}
+        {query.trim() && !loading && total === 0 && <p className='py-16 text-center text-sm text-zinc-700'>No matching tasks or memory.</p>}
+      </div>
+    </section>
+  )
+}
+
+function Metric({label, value}: {label: string; value: string}) {
+  return <div className='rounded-lg border border-white/8 bg-black/20 p-3'><span className='block font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-700'>{label}</span><span className='mt-2 block text-xl font-medium text-zinc-300'>{value}</span></div>
+}
+
+function SourceIcon({type}: {type: KnowledgeSource['source_type']}) {
+  const Icon = type === 'url' ? Globe2 : type === 'file' ? FileText : File
+  return <Icon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500' />
+}
+
+function StatusDot({status}: {status: string}) {
+  return <span title={status} className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${status === 'ready' ? 'bg-emerald-500' : status === 'failed' ? 'bg-red-500' : 'animate-pulse bg-orange-500'}`} />
+}

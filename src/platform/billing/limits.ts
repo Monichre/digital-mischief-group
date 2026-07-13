@@ -71,7 +71,10 @@ export async function checkUsageLimits(
     FROM usage_events
     WHERE user_id = ${userId}
       AND module = ${module}
-      AND status = 'success'
+      AND (
+        status = 'success'
+        OR COALESCE(metadata->>'billable', 'false') = 'true'
+      )
       AND created_at >= date_trunc('month', NOW())
   `
 
@@ -122,7 +125,10 @@ export async function getUsageStats(
     SELECT module, COUNT(*) as count
     FROM usage_events
     WHERE user_id = ${userId}
-      AND status = 'success'
+      AND (
+        status = 'success'
+        OR COALESCE(metadata->>'billable', 'false') = 'true'
+      )
       AND created_at >= date_trunc('month', NOW())
     GROUP BY module
   `

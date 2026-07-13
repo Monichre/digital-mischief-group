@@ -63,6 +63,9 @@ export function AuthLinks({
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
+      <Link href='/workspace' className={baseLinkClass}>
+        WORKSPACE
+      </Link>
       <Link href='/profile' className={baseLinkClass}>
         PROFILE
       </Link>

@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useState} from 'react'
 import Link from 'next/link'
+import {useSearchParams} from 'next/navigation'
 import {
   Plus,
   Crosshair,
@@ -27,17 +28,23 @@ import {IntelPageChrome} from '@/components/military/IntelPageChrome'
 import {getApiErrorMessage, normalizeOptionalEmail} from '@/lib/core-flow-ux'
 
 export default function ObservePage() {
+  const searchParams = useSearchParams()
+  const initialUrl = searchParams.get('url') || ''
   const [monitors, setMonitors] = useState<
     (Monitor & {change_count: number})[]
   >([])
   const [loading, setLoading] = useState(true)
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate, setShowCreate] = useState(Boolean(initialUrl))
   const [creating, setCreating] = useState(false)
   const [checkingId, setCheckingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [form, setForm] = useState({name: '', url: '', notification_email: ''})
+  const [form, setForm] = useState({
+    name: initialUrl ? 'Workspace target' : '',
+    url: initialUrl,
+    notification_email: '',
+  })
 
   const fetchMonitors = useCallback(async (showSpinner = false) => {
     if (showSpinner) {

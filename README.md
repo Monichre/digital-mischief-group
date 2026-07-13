@@ -79,6 +79,9 @@ NEXT_PUBLIC_STRIPE_PRICE_ID=price_...
 # Firecrawl
 FIRECRAWL_API_KEY=fc-...
 
+# Private workspace files
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+
 # AI Providers (at least one required)
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
@@ -94,6 +97,7 @@ ADMIN_EMAILS=admin@example.com
 # Apply core migrations
 psql $DATABASE_URL -f scripts/migrations/001-core-tables.sql
 psql $DATABASE_URL -f scripts/migrations/002-auth-tables.sql
+psql $DATABASE_URL -f scripts/migrations/015-add-workspace-knowledge.sql
 ```
 
 1. Start the development server:
