@@ -2,6 +2,7 @@
 
 import {useState, useCallback} from 'react'
 import Link from 'next/link'
+import {useSearchParams} from 'next/navigation'
 import {ArrowLeft, Search, Loader2, Brain, Zap} from 'lucide-react'
 import {ThinkingPanel} from '@/components/research/ThinkingPanel'
 import {SourcePanel} from '@/components/research/SourcePanel'
@@ -17,7 +18,8 @@ import {
 } from '@/lib/core-flow-ux'
 
 export default function LiveResearchPage() {
-  const [query, setQuery] = useState('')
+  const searchParams = useSearchParams()
+  const [query, setQuery] = useState(() => searchParams.get('query') || '')
   const [isResearching, setIsResearching] = useState(false)
   const [streamState, setStreamState] = useState<LiveResearchUiState>({
     events: [],

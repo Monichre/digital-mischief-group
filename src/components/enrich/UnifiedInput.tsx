@@ -9,12 +9,13 @@ interface UnifiedInputProps {
   onCsvUpload: (data: Record<string, string>[], headers: string[]) => void
   isLoading?: boolean
   isDisabled?: boolean
+  initialText?: string
 }
 
-export function UnifiedInput({ onTextSubmit, onCsvUpload, isLoading = false, isDisabled = false }: UnifiedInputProps) {
+export function UnifiedInput({ onTextSubmit, onCsvUpload, isLoading = false, isDisabled = false, initialText = '' }: UnifiedInputProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
-  const [textInput, setTextInput] = useState("")
+  const [textInput, setTextInput] = useState(initialText)
   const [error, setError] = useState<string | null>(null)
   const [mode, setMode] = useState<"idle" | "text" | "file">("idle")
   const fileInputRef = useRef<HTMLInputElement>(null)

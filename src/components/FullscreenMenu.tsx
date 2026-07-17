@@ -12,7 +12,7 @@ import {
   Crosshair,
   Brain,
   Palette,
-  User,
+  Cpu,
 } from 'lucide-react'
 import {cn} from '@/lib/utils'
 
@@ -20,6 +20,13 @@ interface FullscreenMenuProps {
   isOpen: boolean
   onClose: () => void
 }
+
+const PARTICLES = Array.from({length: 20}, (_, index) => ({
+  left: `${(index * 47 + 13) % 101}%`,
+  top: `${(index * 71 + 29) % 103}%`,
+  delay: `${index * 0.2}s`,
+  duration: `${3 + ((index * 17) % 37) / 10}s`,
+}))
 
 const MENU_ITEMS = [
   {
@@ -72,11 +79,11 @@ const MENU_ITEMS = [
     description: 'Browser sandbox + agent + Hyper strategies',
   },
   {
-    label: 'Profile',
-    href: '/profile',
+    label: 'Workspace',
+    href: '/workspace',
     number: '07',
-    icon: User,
-    description: 'Account settings & billing',
+    icon: Cpu,
+    description: 'Daedalus mission control',
   },
 ]
 
@@ -210,15 +217,15 @@ export function FullscreenMenu({isOpen, onClose}: FullscreenMenuProps) {
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
       >
-        {[...Array(20)].map((_, i) => (
+        {PARTICLES.map((particle, i) => (
           <div
             key={`particle-${i}`}
             className='absolute w-1 h-1 bg-orange-500/30 rounded-full animate-float'
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.2}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
+              left: particle.left,
+              top: particle.top,
+              animationDelay: particle.delay,
+              animationDuration: particle.duration,
             }}
           />
         ))}

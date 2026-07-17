@@ -4,6 +4,7 @@ import type React from 'react'
 
 import {useState} from 'react'
 import Link from 'next/link'
+import {useSearchParams} from 'next/navigation'
 import {
   ArrowLeft,
   Search,
@@ -24,7 +25,8 @@ import {CrossPrimitiveCTAs} from '@/components/cross-primitive-ctas'
 import {AuthLinks} from '@/components/AuthLinks'
 
 export default function BrandReconPage() {
-  const [input, setInput] = useState('')
+  const searchParams = useSearchParams()
+  const [input, setInput] = useState(() => searchParams.get('input') || '')
   const [status, setStatus] = useState<ReconStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [branding, setBranding] = useState<BrandingProfile | null>(null)

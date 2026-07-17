@@ -35,7 +35,7 @@ const tiers = [
     price: "$0",
     period: "/mo",
     description: "Recon access to test the intel suite with limited missions.",
-    cta: { label: "Run Demo", href: "/brand-recon" },
+    cta: { label: "Enter Workspace", href: "/workspace" },
     highlight: false,
   },
   {
@@ -96,7 +96,7 @@ export default function DaedalusPage() {
         </p>
         <div className="flex flex-wrap gap-3">
           <a
-            href="/loadout"
+            href="/workspace"
             className="rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-black transition hover:bg-orange-400"
           >
             Initialize System

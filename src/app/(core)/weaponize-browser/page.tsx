@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Bot, Flame, Radar, Rocket, Shield } from 'lucide-react'
 
 import { HYPERBROWSER_PRESETS, type HyperbrowserPresetKey } from '@/daedalus/browser/presets'
@@ -18,6 +19,7 @@ type ExecutionResponse = {
 const initialPreset = HYPERBROWSER_PRESETS[0]
 
 export default function WeaponizeBrowserPage() {
+  const searchParams = useSearchParams()
   const [activeMode, setActiveMode] = useState<Mode>('hyper_stack')
   const [selectedPreset, setSelectedPreset] = useState<HyperbrowserPresetKey>(initialPreset.key)
 
@@ -31,7 +33,9 @@ export default function WeaponizeBrowserPage() {
   const [agentModel, setAgentModel] = useState('FIRE-1')
   const [agentMaxCredits, setAgentMaxCredits] = useState('5')
 
-  const [trendQuery, setTrendQuery] = useState<string>(initialPreset.defaultInput.query || '')
+  const [trendQuery, setTrendQuery] = useState<string>(
+    () => searchParams.get('query') || initialPreset.defaultInput.query || ''
+  )
   const [competitorUrls, setCompetitorUrls] = useState(
     (HYPERBROWSER_PRESETS.find((p) => p.key === 'competitor_analyzer')?.defaultInput.urls || []).join('\n')
   )

@@ -28,6 +28,10 @@ export const metadata: Metadata = {
   description:
     'Creative Technology Studio - Experimental interfaces, audio-reactive systems, and digital experiences',
   generator: 'v0.app',
+  icons: {
+    icon: '/icon-dark-32x32.png',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({

@@ -2,6 +2,7 @@
 
 import type React from 'react'
 import {useState, useCallback} from 'react'
+import {useSearchParams} from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -191,6 +192,7 @@ type CompetitorEntry = {
 }
 
 export default function EnrichPage() {
+  const searchParams = useSearchParams()
   // Streaming enrichment state
   const stream = useEnrichStream()
 
@@ -754,6 +756,7 @@ export default function EnrichPage() {
               onTextSubmit={handleTextSubmit}
               onCsvUpload={handleCsvUpload}
               isLoading={false}
+              initialText={searchParams.get('input') || ''}
             />
           </div>
         )}

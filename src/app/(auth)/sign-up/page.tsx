@@ -29,7 +29,9 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl'))
+  const callbackUrl = getSafeCallbackUrl(
+    searchParams.get('callbackUrl') || '/workspace'
+  )
   const signInHref =
     callbackUrl === '/'
       ? '/sign-in'

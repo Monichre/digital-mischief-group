@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useState} from 'react'
 import Link from 'next/link'
+import {useSearchParams} from 'next/navigation'
 import {Clock, Eye, MapPin, Plus, Trash2, ArrowLeft, ExternalLink} from 'lucide-react'
 
 import type {Scout} from '@/daedalus/scout/types'
@@ -31,6 +32,8 @@ import {getApiErrorMessage, normalizeOptionalEmail} from '@/lib/core-flow-ux'
 type ScoutWithCount = Scout & {result_count?: number}
 
 export default function ScoutsPage() {
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('query') || ''
   const [scouts, setScouts] = useState<ScoutWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -42,8 +45,8 @@ export default function ScoutsPage() {
     {id: string; name: string} | null
   >(null)
   const [form, setForm] = useState({
-    name: '',
-    search_query: '',
+    name: initialQuery ? 'Workspace sentinel' : '',
+    search_query: initialQuery,
     schedule: 'daily' as string,
     notification_email: '',
   })
@@ -52,6 +55,12 @@ export default function ScoutsPage() {
 
   const gateReady = !sessionPending && !proLoading
   const canCreateScout = Boolean(session?.user && isPro)
+
+  useEffect(() => {
+    if (initialQuery && gateReady && canCreateScout) {
+      setCreateDialogOpen(true)
+    }
+  }, [canCreateScout, gateReady, initialQuery])
 
   const loadScouts = useCallback(async () => {
     setLoading(true)
