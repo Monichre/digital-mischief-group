@@ -2,31 +2,37 @@
 
 import type React from 'react'
 import {useEffect, useRef, useState} from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import {useRouter} from 'next/navigation'
 import useSWR from 'swr'
 import {
-  Archive,
   ArrowRight,
+  ArrowUp,
   Binoculars,
   BrainCircuit,
   Check,
   ChevronRight,
   CircleDot,
-  Database,
+  Code2,
   File,
   FileText,
   Flame,
   FolderOpen,
   Globe2,
+  Heart,
+  ImageIcon,
   Loader2,
   MemoryStick,
+  PanelLeft,
+  Paperclip,
   Plus,
   Radar,
   Search,
+  ShieldCheck,
   Sparkles,
   Trash2,
-  Upload,
+  UserRound,
   WandSparkles,
   X,
 } from 'lucide-react'
@@ -154,14 +160,14 @@ export function WorkspaceShell({
   }
 
   return (
-    <div className='min-h-screen bg-[#070708] text-zinc-200 font-sans lg:h-screen lg:overflow-hidden'>
+    <div className={`min-h-screen bg-[#070708] font-sans text-zinc-200 ${view === 'memory' ? 'h-screen overflow-hidden' : 'lg:h-screen lg:overflow-hidden'}`}>
       <style jsx global>{`
         .dmg-menu-toggle {
           display: none !important;
         }
       `}</style>
 
-      <aside className='fixed inset-y-0 left-0 z-40 hidden w-[286px] flex-col border-r border-white/10 bg-[#09090a] lg:flex'>
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-[286px] flex-col border-r border-white/10 bg-[#09090a] ${view === 'memory' ? 'lg:hidden' : 'lg:flex'}`}>
         <button
           type='button'
           onClick={() => setView('new')}
@@ -244,53 +250,84 @@ export function WorkspaceShell({
         </div>
       </aside>
 
-      <div className='lg:ml-[286px] lg:flex lg:h-screen lg:flex-col'>
-        <header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[#09090a]/95 px-4 backdrop-blur-xl md:px-6 lg:relative'>
-          <div className='flex items-center gap-3'>
+      <div className={view === 'memory' ? 'h-screen' : 'lg:ml-[286px] lg:flex lg:h-screen lg:flex-col'}>
+        {view === 'memory' ? (
+          <header className='pointer-events-none fixed inset-x-0 top-0 z-30 h-16'>
             <button
               type='button'
+              aria-label='Return to workspace'
               onClick={() => setView('new')}
-              className='flex items-center gap-2 text-sm font-medium text-white lg:hidden'
+              className='pointer-events-auto absolute left-4 top-3.5 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#111312]/80 text-zinc-600 backdrop-blur-md transition-colors hover:border-white/20 hover:text-zinc-200'
             >
-              <Flame className='h-4 w-4 text-orange-500' />
-              Daedalus
+              <PanelLeft className='h-3.5 w-3.5' />
             </button>
-            <span className='hidden text-xs text-zinc-600 lg:block'>Workspace</span>
-          </div>
 
-          <div role='tablist' aria-label='Workspace mode' className='flex items-center rounded-lg bg-white/[0.04] p-1'>
-            <button
-              type='button'
-              role='tab'
-              aria-selected={view !== 'memory'}
-              onClick={() => setView('new')}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                view !== 'memory' ? 'bg-white/[0.08] text-white' : 'text-zinc-600 hover:text-zinc-300'
-              }`}
-            >
-              Skills
-            </button>
-            <button
-              type='button'
-              role='tab'
-              aria-selected={view === 'memory'}
-              onClick={() => setView('memory')}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                view === 'memory' ? 'bg-white/[0.08] text-white' : 'text-zinc-600 hover:text-zinc-300'
-              }`}
-            >
-              Memory
-            </button>
-          </div>
+            <div role='tablist' aria-label='Workspace mode' className='pointer-events-auto absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center rounded-xl border border-white/8 bg-[#111312]/90 p-1 shadow-xl shadow-black/20 backdrop-blur-md'>
+              <button
+                type='button'
+                role='tab'
+                aria-selected={false}
+                onClick={() => setView('new')}
+                className='inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-200'
+              >
+                <Sparkles className='h-3.5 w-3.5' /> Skills
+              </button>
+              <button
+                type='button'
+                role='tab'
+                aria-selected
+                className='inline-flex items-center gap-2 rounded-lg bg-white/[0.08] px-3 py-1.5 text-xs text-zinc-100 shadow-sm'
+              >
+                <CircleDot className='h-3.5 w-3.5' /> Memory
+              </button>
+            </div>
+          </header>
+        ) : (
+          <header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[#09090a]/95 px-4 backdrop-blur-xl md:px-6 lg:relative'>
+            <div className='flex items-center gap-3'>
+              <button
+                type='button'
+                onClick={() => setView('new')}
+                className='flex items-center gap-2 text-sm font-medium text-white lg:hidden'
+              >
+                <Flame className='h-4 w-4 text-orange-500' />
+                Daedalus
+              </button>
+              <span className='hidden text-xs text-zinc-600 lg:block'>Workspace</span>
+            </div>
 
-          <Link href='/' className='text-xs text-zinc-600 transition-colors hover:text-orange-500'>HQ</Link>
-        </header>
+            <div role='tablist' aria-label='Workspace mode' className='flex items-center rounded-lg bg-white/[0.04] p-1'>
+              <button
+                type='button'
+                role='tab'
+                aria-selected
+                onClick={() => setView('new')}
+                className='rounded-md bg-white/[0.08] px-3 py-1.5 text-xs text-white transition-colors'
+              >
+                Skills
+              </button>
+              <button
+                type='button'
+                role='tab'
+                aria-selected={false}
+                onClick={() => setView('memory')}
+                className='rounded-md px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:text-zinc-300'
+              >
+                Memory
+              </button>
+            </div>
 
-        <main className='relative min-h-[calc(100vh-4rem)] flex-1 overflow-y-auto pb-24 lg:min-h-0 lg:pb-0'>
-          <div className='pointer-events-none fixed inset-0 left-0 opacity-60 lg:left-[286px]'>
-            <div className='absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px]' />
-            <div className='absolute left-1/2 top-1/3 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-orange-500/[0.045] blur-[120px]' />
-          </div>
+            <Link href='/' className='text-xs text-zinc-600 transition-colors hover:text-orange-500'>HQ</Link>
+          </header>
+        )}
+
+        <main className={view === 'memory' ? 'relative h-screen overflow-hidden' : 'relative min-h-[calc(100vh-4rem)] flex-1 overflow-y-auto pb-24 lg:min-h-0 lg:pb-0'}>
+          {view !== 'memory' && (
+            <div className='pointer-events-none fixed inset-0 left-0 opacity-60 lg:left-[286px]'>
+              <div className='absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px]' />
+              <div className='absolute left-1/2 top-1/3 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-orange-500/[0.045] blur-[120px]' />
+            </div>
+          )}
 
           {view === 'new' && (
             <NewTaskView
@@ -318,7 +355,7 @@ export function WorkspaceShell({
         </main>
       </div>
 
-      <nav aria-label='Mobile workspace navigation' className='fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/10 bg-[#09090a]/95 px-1 py-2 backdrop-blur-xl lg:hidden'>
+      <nav aria-label='Mobile workspace navigation' className={`fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/10 bg-[#09090a]/95 px-1 py-2 backdrop-blur-xl lg:hidden ${view === 'memory' ? 'hidden' : ''}`}>
         {navItems.map((item) => {
           const Icon = item.icon
           const active = view === item.id
@@ -498,13 +535,20 @@ function MemoryView({
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [value, setValue] = useState('')
-  const [title, setTitle] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const readyCount = sources.filter((source) => source.status === 'ready').length
   const chunkCount = sources.reduce((total, source) => total + Number(source.chunk_count || 0), 0)
+  const orbitItems = [
+    {label: 'Files', Icon: FolderOpen, position: 'left-[42%] top-[28%]'},
+    {label: 'Code', Icon: Code2, position: 'left-[64%] top-[34%]'},
+    {label: 'Images', Icon: ImageIcon, position: 'left-[26%] top-[44%]'},
+    {label: 'People', Icon: UserRound, position: 'left-[70%] top-[57%]'},
+    {label: 'Private sources', Icon: ShieldCheck, position: 'left-[28%] top-[62%]'},
+    {label: 'Favorites', Icon: Heart, position: 'left-[49%] top-[73%]'},
+  ]
 
   const ingest = async () => {
     if ((!value.trim() && !file) || loading) return
@@ -517,7 +561,6 @@ function MemoryView({
       if (file) {
         const form = new FormData()
         form.set('file', file)
-        if (title.trim()) form.set('title', title.trim())
         response = await fetch('/api/knowledge', {method: 'POST', body: form})
       } else {
         const raw = value.trim()
@@ -527,17 +570,18 @@ function MemoryView({
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(
             isUrl
-              ? {type: 'url', url: raw, title: title.trim() || undefined}
-              : {type: 'text', text: raw, title: title.trim() || undefined}
+              ? {type: 'url', url: raw}
+              : {type: 'text', text: raw}
           ),
         })
       }
 
       const data = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(data?.error || 'Knowledge could not be integrated')
+      if (!response.ok || !data?.source?.title) {
+        throw new Error(data?.error || 'Knowledge could not be integrated')
+      }
 
       setValue('')
-      setTitle('')
       setFile(null)
       if (fileRef.current) fileRef.current.value = ''
       setSuccess(`${data.source.title} is now part of Delphi.`)
@@ -550,125 +594,129 @@ function MemoryView({
   }
 
   return (
-    <section className='relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-5 py-8 md:px-10'>
-      <div className='grid flex-1 gap-8 xl:grid-cols-[1fr_360px]'>
-        <div className='flex min-h-[520px] flex-col'>
-          <div className='mb-6'>
-            <span className='font-mono text-[10px] tracking-[0.2em] text-orange-500'>{'// DELPHI SENTIENCE'}</span>
-            <h1 className='mt-2 text-3xl font-medium text-white'>Learning from every source</h1>
-            <p className='mt-2 text-sm text-zinc-500'>Private knowledge, chunked and indexed for retrieval.</p>
-          </div>
+    <section className='relative isolate h-full min-h-[560px] overflow-hidden bg-[#080a09] text-zinc-100'>
+      <div
+        aria-hidden
+        className='absolute inset-0 bg-repeat opacity-80'
+        style={{backgroundImage: "url('/daedalus/delphi-grid.webp')", backgroundSize: '520px 520px'}}
+      />
 
-          <button
-            type='button'
-            aria-label='Add knowledge to Delphi Sentience'
-            onClick={() => inputRef.current?.focus()}
-            className='group relative mx-auto my-auto flex h-72 w-72 items-center justify-center rounded-full outline-none md:h-80 md:w-80'
-          >
-            <span className='absolute inset-0 rounded-full border border-orange-500/10 transition-transform duration-700 group-hover:scale-105' />
-            <span className='absolute inset-8 rounded-full border border-dashed border-white/10 transition-transform duration-[1400ms] group-hover:rotate-12' />
-            <span className='absolute inset-16 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.18),rgba(249,115,22,0.02)_48%,transparent_70%)] blur-sm' />
-            {[0, 60, 120, 180, 240, 300].map((angle) => (
-              <span
-                key={angle}
-                className='absolute h-2 w-2 rounded-full border border-orange-500/40 bg-[#111113] shadow-[0_0_14px_rgba(249,115,22,0.25)]'
-                style={{transform: `rotate(${angle}deg) translateY(-126px)`}}
-              />
-            ))}
-            <span className='relative flex h-24 w-24 items-center justify-center rounded-full border border-orange-500/20 bg-[#111113] shadow-[0_0_70px_rgba(249,115,22,0.15)]'>
-              <BrainCircuit className='h-9 w-9 text-orange-400' />
-            </span>
-          </button>
+      <div className='absolute left-1/2 top-[53%] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 sm:top-[55%] sm:h-[520px] sm:w-[520px]'>
+        <Image
+          src='/daedalus/delphi-core.webp'
+          alt=''
+          fill
+          priority
+          sizes='(max-width: 640px) 420px, 520px'
+          className='pointer-events-none scale-[1.06] select-none object-cover opacity-95'
+        />
 
-          <div className='mt-8 overflow-hidden rounded-2xl border border-white/10 bg-[#111113]/95'>
-            <div className='grid gap-3 border-b border-white/8 p-3 sm:grid-cols-[180px_1fr]'>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder='Optional title'
-                className='rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-xs text-zinc-300 outline-none focus:border-orange-500/30'
-              />
-              <textarea
-                ref={inputRef}
-                value={value}
-                onChange={(event) => {
-                  setValue(event.target.value)
-                  if (file) setFile(null)
-                }}
-                placeholder='Add text, paste a URL, or attach a source…'
-                className='min-h-20 resize-none bg-transparent px-2 py-2 text-sm text-zinc-200 outline-none placeholder:text-zinc-700'
-              />
-            </div>
-            <div className='flex flex-wrap items-center justify-between gap-3 p-3'>
-              <div className='flex items-center gap-2'>
-                <input
-                  ref={fileRef}
-                  type='file'
-                  className='hidden'
-                  accept='.pdf,.docx,.txt,.md,.markdown,.csv,.json,.xml,.jpg,.jpeg,.png,.webp,.gif'
-                  onChange={(event) => {
-                    const selected = event.target.files?.[0] || null
-                    setFile(selected)
-                    if (selected) setValue('')
-                  }}
-                />
-                <button
-                  type='button'
-                  onClick={() => fileRef.current?.click()}
-                  className='inline-flex items-center gap-2 rounded-lg border border-white/8 px-3 py-2 text-xs text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-200'
-                >
-                  <Upload className='h-3.5 w-3.5' /> Attach
-                </button>
-                {file && (
-                  <span className='inline-flex max-w-[220px] items-center gap-1 rounded-lg bg-white/[0.04] px-2 py-1.5 text-[10px] text-zinc-400'>
-                    <File className='h-3 w-3 text-orange-500' />
-                    <span className='truncate'>{file.name}</span>
-                    <button type='button' aria-label='Remove file' onClick={() => setFile(null)}>
-                      <X className='h-3 w-3' />
-                    </button>
-                  </span>
-                )}
-              </div>
-              <button
-                type='button'
-                onClick={ingest}
-                disabled={(!value.trim() && !file) || loading}
-                className='inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-600'
-              >
-                {loading ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <Database className='h-3.5 w-3.5' />}
-                Integrate
-              </button>
-            </div>
-          </div>
-          {error && <p role='alert' className='mt-3 text-xs text-red-400'>{error}</p>}
-          {success && <p role='status' className='mt-3 flex items-center gap-2 text-xs text-emerald-400'><Check className='h-3.5 w-3.5' />{success}</p>}
+        <div className='absolute left-1/2 top-[13%] z-10 -translate-x-1/2 text-center sm:top-[18%]'>
+          <h1 className='whitespace-nowrap text-[21px] font-medium tracking-[-0.025em] text-zinc-100 sm:text-[24px]'>Delphi Sentience</h1>
+          <p className='mt-1 whitespace-nowrap text-sm text-zinc-500'>Learn from every chat</p>
+          <span className='sr-only'>{readyCount} sources and {chunkCount} chunks indexed</span>
         </div>
 
-        <aside className='rounded-xl border border-white/10 bg-white/[0.02] p-4'>
-          <div className='grid grid-cols-2 gap-3'>
-            <Metric label='Sources' value={String(readyCount)} />
-            <Metric label='Chunks' value={String(chunkCount)} />
+        {orbitItems.map(({label, Icon, position}) => (
+          <button
+            key={label}
+            type='button'
+            aria-label={label}
+            title={label}
+            onClick={() => inputRef.current?.focus()}
+            className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-[#111312]/90 text-zinc-500 shadow-lg shadow-black/20 backdrop-blur-sm transition-colors hover:border-[#b8ff2c]/25 hover:text-zinc-200 ${position}`}
+          >
+            <Icon className='h-3.5 w-3.5' />
+          </button>
+        ))}
+
+        <button
+          type='button'
+          aria-label='Add knowledge to Delphi Sentience'
+          onClick={() => inputRef.current?.focus()}
+          className='absolute left-1/2 top-1/2 z-10 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#c7ff35]/70 focus-visible:ring-offset-4 focus-visible:ring-offset-[#080a09]'
+        />
+      </div>
+
+      <div className='absolute inset-x-3 bottom-3 z-20 mx-auto max-w-[620px] sm:inset-x-5 sm:bottom-5'>
+        {error && (
+          <p role='alert' className='mx-auto mb-2 w-fit rounded-full border border-red-400/15 bg-red-950/70 px-3 py-1.5 text-xs text-red-300 backdrop-blur-md'>
+            {error}
+          </p>
+        )}
+        {success && (
+          <p role='status' className='mx-auto mb-2 flex w-fit items-center gap-2 rounded-full border border-[#b8ff2c]/15 bg-[#10160d]/85 px-3 py-1.5 text-xs text-[#c7ff35] backdrop-blur-md'>
+            <Check className='h-3.5 w-3.5' /> {success}
+          </p>
+        )}
+
+        <div className='rounded-2xl border border-[#24796f] bg-[#101211]/95 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-colors focus-within:border-[#39a597]'>
+          <div className='flex items-center gap-1'>
+            <input
+              ref={fileRef}
+              type='file'
+              className='hidden'
+              accept='.pdf,.docx,.txt,.md,.markdown,.csv,.json,.xml,.jpg,.jpeg,.png,.webp,.gif'
+              onChange={(event) => {
+                const selected = event.target.files?.[0] || null
+                setFile(selected)
+                if (selected) setValue('')
+              }}
+            />
+            <button
+              type='button'
+              aria-label='Attach a source'
+              onClick={() => fileRef.current?.click()}
+              className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/[0.05] hover:text-zinc-200'
+            >
+              <Paperclip className='h-4 w-4' />
+            </button>
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={value}
+              onChange={(event) => {
+                setValue(event.target.value)
+                if (file) setFile(null)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
+                  void ingest()
+                }
+              }}
+              placeholder={file ? file.name : 'Add text, paste a URL or YouTube link…'}
+              className='h-10 min-w-0 flex-1 resize-none overflow-hidden whitespace-nowrap bg-transparent px-1 py-2.5 text-[13px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600 sm:text-sm'
+            />
+            <button
+              type='button'
+              aria-label='Integrate'
+              onClick={ingest}
+              disabled={(!value.trim() && !file) || loading}
+              className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3a887d] text-[#07110f] transition-colors hover:bg-[#4aa093] disabled:cursor-not-allowed disabled:bg-[#3a887d] disabled:text-[#07110f] disabled:opacity-80'
+            >
+              {loading ? <Loader2 className='h-4 w-4 animate-spin' /> : <ArrowUp className='h-4 w-4' />}
+            </button>
           </div>
-          <div className='mb-3 mt-6 flex items-center justify-between'>
-            <span className='font-mono text-[10px] tracking-[0.16em] text-zinc-600'>RECENT MEMORY</span>
-            <Archive className='h-3.5 w-3.5 text-zinc-700' />
+
+          <div className='flex min-h-5 items-center justify-between gap-3 px-1 pt-1 text-[10px] text-zinc-600'>
+            {file ? (
+              <span className='inline-flex min-w-0 items-center gap-1.5 text-zinc-400'>
+                <File className='h-3 w-3 shrink-0 text-[#b8ff2c]' />
+                <span className='truncate'>{file.name}</span>
+                <button type='button' aria-label='Remove file' onClick={() => setFile(null)} className='shrink-0 text-zinc-600 hover:text-zinc-200'>
+                  <X className='h-3 w-3' />
+                </button>
+              </span>
+            ) : (
+              <>
+                <span className='sm:hidden'>PDF, DOCX, images &amp; links</span>
+                <span className='hidden sm:inline'>PDF, DOCX, text, images, URLs &amp; YouTube</span>
+              </>
+            )}
+            <span className='hidden shrink-0 sm:inline'>Private · vector indexed</span>
           </div>
-          <div className='space-y-2'>
-            {sources.slice(0, 8).map((source) => (
-              <div key={source.id} className='rounded-lg border border-white/8 bg-black/20 p-3'>
-                <div className='flex items-start gap-2'>
-                  <SourceIcon type={source.source_type} />
-                  <div className='min-w-0 flex-1'>
-                    <p className='truncate text-xs text-zinc-300'>{source.title}</p>
-                    <p className='mt-1 line-clamp-2 text-[10px] leading-4 text-zinc-600'>{source.summary || source.error_message || 'Processing source…'}</p>
-                  </div>
-                  <StatusDot status={source.status} />
-                </div>
-              </div>
-            ))}
-            {sources.length === 0 && <p className='py-10 text-center text-xs text-zinc-700'>Delphi is waiting for its first source.</p>}
-          </div>
-        </aside>
+        </div>
       </div>
     </section>
   )
@@ -836,15 +884,7 @@ function SearchView() {
   )
 }
 
-function Metric({label, value}: {label: string; value: string}) {
-  return <div className='rounded-lg border border-white/8 bg-black/20 p-3'><span className='block font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-700'>{label}</span><span className='mt-2 block text-xl font-medium text-zinc-300'>{value}</span></div>
-}
-
 function SourceIcon({type}: {type: KnowledgeSource['source_type']}) {
   const Icon = type === 'url' ? Globe2 : type === 'file' ? FileText : File
   return <Icon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500' />
-}
-
-function StatusDot({status}: {status: string}) {
-  return <span title={status} className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${status === 'ready' ? 'bg-emerald-500' : status === 'failed' ? 'bg-red-500' : 'animate-pulse bg-orange-500'}`} />
 }
