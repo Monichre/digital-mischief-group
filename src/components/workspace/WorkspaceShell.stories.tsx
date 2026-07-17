@@ -136,6 +136,14 @@ type Story = StoryObj<typeof meta>
 
 export const Desktop: Story = {}
 
+export const Memory: Story = {
+  play: async ({canvasElement}) => {
+    await userEvent.click(
+      within(canvasElement).getByRole('button', {name: 'Memory'})
+    )
+  },
+}
+
 export const PdfUpload: Story = {
   play: async ({canvasElement}) => {
     const canvas = within(canvasElement)

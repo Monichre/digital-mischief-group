@@ -4,7 +4,7 @@
 
 - Source visual truth: `/Users/liamellis/Desktop/Screenshot 2026-07-17 at 12.40.41 AM.png`
 - Preserved source: `design-qa-evidence/source-reference.png`
-- Implementation: `http://localhost:6007/iframe.html?id=workspace-daedalus--desktop&viewMode=story`
+- Implementation: `http://localhost:6007/iframe.html?id=workspace-daedalus--memory&viewMode=story`
 - Browser-rendered implementation: `design-qa-evidence/implementation-desktop.png`
 - Mobile implementation: `design-qa-evidence/implementation-mobile.png`
 - Viewport: 1645 × 1214 for the source-aligned comparison; 390 × 844 for responsive validation
