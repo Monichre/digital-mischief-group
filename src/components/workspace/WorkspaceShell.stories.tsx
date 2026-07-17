@@ -50,11 +50,17 @@ function MockedWorkspace({user}: ComponentProps<typeof WorkspaceShell>) {
           const json = typeof body === 'string' ? JSON.parse(body) : null
           const sourceType: KnowledgeSource['source_type'] =
             file instanceof File ? 'file' : json?.type === 'url' ? 'url' : 'text'
+          const textTitle =
+            sourceType === 'text'
+              ? String(json?.text || '').trim().split('\n')[0].slice(0, 180)
+              : ''
           const title =
             (body instanceof FormData && String(body.get('title') || '').trim()) ||
             (file instanceof File && file.name) ||
             json?.title ||
-            (sourceType === 'url' ? new URL(json.url).hostname : 'Storybook note')
+            (sourceType === 'url'
+              ? new URL(json.url).hostname
+              : textTitle || 'Untitled knowledge')
           const source: KnowledgeSource = {
             id: `story-source-${sourcesRef.current.length + 1}`,
             source_type: sourceType,
