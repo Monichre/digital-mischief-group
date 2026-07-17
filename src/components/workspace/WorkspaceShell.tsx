@@ -31,9 +31,11 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Sun,
   Trash2,
   UserRound,
   WandSparkles,
+  Moon,
   X,
 } from 'lucide-react'
 import {
@@ -46,6 +48,7 @@ import type {
 } from '@/daedalus/agent/knowledge/types'
 
 type WorkspaceView = 'new' | 'search' | 'skills' | 'files' | 'memory'
+type WorkspaceTheme = 'dark' | 'light'
 
 type WorkspaceTask = {
   id: string
@@ -111,6 +114,33 @@ function bytesLabel(value: number | null) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function ThemeToggle({
+  theme,
+  onToggle,
+}: {
+  theme: WorkspaceTheme
+  onToggle: () => void
+}) {
+  const lightMode = theme === 'light'
+
+  return (
+    <button
+      type='button'
+      aria-label={`Switch to ${lightMode ? 'dark' : 'light'} mode`}
+      aria-pressed={lightMode}
+      onClick={onToggle}
+      className={`workspace-theme-toggle inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium shadow-sm transition-[background-color,border-color,color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] ${
+        lightMode
+          ? 'border-[#c9d0c9] bg-white/90 text-[#455048] shadow-[0_4px_14px_rgba(24,32,27,0.08)] hover:border-[#9ebf98] hover:text-[#18201b]'
+          : 'border-white/10 bg-[#111312]/90 text-zinc-400 shadow-black/20 hover:border-white/20 hover:text-zinc-100'
+      }`}
+    >
+      {lightMode ? <Moon className='h-3.5 w-3.5' /> : <Sun className='h-3.5 w-3.5' />}
+      <span className='hidden sm:inline'>{lightMode ? 'Dark' : 'Light'}</span>
+    </button>
+  )
+}
+
 export function WorkspaceShell({
   user,
 }: {
@@ -118,6 +148,7 @@ export function WorkspaceShell({
 }) {
   const router = useRouter()
   const [view, setView] = useState<WorkspaceView>('new')
+  const [theme, setTheme] = useState<WorkspaceTheme>('dark')
   const [selectedSkill, setSelectedSkill] =
     useState<WorkspaceSkillId>('research')
   const [prompt, setPrompt] = useState('')
@@ -134,6 +165,25 @@ export function WorkspaceShell({
   const tasks = taskData?.tasks || []
   const sources = sourceData?.sources || []
   const firstName = user.name?.trim().split(/\s+/)[0] || user.email.split('@')[0]
+
+  useEffect(() => {
+    try {
+      const savedTheme = window.localStorage.getItem('dmg-workspace-theme')
+      if (savedTheme === 'light' || savedTheme === 'dark') setTheme(savedTheme)
+    } catch {
+      // The theme still works when browser storage is unavailable.
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    try {
+      window.localStorage.setItem('dmg-workspace-theme', nextTheme)
+    } catch {
+      // Keep the in-session preference even when it cannot be persisted.
+    }
+    setTheme(nextTheme)
+  }
 
   const launchTask = async () => {
     const nextPrompt = prompt.trim()
@@ -160,14 +210,52 @@ export function WorkspaceShell({
   }
 
   return (
-    <div className={`min-h-screen bg-[#070708] font-sans text-zinc-200 ${view === 'memory' ? 'h-screen overflow-hidden' : 'lg:h-screen lg:overflow-hidden'}`}>
+    <div data-workspace-theme={theme} className={`workspace-shell min-h-screen font-sans ${theme === 'light' ? 'bg-[#f4f7f1] text-[#18201b]' : 'bg-[#070708] text-zinc-200'} ${view === 'memory' ? 'h-screen overflow-hidden' : 'lg:h-screen lg:overflow-hidden'}`}>
       <style jsx global>{`
         .dmg-menu-toggle {
           display: none !important;
         }
+
+        .workspace-shell { color-scheme: dark; }
+        .workspace-shell[data-workspace-theme='light'] { color-scheme: light; }
+        .workspace-shell[data-workspace-theme='light'] .workspace-sidebar,
+        .workspace-shell[data-workspace-theme='light'] .workspace-header,
+        .workspace-shell[data-workspace-theme='light'] .workspace-mobile-nav,
+        .workspace-shell[data-workspace-theme='light'] .workspace-memory-return,
+        .workspace-shell[data-workspace-theme='light'] .workspace-memory-tabs {
+          border-color: rgba(24, 32, 27, 0.13) !important;
+          background: rgba(248, 250, 246, 0.94) !important;
+        }
+        .workspace-shell[data-workspace-theme='light'] .workspace-canvas-grid {
+          opacity: 0.6;
+        }
+        .workspace-shell[data-workspace-theme='light'] .workspace-canvas-grid > div:first-child {
+          background-image: linear-gradient(to right, rgba(24, 32, 27, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(24, 32, 27, 0.08) 1px, transparent 1px) !important;
+        }
+        .workspace-shell[data-workspace-theme='light'] .workspace-canvas-glow {
+          background: rgba(185, 249, 52, 0.18) !important;
+        }
+        .workspace-shell[data-workspace-theme='light'] .workspace-surface {
+          border-color: rgba(24, 32, 27, 0.13) !important;
+          background: rgba(255, 255, 255, 0.86) !important;
+          box-shadow: 0 18px 50px rgba(24, 32, 27, 0.08) !important;
+        }
+        .workspace-shell[data-workspace-theme='light'] .text-white,
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-100,
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-200 { color: #18201b !important; }
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-300,
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-400 { color: #455048 !important; }
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-500,
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-600 { color: #68716a !important; }
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-700,
+        .workspace-shell[data-workspace-theme='light'] .text-zinc-800 { color: #68716a !important; }
+        .workspace-shell[data-workspace-theme='light'] .text-orange-300,
+        .workspace-shell[data-workspace-theme='light'] .text-orange-400 { color: #a74613 !important; }
+        .workspace-shell[data-workspace-theme='light'] .text-orange-500 { color: #c2410c !important; }
+        .workspace-shell[data-workspace-theme='light'] [class*='border-white/'] { border-color: rgba(24, 32, 27, 0.12) !important; }
       `}</style>
 
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-[286px] flex-col border-r border-white/10 bg-[#09090a] ${view === 'memory' ? 'lg:hidden' : 'lg:flex'}`}>
+      <aside className={`workspace-sidebar fixed inset-y-0 left-0 z-40 hidden w-[286px] flex-col border-r border-white/10 bg-[#09090a] ${view === 'memory' ? 'lg:hidden' : 'lg:flex'}`}>
         <button
           type='button'
           onClick={() => setView('new')}
@@ -257,12 +345,16 @@ export function WorkspaceShell({
               type='button'
               aria-label='Return to workspace'
               onClick={() => setView('new')}
-              className='pointer-events-auto absolute left-4 top-3.5 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#111312]/80 text-zinc-600 backdrop-blur-md transition-colors hover:border-white/20 hover:text-zinc-200'
+              className='workspace-memory-return pointer-events-auto absolute left-4 top-3.5 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#111312]/80 text-zinc-600 backdrop-blur-md transition-colors hover:border-white/20 hover:text-zinc-200'
             >
               <PanelLeft className='h-3.5 w-3.5' />
             </button>
 
-            <div role='tablist' aria-label='Workspace mode' className='pointer-events-auto absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center rounded-xl border border-white/8 bg-[#111312]/90 p-1 shadow-xl shadow-black/20 backdrop-blur-md'>
+            <div className='pointer-events-auto absolute right-4 top-3.5'>
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            </div>
+
+            <div role='tablist' aria-label='Workspace mode' className='workspace-memory-tabs pointer-events-auto absolute left-1/2 top-2.5 flex -translate-x-1/2 items-center rounded-xl border border-white/8 bg-[#111312]/90 p-1 shadow-xl shadow-black/20 backdrop-blur-md'>
               <button
                 type='button'
                 role='tab'
@@ -283,7 +375,7 @@ export function WorkspaceShell({
             </div>
           </header>
         ) : (
-          <header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[#09090a]/95 px-4 backdrop-blur-xl md:px-6 lg:relative'>
+          <header className='workspace-header sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[#09090a]/95 px-4 backdrop-blur-xl md:px-6 lg:relative'>
             <div className='flex items-center gap-3'>
               <button
                 type='button'
@@ -317,15 +409,18 @@ export function WorkspaceShell({
               </button>
             </div>
 
-            <Link href='/' className='text-xs text-zinc-600 transition-colors hover:text-orange-500'>HQ</Link>
+            <div className='flex items-center gap-3'>
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              <Link href='/' className='text-xs text-zinc-600 transition-colors hover:text-orange-500'>HQ</Link>
+            </div>
           </header>
         )}
 
         <main className={view === 'memory' ? 'relative h-screen overflow-hidden' : 'relative min-h-[calc(100vh-4rem)] flex-1 overflow-y-auto pb-24 lg:min-h-0 lg:pb-0'}>
           {view !== 'memory' && (
-            <div className='pointer-events-none fixed inset-0 left-0 opacity-60 lg:left-[286px]'>
+            <div className='workspace-canvas-grid pointer-events-none fixed inset-0 left-0 opacity-60 lg:left-[286px]'>
               <div className='absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px]' />
-              <div className='absolute left-1/2 top-1/3 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-orange-500/[0.045] blur-[120px]' />
+              <div className='workspace-canvas-glow absolute left-1/2 top-1/3 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-orange-500/[0.045] blur-[120px]' />
             </div>
           )}
 
@@ -346,7 +441,7 @@ export function WorkspaceShell({
             setView('new')
           }} />}
           {view === 'memory' && (
-            <MemoryView sources={sources} mutateSources={mutateSources} />
+            <MemoryView sources={sources} mutateSources={mutateSources} lightMode={theme === 'light'} />
           )}
           {view === 'files' && (
             <FilesView sources={sources} mutateSources={mutateSources} />
@@ -355,7 +450,7 @@ export function WorkspaceShell({
         </main>
       </div>
 
-      <nav aria-label='Mobile workspace navigation' className={`fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/10 bg-[#09090a]/95 px-1 py-2 backdrop-blur-xl lg:hidden ${view === 'memory' ? 'hidden' : ''}`}>
+      <nav aria-label='Mobile workspace navigation' className={`workspace-mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/10 bg-[#09090a]/95 px-1 py-2 backdrop-blur-xl lg:hidden ${view === 'memory' ? 'hidden' : ''}`}>
         {navItems.map((item) => {
           const Icon = item.icon
           const active = view === item.id
@@ -412,7 +507,7 @@ function NewTaskView({
           </p>
         </div>
 
-        <div className='overflow-hidden rounded-2xl border border-white/10 bg-[#111113]/95 shadow-2xl shadow-black/30'>
+        <div className='workspace-surface overflow-hidden rounded-2xl border border-white/10 bg-[#111113]/95 shadow-2xl shadow-black/30'>
           <textarea
             aria-label='Task prompt'
             value={prompt}
@@ -528,9 +623,11 @@ function SkillsView({onSelect}: {onSelect: (skillId: WorkspaceSkillId) => void})
 function MemoryView({
   sources,
   mutateSources,
+  lightMode,
 }: {
   sources: KnowledgeSource[]
   mutateSources: () => Promise<unknown>
+  lightMode: boolean
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -594,10 +691,10 @@ function MemoryView({
   }
 
   return (
-    <section className='relative isolate h-full min-h-[560px] overflow-hidden bg-[#080a09] text-zinc-100'>
+    <section className={`relative isolate h-full min-h-[560px] overflow-hidden ${lightMode ? 'bg-[#f4f7f1] text-[#18201b]' : 'bg-[#080a09] text-zinc-100'}`}>
       <div
         aria-hidden
-        className='absolute inset-0 bg-repeat opacity-80'
+        className={`absolute inset-0 bg-repeat ${lightMode ? 'opacity-45 mix-blend-multiply' : 'opacity-80'}`}
         style={{backgroundImage: "url('/daedalus/delphi-grid.webp')", backgroundSize: '520px 520px'}}
       />
 
@@ -608,12 +705,12 @@ function MemoryView({
           fill
           priority
           sizes='(max-width: 640px) 420px, 520px'
-          className='pointer-events-none scale-[1.06] select-none object-cover opacity-95'
+          className={`pointer-events-none scale-[1.06] select-none object-cover ${lightMode ? 'brightness-[0.92] contrast-[1.08] drop-shadow-[0_22px_45px_rgba(89,111,43,0.24)]' : 'opacity-95'}`}
         />
 
         <div className='absolute left-1/2 top-[13%] z-10 -translate-x-1/2 text-center sm:top-[18%]'>
-          <h1 className='whitespace-nowrap text-[21px] font-medium tracking-[-0.025em] text-zinc-100 sm:text-[24px]'>Delphi Sentience</h1>
-          <p className='mt-1 whitespace-nowrap text-sm text-zinc-500'>Learn from every chat</p>
+          <h1 className={`whitespace-nowrap text-[21px] font-medium tracking-[-0.025em] sm:text-[24px] ${lightMode ? 'text-[#18201b]' : 'text-zinc-100'}`}>Delphi Sentience</h1>
+          <p className={`mt-1 whitespace-nowrap text-sm ${lightMode ? 'text-[#68716a]' : 'text-zinc-500'}`}>Learn from every chat</p>
           <span className='sr-only'>{readyCount} sources and {chunkCount} chunks indexed</span>
         </div>
 
@@ -624,7 +721,7 @@ function MemoryView({
             aria-label={label}
             title={label}
             onClick={() => inputRef.current?.focus()}
-            className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-[#111312]/90 text-zinc-500 shadow-lg shadow-black/20 backdrop-blur-sm transition-colors hover:border-[#b8ff2c]/25 hover:text-zinc-200 ${position}`}
+            className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-md border shadow-lg backdrop-blur-sm transition-[border-color,background-color,color] duration-150 ${lightMode ? 'border-[#c9d0c9] bg-white/80 text-[#68716a] shadow-[0_8px_18px_rgba(24,32,27,0.1)] hover:border-[#a5d642] hover:bg-[#fbfff4] hover:text-[#456c11]' : 'border-white/10 bg-[#111312]/90 text-zinc-500 shadow-black/20 hover:border-[#b8ff2c]/25 hover:text-zinc-200'} ${position}`}
           >
             <Icon className='h-3.5 w-3.5' />
           </button>
@@ -634,23 +731,23 @@ function MemoryView({
           type='button'
           aria-label='Add knowledge to Delphi Sentience'
           onClick={() => inputRef.current?.focus()}
-          className='absolute left-1/2 top-1/2 z-10 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#c7ff35]/70 focus-visible:ring-offset-4 focus-visible:ring-offset-[#080a09]'
+          className={`absolute left-1/2 top-1/2 z-10 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#78a51a]/70 focus-visible:ring-offset-4 ${lightMode ? 'focus-visible:ring-offset-[#f4f7f1]' : 'focus-visible:ring-offset-[#080a09]'}`}
         />
       </div>
 
       <div className='absolute inset-x-3 bottom-3 z-20 mx-auto max-w-[620px] sm:inset-x-5 sm:bottom-5'>
         {error && (
-          <p role='alert' className='mx-auto mb-2 w-fit rounded-full border border-red-400/15 bg-red-950/70 px-3 py-1.5 text-xs text-red-300 backdrop-blur-md'>
+          <p role='alert' className={`mx-auto mb-2 w-fit rounded-full border px-3 py-1.5 text-xs backdrop-blur-md ${lightMode ? 'border-red-200 bg-red-50/90 text-red-700' : 'border-red-400/15 bg-red-950/70 text-red-300'}`}>
             {error}
           </p>
         )}
         {success && (
-          <p role='status' className='mx-auto mb-2 flex w-fit items-center gap-2 rounded-full border border-[#b8ff2c]/15 bg-[#10160d]/85 px-3 py-1.5 text-xs text-[#c7ff35] backdrop-blur-md'>
+          <p role='status' className={`mx-auto mb-2 flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs backdrop-blur-md ${lightMode ? 'border-[#b6d98b] bg-[#f4f9eb]/95 text-[#40610e]' : 'border-[#b8ff2c]/15 bg-[#10160d]/85 text-[#c7ff35]'}`}>
             <Check className='h-3.5 w-3.5' /> {success}
           </p>
         )}
 
-        <div className='rounded-2xl border border-[#24796f] bg-[#101211]/95 p-2 shadow-[0_18px_70px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-colors focus-within:border-[#39a597]'>
+        <div className={`rounded-2xl border p-2 backdrop-blur-xl transition-[border-color,box-shadow] duration-150 ${lightMode ? 'border-[#8ab2aa] bg-white/90 shadow-[0_18px_70px_rgba(24,32,27,0.14)] focus-within:border-[#267d71]' : 'border-[#24796f] bg-[#101211]/95 shadow-[0_18px_70px_rgba(0,0,0,0.5)] focus-within:border-[#39a597]'}`}>
           <div className='flex items-center gap-1'>
             <input
               ref={fileRef}
@@ -667,7 +764,7 @@ function MemoryView({
               type='button'
               aria-label='Attach a source'
               onClick={() => fileRef.current?.click()}
-              className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/[0.05] hover:text-zinc-200'
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-[background-color,color] duration-150 ${lightMode ? 'text-[#68716a] hover:bg-[#e9eee8] hover:text-[#18201b]' : 'text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200'}`}
             >
               <Paperclip className='h-4 w-4' />
             </button>
@@ -686,25 +783,25 @@ function MemoryView({
                 }
               }}
               placeholder={file ? file.name : 'Add text, paste a URL or YouTube link…'}
-              className='h-10 min-w-0 flex-1 resize-none overflow-hidden whitespace-nowrap bg-transparent px-1 py-2.5 text-[13px] leading-5 text-zinc-200 outline-none placeholder:text-zinc-600 sm:text-sm'
+              className={`h-10 min-w-0 flex-1 resize-none overflow-hidden whitespace-nowrap bg-transparent px-1 py-2.5 text-[13px] leading-5 outline-none sm:text-sm ${lightMode ? 'text-[#18201b] placeholder:text-[#8b958e]' : 'text-zinc-200 placeholder:text-zinc-600'}`}
             />
             <button
               type='button'
               aria-label='Integrate'
               onClick={ingest}
               disabled={(!value.trim() && !file) || loading}
-              className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3a887d] text-[#07110f] transition-colors hover:bg-[#4aa093] disabled:cursor-not-allowed disabled:bg-[#3a887d] disabled:text-[#07110f] disabled:opacity-80'
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-[background-color,color] duration-150 disabled:cursor-not-allowed disabled:opacity-80 ${lightMode ? 'bg-[#267d71] text-white hover:bg-[#1f695f] disabled:bg-[#267d71] disabled:text-white' : 'bg-[#3a887d] text-[#07110f] hover:bg-[#4aa093] disabled:bg-[#3a887d] disabled:text-[#07110f]'}`}
             >
               {loading ? <Loader2 className='h-4 w-4 animate-spin' /> : <ArrowUp className='h-4 w-4' />}
             </button>
           </div>
 
-          <div className='flex min-h-5 items-center justify-between gap-3 px-1 pt-1 text-[10px] text-zinc-600'>
+          <div className={`flex min-h-5 items-center justify-between gap-3 px-1 pt-1 text-[10px] ${lightMode ? 'text-[#68716a]' : 'text-zinc-600'}`}>
             {file ? (
-              <span className='inline-flex min-w-0 items-center gap-1.5 text-zinc-400'>
+              <span className={`inline-flex min-w-0 items-center gap-1.5 ${lightMode ? 'text-[#455048]' : 'text-zinc-400'}`}>
                 <File className='h-3 w-3 shrink-0 text-[#b8ff2c]' />
                 <span className='truncate'>{file.name}</span>
-                <button type='button' aria-label='Remove file' onClick={() => setFile(null)} className='shrink-0 text-zinc-600 hover:text-zinc-200'>
+                <button type='button' aria-label='Remove file' onClick={() => setFile(null)} className={`shrink-0 ${lightMode ? 'text-[#68716a] hover:text-[#18201b]' : 'text-zinc-600 hover:text-zinc-200'}`}>
                   <X className='h-3 w-3' />
                 </button>
               </span>
