@@ -1,10 +1,14 @@
 import type {Meta, StoryObj} from '@storybook/nextjs'
-import {type ComponentProps, useEffect, useState} from 'react'
+import {type ComponentProps, useEffect, useRef, useState} from 'react'
+import {expect, userEvent, within} from 'storybook/test'
+
+import type {KnowledgeSource} from '@/daedalus/agent/knowledge/types'
 
 import {WorkspaceShell} from './WorkspaceShell'
 
 function MockedWorkspace({user}: ComponentProps<typeof WorkspaceShell>) {
   const [ready, setReady] = useState(false)
+  const sourcesRef = useRef<KnowledgeSource[]>([])
 
   useEffect(() => {
     const originalFetch = window.fetch
@@ -38,7 +42,50 @@ function MockedWorkspace({user}: ComponentProps<typeof WorkspaceShell>) {
       }
 
       if (url.includes('/api/knowledge')) {
-        return new Response(JSON.stringify({sources: [], results: []}), {
+        const method = init?.method?.toUpperCase() || 'GET'
+
+        if (method === 'POST') {
+          const body = init?.body
+          const file = body instanceof FormData ? body.get('file') : null
+          const json = typeof body === 'string' ? JSON.parse(body) : null
+          const sourceType: KnowledgeSource['source_type'] =
+            file instanceof File ? 'file' : json?.type === 'url' ? 'url' : 'text'
+          const title =
+            (body instanceof FormData && String(body.get('title') || '').trim()) ||
+            (file instanceof File && file.name) ||
+            json?.title ||
+            (sourceType === 'url' ? new URL(json.url).hostname : 'Storybook note')
+          const source: KnowledgeSource = {
+            id: `story-source-${sourcesRef.current.length + 1}`,
+            source_type: sourceType,
+            title,
+            source_url: sourceType === 'url' ? json.url : null,
+            file_name: file instanceof File ? file.name : null,
+            mime_type: file instanceof File ? file.type : null,
+            size_bytes: file instanceof File ? file.size : null,
+            blob_pathname: file instanceof File ? `story/${file.name}` : null,
+            summary: `${title} is indexed and ready for retrieval.`,
+            status: 'ready',
+            error_message: null,
+            chunk_count: 1,
+            created_at: new Date(0).toISOString(),
+          }
+          sourcesRef.current = [source, ...sourcesRef.current]
+          return new Response(JSON.stringify({source}), {
+            status: 201,
+            headers: {'Content-Type': 'application/json'},
+          })
+        }
+
+        if (method === 'DELETE') {
+          const id = new URL(url, window.location.origin).searchParams.get('id')
+          sourcesRef.current = sourcesRef.current.filter((source) => source.id !== id)
+          return new Response(JSON.stringify({success: true}), {
+            headers: {'Content-Type': 'application/json'},
+          })
+        }
+
+        return new Response(JSON.stringify({sources: sourcesRef.current}), {
           headers: {'Content-Type': 'application/json'},
         })
       }
@@ -88,3 +135,23 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Desktop: Story = {}
+
+export const PdfUpload: Story = {
+  play: async ({canvasElement}) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByRole('button', {name: 'Memory'}))
+
+    const fileInput = canvasElement.querySelector<HTMLInputElement>('input[type="file"]')
+    if (!fileInput) throw new Error('Knowledge file input is missing')
+
+    await userEvent.upload(
+      fileInput,
+      new File(['%PDF-1.4\n%%EOF'], 'Delphi-demo.pdf', {type: 'application/pdf'})
+    )
+    await userEvent.click(canvas.getByRole('button', {name: 'Integrate'}))
+
+    await expect(
+      await canvas.findByText('Delphi-demo.pdf is now part of Delphi.')
+    ).toBeInTheDocument()
+  },
+}
