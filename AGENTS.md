@@ -677,3 +677,32 @@ bun run build
 - **Explicit workflows**: Profile enrichment ≠ company enrichment. No automatic expansions.
 - **Security first**: Always validate inputs, check auth, sanitize outputs
 - **No big refactors**: Migrate old code only when touched
+
+---
+
+## Cursor Cloud specific instructions
+
+Environment is Next.js 16 (Turbopack) + Bun, backed by PostgreSQL. The update script runs `bun install` on startup; the notes below cover the non-obvious startup steps a fresh agent must do manually.
+
+### Runtime / tooling
+
+- **Bun** is installed at `~/.bun/bin/bun` (not always on a non-login shell `PATH`). Prefer the absolute path or `export PATH="$HOME/.bun/bin:$PATH"`. The repo pins `bun@1.2.17` via `packageManager`, but a newer Bun installs/builds fine.
+- Standard scripts are in `package.json`: `bun run dev` (dev server, port 3000), `bun run lint`, `bun run build`. `bunx tsc --noEmit` for type-check.
+- `bun run lint` currently reports 1 pre-existing `prefer-const` error plus many warnings — this is existing code, not an environment problem.
+- `next.config.mjs` sets `typescript.ignoreBuildErrors: true`, so `bun run build` succeeds even with TS errors.
+
+### Database (required to run the app)
+
+- Postgres 16 is installed locally. It is NOT auto-started; start it each session with `sudo pg_ctlcluster 16 main start`.
+- Local dev DB: `postgresql://postgres:postgres@127.0.0.1:5432/daedalus` (password set to `postgres`, DB `daedalus`). Create with `sudo -u postgres psql -c "CREATE DATABASE daedalus;"` if missing.
+- Apply schema with the SQL files in `scripts/migrations/*.sql` in sorted order, e.g. `for f in $(ls scripts/migrations/*.sql|sort); do psql "$DATABASE_URL" -f "$f"; done`. Migrations `010-add-sentinel-ai-schema.sql` and `20260121-observe-reliability.sql` error against a fresh DB because they reference tables not created by the base migrations — this is expected and does not block auth/core tables.
+- `src/platform/db/neon.ts` uses the Neon serverless (HTTP) driver, so the `sql` helper used by the extract/enrich/scout/observe primitives requires a real Neon `DATABASE_URL`. **Better Auth (sign-up/sign-in) uses a plain `pg` Pool** (`src/platform/auth/server.ts`) and works against local Postgres, which is enough to run and demo the platform auth flow. To exercise the AI/scraping primitives end-to-end, point `DATABASE_URL` at a Neon instance and supply `FIRECRAWL_API_KEY` + an AI provider key.
+
+### Env vars
+
+- Create `.env.local` (gitignored). Only `DATABASE_URL` and `BETTER_AUTH_SECRET` are validated at startup (`src/platform/auth/server.ts` throws if missing). Stripe / Firecrawl / AI keys are only read when their routes are hit, so placeholder values are fine for booting the app and testing auth.
+- Required to boot: `DATABASE_URL`, `BETTER_AUTH_SECRET` (32+ chars), `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL` (all `http://localhost:3000`).
+
+### Hello-world verification
+
+Signing up creates a row in the `"user"` table via Better Auth. Verified working: `POST /api/auth/sign-up/email` and `/sign-up` UI both create the user and land authenticated.
